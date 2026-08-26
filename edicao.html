@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FleetOps - Registro de Manutenção</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/script.js" defer></script>
+</head>
+<body>
+
+  <header>
+    <h1>FleetOps</h1>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="listagem.html">Veículos</a>
+      <a href="cadastro.html">Novo Veículo</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Registrar Ordem de Serviço / Manutenção</h2>
+
+    <form id="form-edicao-manutencao">
+      <div class="form-group">
+        <label for="veiculo">Veículo Selecionado</label>
+        <input type="text" id="veiculo" value="Veículo em seleção" disabled>
+      </div>
+
+      <div class="form-group">
+        <label for="tipo">Tipo de Serviço</label>
+        <select id="tipo" name="tipo">
+          <option value="preventiva">Preventiva</option>
+          <option value="corretiva">Corretiva</option>
+          <option value="urgencia">Urgência</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="descricao-manutencao">Descrição do Problema / Laudo *</label>
+        <textarea id="descricao-manutencao" name="descricao" rows="4" maxlength="200" required placeholder="Descreva os serviços a serem realizados..."></textarea>
+        <div id="contador-caracteres" class="contador-container">0/200 caracteres</div>
+      </div>
+
+      <div class="form-group">
+        <label for="novo-status">Atualizar Status do Veículo</label>
+        <select id="novo-status" name="novo-status">
+          <option value="manutencao" selected>Em Manutenção</option>
+          <option value="disponivel">Disponível (Baixa no Chamado)</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn">Salvar Alterações</button>
+    </form>
+  </main>
+
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FleetOps - Cadastrar Veículo</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/script.js" defer></script>
+</head>
+<body>
+
+  <header>
+    <h1>FleetOps</h1>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="listagem.html">Veículos</a>
+      <a href="cadastro.html">Novo Veículo</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Cadastro de Novo Veículo</h2>
+
+    <form id="form-cadastro-veiculo" novalidate>
+      <div class="form-group">
+        <label for="placa">Placa do Veículo *</label>
+        <input type="text" id="placa" name="placa" required placeholder="Ex: ABC-1D23">
+      </div>
+
+      <div class="form-group">
+        <label for="modelo">Modelo *</label>
+        <input type="text" id="modelo" name="modelo" required placeholder="Ex: Volvo FH ">
+      </div>
+
+      <div class="form-group">
+        <label for="ano">Ano de Fabricação *</label>
+        <input type="number" id="ano" name="ano" required placeholder="Ex: 2023">
+      </div>
+
+      <div class="form-group">
+        <label for="km">Quilometragem Inicial *</label>
+        <input type="number" id="km" name="km" required placeholder="Ex: 50000">
+      </div>
+
+      <div class="form-group">
+        <label for="status">Status Inicial</label>
+        <select id="status" name="status">
+          <option value="disponivel">Disponível</option>
+          <option value="transito">Em Trânsito</option>
+          <option value="manutencao">Em Manutenção</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn">Cadastrar Veículo</button>
+    </form>
+  </main>
+
+</body>
+</html>

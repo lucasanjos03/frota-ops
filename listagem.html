@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FleetOps - Listagem da Frota</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/script.js" defer></script>
+</head>
+<body>
+
+  <header>
+    <h1>FleetOps</h1>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="listagem.html">Veículos</a>
+      <a href="cadastro.html">Novo Veículo</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Listagem de Veículos Cadastrados</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Placa</th>
+          <th>Modelo</th>
+          <th>Ano</th>
+          <th>Quilometragem</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ABC-1234</td>
+          <td>Volvo FH </td>
+          <td>2022</td>
+          <td>145.000 km</td>
+          <td><span class="badge badge-manutencao">Manutenção</span></td>
+          <td>
+            <a href="detalhes.html">Detalhes</a> | 
+            <a href="edicao.html">Editar/OS</a> | 
+            <button class="btn btn-danger btn-excluir">Excluir</button>
+          </td>
+        </tr>
+        <tr>
+          <td>KLT-4411</td>
+          <td>Scania R450</td>
+          <td>2023</td>
+          <td>82.000 km</td>
+          <td><span class="badge badge-transito">Em Trânsito</span></td>
+          <td>
+            <a href="detalhes.html">Detalhes</a> | 
+            <a href="edicao.html">Editar/OS</a> | 
+            <button class="btn btn-danger btn-excluir">Excluir</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+
+</body>
+</html>
