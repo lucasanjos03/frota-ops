@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Veículos | FleetOps</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css">
+</head>
+<body>
+  <div class="fleet-app">
+    <header class="app-header">
+      <div class="header-inner">
+        <a class="brand" th:href="@{/}" href="index.html">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span><strong>Fleet</strong><b>Ops</b></span>
+        </a>
+        <div class="system-label">Gestão de Frota <span>/</span> Operações</div>
+        <nav class="nav-menu" aria-label="Navegação principal">
+          <a class="nav-item" th:href="@{/}" href="index.html">Dashboard</a>
+          <a class="nav-item active" th:href="@{/veiculos}" href="veiculos.html">Veículos</a>
+          <a class="nav-item" th:href="@{/veiculos/novo}" href="veiculo-novo.html">Novo veículo</a>
+          <a class="nav-item nav-logout" th:href="@{/login}" href="login.html">Sair</a>
+        </nav>
+      </div>
+    </header>
+    <main class="page-container">
+      <div class="page-header">
+        <div>
+          <p class="eyebrow">Cadastro e operação</p>
+          <h1>Veículos</h1>
+          <p class="page-subtitle">24 veículos cadastrados na sua operação.</p>
+        </div>
+        <a class="button button-primary" th:href="@{/veiculos/novo}" href="veiculo-novo.html">+ Novo veículo</a>
+      </div>
+      <section class="content-section">
+        <form class="filters" method="get" th:action="@{/veiculos}">
+          <label for="search">Buscar por placa ou modelo</label>
+          <input id="search" name="q" type="search" placeholder="Ex.: ABC1D23">
+          <label for="status">Status</label>
+          <select id="status" name="status">
+            <option value="">Todos os status</option>
+            <option>Disponível</option>
+            <option>Em trânsito</option>
+            <option>Em manutenção</option>
+          </select>
+          <button class="button button-secondary" type="submit">Filtrar</button>
+          <a class="link-button" th:href="@{/veiculos}" href="veiculos.html">Limpar filtros</a>
+        </form>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Placa</th>
+                <th>Modelo</th>
+                <th>Ano</th>
+                <th>Quilometragem</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong class="plate">ABC1D23</strong></td>
+                <td>Ford Transit 350</td>
+                <td>2023</td>
+                <td>42.180 km</td>
+                <td><span class="status-badge status-success">Disponível</span></td>
+                <td class="table-actions">
+                  <a th:href="@{/veiculos/{id}(id=1)}" href="veiculo-detalhes.html">Detalhes</a>
+                  <a th:href="@{/veiculos/{id}/editar(id=1)}" href="veiculo-editar.html">Editar</a>
+                </td>
+              </tr>
+              <tr>
+                <td><strong class="plate">DEF4G56</strong></td>
+                <td>Mercedes-Benz Sprinter</td>
+                <td>2022</td>
+                <td>67.420 km</td>
+                <td><span class="status-badge status-info">Em trânsito</span></td>
+                <td class="table-actions">
+                  <a th:href="@{/veiculos/{id}(id=2)}" href="veiculo-detalhes.html">Detalhes</a>
+                  <a th:href="@{/veiculos/{id}/editar(id=2)}" href="veiculo-editar.html">Editar</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+    <footer class="app-footer">FleetOps · Gestão de Frota e Manutenção · © 2026</footer>
+  </div>
+</body>
+</html>
