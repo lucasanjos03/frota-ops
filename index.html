@@ -10,7 +10,7 @@
 <body>
 
   <header>
-    <h1>FleetOps</h1>
+    <h1><a href="index.html">FleetOps</a></h1>
     <nav>
       <a href="index.html">Dashboard</a>
       <a href="listagem.html">Veículos</a>
@@ -24,19 +24,19 @@
     <section class="cards-grid">
       <div class="card">
         <h3>Total de Veículos</h3>
-        <p class="numero">24</p>
+        <p class="numero" id="total-veiculos">0</p>
       </div>
       <div class="card">
         <h3>Em Trânsito</h3>
-        <p class="numero">14</p>
+        <p class="numero" id="total-transito">0</p>
       </div>
       <div class="card">
         <h3>Em Manutenção</h3>
-        <p class="numero">4</p>
+        <p class="numero" id="total-manutencao">0</p>
       </div>
       <div class="card">
         <h3>Disponíveis</h3>
-        <p class="numero">6</p>
+        <p class="numero" id="total-disponiveis">0</p>
       </div>
     </section>
 
@@ -51,21 +51,8 @@
           <th>Ações</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td>ABC-1234</td>
-          <td>Volvo FH </td>
-          <td>12/10/2025</td>
-          <td><span class="badge badge-manutencao">Manutenção</span></td>
-          <td><a href="detalhes.html">Ver Detalhes</a></td>
-        </tr>
-        <tr>
-          <td>XYZ-9876</td>
-          <td>Mercedes-Benz</td>
-          <td>05/01/2026</td>
-          <td><span class="badge badge-disponivel">Disponível</span></td>
-          <td><a href="detalhes.html">Ver Detalhes</a></td>
-        </tr>
+      <tbody id="tabela-alertas-corpo">
+        <!-- Renderizado dinamicamente via JavaScript -->
       </tbody>
     </table>
   </main>

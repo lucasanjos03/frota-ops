@@ -27,6 +27,22 @@ header {
   align-items: center;
 }
 
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+header h1 a {
+  color: white;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+header h1 a:hover {
+  opacity: 0.9;
+}
+
 header nav a {
   color: white;
   text-decoration: none;
@@ -167,4 +183,26 @@ form {
   color: #64748b;
   text-align: right;
   margin-top: 0.25rem;
+}
+
+.badge-urgencia {
+  background: #fee2e2;
+  color: var(--danger-color);
+}
+
+.tabela-vazia {
+  text-align: center;
+  color: #64748b;
+  padding: 1.5rem !important;
+  font-style: italic;
+}
+
+.mensagem-sucesso {
+  background-color: #dcfce7;
+  color: #15803d;
+  padding: 0.85rem 1.25rem;
+  border-radius: 6px;
+  margin-bottom: 1.25rem;
+  border: 1px solid #86efac;
+  font-weight: 500;
 }

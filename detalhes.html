@@ -10,7 +10,7 @@
 <body>
 
   <header>
-    <h1>FleetOps</h1>
+    <h1><a href="index.html">FleetOps</a></h1>
     <nav>
       <a href="index.html">Dashboard</a>
       <a href="listagem.html">Veículos</a>
@@ -19,14 +19,10 @@
   </header>
 
   <main>
-    <h2>Ficha Técnica - Placa ABC-1234</h2>
+    <h2 id="titulo-detalhes">Ficha Técnica</h2>
 
-    <div class="card" style="margin-bottom: 2rem;">
-      <p><strong>Modelo:</strong> Volvo FH</p>
-      <p><strong>Ano:</strong> 2022</p>
-      <p><strong>Quilometragem Atual:</strong> 145.000 km</p>
-      <p><strong>Status Atual:</strong> <span class="badge badge-manutencao">Em Manutenção</span></p>
-      <p><strong>Motorista Atribuído:</strong> Carlos Eduardo</p>
+    <div class="card" id="card-detalhes" style="margin-bottom: 2rem;">
+      <p>Carregando informações do veículo...</p>
     </div>
 
     <h3>Histórico de Manutenções</h3>
@@ -39,23 +35,12 @@
           <th>Custo (R$)</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td>12/10/2025</td>
-          <td>Preventiva</td>
-          <td>Troca de óleo e filtros do motor.</td>
-          <td>R$ 1.200,00</td>
-        </tr>
-        <tr>
-          <td>02/05/2025</td>
-          <td>Corretiva</td>
-          <td>Substituição das pastilhas de freio traseiras.</td>
-          <td>R$ 850,00</td>
-        </tr>
+      <tbody id="tabela-historico-corpo">
+        <!-- Renderizado dinamicamente via JavaScript -->
       </tbody>
     </table>
 
-    <a href="edicao.html" class="btn" style="text-decoration: none; display: inline-block;">Registrar Nova Manutenção</a>
+    <a id="btn-nova-manutencao" href="edicao.html" class="btn" style="text-decoration: none; display: inline-block;">Registrar Nova Manutenção</a>
   </main>
 
 </body>

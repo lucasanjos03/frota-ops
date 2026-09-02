@@ -10,7 +10,7 @@
 <body>
 
   <header>
-    <h1>FleetOps</h1>
+    <h1><a href="index.html">FleetOps</a></h1>
     <nav>
       <a href="index.html">Dashboard</a>
       <a href="listagem.html">Veículos</a>
@@ -21,19 +21,34 @@
   <main>
     <h2>Registrar Ordem de Serviço / Manutenção</h2>
 
-    <form id="form-edicao-manutencao">
-      <div class="form-group">
+    <div id="mensagem-sucesso" class="mensagem-sucesso" style="display: none;"></div>
+
+    <form id="form-edicao-manutencao" novalidate>
+      <div class="form-group" id="grupo-veiculo-texto">
         <label for="veiculo">Veículo Selecionado</label>
-        <input type="text" id="veiculo" value="Veículo em seleção" disabled>
+        <input type="text" id="veiculo" value="Carregando..." disabled>
+        <input type="hidden" id="veiculo-id">
+      </div>
+
+      <div class="form-group" id="grupo-veiculo-select" style="display: none;">
+        <label for="veiculo-dropdown">Selecione o Veículo *</label>
+        <select id="veiculo-dropdown" name="veiculo-dropdown">
+          <option value="">Selecione um veículo...</option>
+        </select>
       </div>
 
       <div class="form-group">
         <label for="tipo">Tipo de Serviço</label>
         <select id="tipo" name="tipo">
-          <option value="preventiva">Preventiva</option>
-          <option value="corretiva">Corretiva</option>
-          <option value="urgencia">Urgência</option>
+          <option value="Preventiva">Preventiva</option>
+          <option value="Corretiva">Corretiva</option>
+          <option value="Urgência">Urgência</option>
         </select>
+      </div>
+
+      <div class="form-group">
+        <label for="custo">Custo do Serviço (R$) *</label>
+        <input type="text" id="custo" name="custo" required placeholder="Ex: R$ 850,00">
       </div>
 
       <div class="form-group">
@@ -47,6 +62,7 @@
         <select id="novo-status" name="novo-status">
           <option value="manutencao" selected>Em Manutenção</option>
           <option value="disponivel">Disponível (Baixa no Chamado)</option>
+          <option value="transito">Em Trânsito</option>
         </select>
       </div>
 
