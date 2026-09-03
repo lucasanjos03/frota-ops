@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Dashboard | FleetOps</title>
+    <link
+      rel="stylesheet"
+      th:href="@{/css/styles.css}"
+      href="css/styles.css"
+    />
+  </head>
+  <body>
+    <div class="fleet-app">
+      <header class="app-header">
+        <div class="header-inner">
+          <a class="brand" th:href="@{/}" href="index.html">
+            <span class="brand-mark" aria-hidden="true"
+              ><i></i><i></i><i></i
+            ></span>
+            <span><strong>Fleet</strong><b>Ops</b></span>
+          </a>
+          <div class="system-label">
+            Gestão de Frota <span>/</span> Operações
+          </div>
+          <nav class="nav-menu" aria-label="Navegação principal">
+            <a class="nav-item active" th:href="@{/}" href="index.html"
+              >Dashboard</a
+            >
+            <a class="nav-item" th:href="@{/veiculos}" href="veiculos.html"
+              >Veículos</a
+            >
+            <a
+              class="nav-item"
+              th:href="@{/veiculos/novo}"
+              href="veiculo-novo.html"
+              >Novo veículo</a
+            >
+            <a class="nav-item nav-logout" th:href="@{/login}" href="login.html"
+              >Sair</a
+            >
+          </nav>
+        </div>
+      </header>
+      <main class="page-container">
+        <div class="page-header">
+          <div>
+            <p class="eyebrow">Visão geral</p>
+            <h1>Visão Geral da Frota</h1>
+            <p class="page-subtitle">
+              Resumo operacional e alertas de manutenção dos veículos
+              cadastrados.
+            </p>
+          </div>
+          <a
+            class="button button-primary"
+            th:href="@{/veiculos/novo}"
+            href="veiculo-novo.html"
+            >+ Novo veículo</a
+          >
+        </div>
+        <section class="content-section">
+          <div class="section-heading">
+            <div>
+              <h2>Manutenções próximas do prazo</h2>
+              <p>Veículos que exigem atenção da equipe operacional.</p>
+            </div>
+            <a class="text-button" th:href="@{/veiculos}" href="veiculos.html"
+              >Ver todos →</a
+            >
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Placa</th>
+                  <th>Modelo</th>
+                  <th>Próxima revisão</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong class="plate">ABC1D23</strong></td>
+                  <td>Ford Transit 350</td>
+                  <td>18/09/2026</td>
+                  <td>
+                    <span class="status-badge status-success">Disponível</span>
+                  </td>
+                  <td class="table-actions">
+                    <a
+                      th:href="@{/veiculos/{id}(id=1)}"
+                      href="veiculo-detalhes.html"
+                      >Detalhes</a
+                    >
+                    <a
+                      th:href="@{/veiculos/{id}/editar(id=1)}"
+                      href="veiculo-editar.html"
+                      >Editar</a
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong class="plate">DEF4G56</strong></td>
+                  <td>Mercedes-Benz Sprinter</td>
+                  <td>04/09/2026</td>
+                  <td>
+                    <span class="status-badge status-info">Em trânsito</span>
+                  </td>
+                  <td class="table-actions">
+                    <a
+                      th:href="@{/veiculos/{id}(id=2)}"
+                      href="veiculo-detalhes.html"
+                      >Detalhes</a
+                    >
+                    <a
+                      th:href="@{/veiculos/{id}/editar(id=2)}"
+                      href="veiculo-editar.html"
+                      >Editar</a
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+      <footer class="app-footer">
+        FleetOps · Gestão de Frota e Manutenção · © 2026
+      </footer>
+    </div>
+    <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
+  </body>
+</html>
