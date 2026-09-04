@@ -167,6 +167,13 @@ const Utils = {
     return params.get(nome);
   },
 
+  obterIdDaUrl() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('id')) return params.get('id');
+    const match = window.location.pathname.match(/\/veiculos\/(\d+)/);
+    return match ? match[1] : '1';
+  },
+
   // Sistema simples de notificação na tela (Toast)
   mostrarNotificacao(mensagem, tipo = 'sucesso') {
     let toast = document.getElementById('fleet-toast');
@@ -226,8 +233,8 @@ function initDashboard() {
         <td>${Utils.formatarData(v.proximaRevisao)}</td>
         <td><span class="status-badge ${Utils.obterClasseBadge(v.status)}">${v.status}</span></td>
         <td class="table-actions">
-          <a href="veiculo-detalhes.html?id=${v.id}">Detalhes</a>
-          <a href="veiculo-editar.html?id=${v.id}">Editar</a>
+          <a href="/veiculos/${v.id}">Detalhes</a>
+          <a href="/veiculos/${v.id}/editar">Editar</a>
         </td>
       `;
       tbody.appendChild(tr);
@@ -273,8 +280,8 @@ function initListaVeiculos() {
         <td>${Utils.formatarKm(v.quilometragem)}</td>
         <td><span class="status-badge ${Utils.obterClasseBadge(v.status)}">${v.status}</span></td>
         <td class="table-actions">
-          <a href="veiculo-detalhes.html?id=${v.id}">Detalhes</a>
-          <a href="veiculo-editar.html?id=${v.id}">Editar</a>
+          <a href="/veiculos/${v.id}">Detalhes</a>
+          <a href="/veiculos/${v.id}/editar">Editar</a>
           <button type="button" class="btn-delete" data-id="${v.id}" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:bold;padding:0;">Excluir</button>
         </td>
       `;
@@ -328,14 +335,12 @@ function initListaVeiculos() {
 
   if (formFiltros) {
     formFiltros.addEventListener('submit', (e) => {
-      e.preventDefault();
       aplicarFiltros();
     });
   }
 
   if (linkLimpar) {
     linkLimpar.addEventListener('click', (e) => {
-      e.preventDefault();
       if (inputBusca) inputBusca.value = '';
       if (selectStatus) selectStatus.value = '';
       aplicarFiltros();
@@ -351,7 +356,7 @@ function initNovoVeiculo() {
   const form = document.querySelector('.form-card');
   const inputPlaca = document.getElementById('plate');
 
-  if (!form || !window.location.pathname.includes('veiculo-novo')) return;
+  if (!form || (!window.location.pathname.includes('/veiculos/novo') && !window.location.pathname.includes('veiculo-novo'))) return;
 
   // Máscara e maiúsculo automático no campo de placa
   if (inputPlaca) {
@@ -361,8 +366,6 @@ function initNovoVeiculo() {
   }
 
   form.addEventListener('submit', (e) => {
-    e.preventDefault();
-
     const formData = new FormData(form);
     const novoVeiculo = {
       placa: formData.get('placa')?.toString().trim().toUpperCase(),
@@ -376,17 +379,13 @@ function initNovoVeiculo() {
     };
 
     if (!novoVeiculo.placa || !novoVeiculo.modelo || !novoVeiculo.ano) {
+      e.preventDefault();
       Utils.mostrarNotificacao('Por favor, preencha todos os campos obrigatórios (*).', 'erro');
       return;
     }
 
     VehicleService.salvar(novoVeiculo);
     Utils.mostrarNotificacao('Veículo cadastrado com sucesso!', 'sucesso');
-
-    // Redireciona para a lista após breve intervalo
-    setTimeout(() => {
-      window.location.href = 'veiculos.html';
-    }, 1200);
   });
 }
 
@@ -395,9 +394,9 @@ function initEditarVeiculo() {
   const form = document.querySelector('.form-card');
   const inputPlaca = document.getElementById('plate');
 
-  if (!form || !window.location.pathname.includes('veiculo-editar')) return;
+  if (!form || (!window.location.pathname.includes('/editar') && !window.location.pathname.includes('veiculo-editar'))) return;
 
-  const id = Utils.obterParametroUrl('id') || '1';
+  const id = Utils.obterIdDaUrl();
   const veiculo = VehicleService.buscarPorId(id);
 
   if (veiculo) {
@@ -422,7 +421,7 @@ function initEditarVeiculo() {
     // Ajusta o link de "Cancelar" para voltar aos detalhes do mesmo veículo
     const btnCancelar = form.querySelector('a.button-secondary');
     if (btnCancelar) {
-      btnCancelar.href = `veiculo-detalhes.html?id=${veiculo.id}`;
+      btnCancelar.href = `/veiculos/${veiculo.id}`;
     }
   }
 
@@ -433,8 +432,6 @@ function initEditarVeiculo() {
   }
 
   form.addEventListener('submit', (e) => {
-    e.preventDefault();
-
     const formData = new FormData(form);
     const dadosAtualizados = {
       placa: formData.get('placa')?.toString().trim().toUpperCase(),
@@ -447,21 +444,23 @@ function initEditarVeiculo() {
       observacoes: formData.get('observacoes')?.toString().trim() || ''
     };
 
+    if (!dadosAtualizados.placa || !dadosAtualizados.modelo || !dadosAtualizados.ano) {
+      e.preventDefault();
+      Utils.mostrarNotificacao('Por favor, preencha todos os campos obrigatórios (*).', 'erro');
+      return;
+    }
+
     VehicleService.atualizar(id, dadosAtualizados);
     Utils.mostrarNotificacao('Alterações salvas com sucesso!', 'sucesso');
-
-    setTimeout(() => {
-      window.location.href = `veiculo-detalhes.html?id=${id}`;
-    }, 1200);
   });
 }
 
 // --- TELA: Detalhes do Veículo (veiculo-detalhes.html) ---
 function initDetalhesVeiculo() {
   const detailGrid = document.querySelector('.detail-grid');
-  if (!detailGrid || !window.location.pathname.includes('veiculo-detalhes')) return;
+  if (!detailGrid || window.location.pathname.includes('/editar') || (!window.location.pathname.match(/\/veiculos\/\d+/) && !window.location.pathname.includes('veiculo-detalhes'))) return;
 
-  const id = Utils.obterParametroUrl('id') || '1';
+  const id = Utils.obterIdDaUrl();
   const veiculo = VehicleService.buscarPorId(id);
 
   if (!veiculo) return;
@@ -469,7 +468,7 @@ function initDetalhesVeiculo() {
   // Atualiza o botão de editar para apontar para o ID correto
   const btnEditar = document.querySelector('.page-header a.button-primary');
   if (btnEditar) {
-    btnEditar.href = `veiculo-editar.html?id=${veiculo.id}`;
+    btnEditar.href = `/veiculos/${veiculo.id}/editar`;
   }
 
   // Preenche a grade de detalhes
@@ -530,18 +529,19 @@ function initLogin() {
   formLogin.addEventListener('submit', (e) => {
     // Por enquanto no front-end simples:
     // Evita 404 estático e simula redirecionamento para o dashboard
-    e.preventDefault();
+
     const user = document.getElementById('username')?.value;
     const pass = document.getElementById('password')?.value;
 
     if (!user || !pass) {
+      e.preventDefault();
       Utils.mostrarNotificacao('Informe usuário e senha.', 'erro');
       return;
     }
 
     Utils.mostrarNotificacao('Acesso autorizado! Redirecionando...', 'sucesso');
     setTimeout(() => {
-      window.location.href = 'index.html';
+      window.location.href = '/';
     }, 1000);
   });
 }
