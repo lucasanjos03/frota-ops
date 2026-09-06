@@ -1,33 +1,57 @@
 HELP.md
 target/
+build/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+# ============ Pastas temporárias / auxiliares ============
+.*-backup/
+.tmp/
+.tmp-*/
+.temp/
 
-### IntelliJ IDEA ###
+.spring-boot-devtools.properties
+spring-*.log
+
+logs/
+*.log
+*.hprof
+*.seed
+
+.env
+.env.local
+.env.*.local
+application-local.properties
+application-local.yml
+application-dev.properties
+application-dev.yml
+
+# ============ Bancos locais (futura persistência) ============
+# H2 / Derby em arquivo
+*.h2.db
+*.mv.db
+*.trace.db
+data/
+db-data/
+postgres-data/
+
+
+
+# ============ IntelliJ IDEA ============
 .idea
 *.iws
 *.iml
 *.ipr
 
-### NetBeans ###
+# ============ NetBeans ============
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
+# ============ VS Code ============
 .vscode/
