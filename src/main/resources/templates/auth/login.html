@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Entrar | FleetOps</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css">
+</head>
+<body>
+  <main class="login-page">
+    <section class="login-card">
+      <div class="login-brand">
+        <a class="brand" th:href="@{/}" href="index.html">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span><strong>Fleet</strong><b>Ops</b></span>
+        </a>
+        <h1>FleetOps</h1>
+        <p class="page-subtitle">Gestão de Frota e Manutenção</p>
+      </div>
+      <form method="post" th:action="@{/login}">
+        <div class="form-group">
+          <label for="username">E-mail ou usuário</label>
+          <input id="username" name="username" type="text" autocomplete="username"
+                 th:value="${param.username != null ? param.username[0] : ''}"
+                 required>
+        </div>
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <label class="remember">
+          <input type="checkbox" name="remember"
+                 th:checked="${param.remember != null}"> Lembrar acesso
+        </label>
+        <p class="field-error" aria-live="polite" th:if="${param.error}">Usuário ou senha inválidos.</p>
+        <button class="button button-primary" type="submit">Entrar no Sistema</button>
+      </form>
+    </section>
+  </main>
+  <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
+</body>
+</html>

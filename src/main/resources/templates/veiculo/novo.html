@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Novo veículo | FleetOps</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css">
+</head>
+<body>
+  <div class="fleet-app">
+    <header class="app-header">
+      <div class="header-inner">
+        <a class="brand" th:href="@{/}" href="index.html">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span><strong>Fleet</strong><b>Ops</b></span>
+        </a>
+        <nav class="nav-menu" aria-label="Navegação principal">
+          <a class="nav-item" th:href="@{/}" href="index.html">Dashboard</a>
+          <a class="nav-item" th:href="@{/veiculos}" href="veiculos.html">Veículos</a>
+          <a class="nav-item active" th:href="@{/veiculos/novo}" href="veiculo-novo.html">Novo veículo</a>
+          <a class="nav-item nav-logout" th:href="@{/login}" href="login.html">Sair</a>
+        </nav>
+      </div>
+    </header>
+    <main class="page-container">
+      <div class="page-header">
+        <div>
+          <p class="eyebrow">Cadastro de veículo</p>
+          <h1>Cadastrar Novo Veículo</h1>
+          <p class="page-subtitle">Preencha os dados para adicionar um veículo à frota.</p>
+        </div>
+      </div>
+      <form class="form-card" method="post" th:action="@{/veiculos/novo}" th:object="${veiculo}">
+        <div class="form-section">
+          <div class="form-section-heading">
+            <h2>Dados do veículo</h2>
+            <p>Informações básicas para identificação e controle.</p>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="plate">Placa *</label>
+              <input id="plate" type="text" required placeholder="ABC1D23"
+                     th:field="*{placa}">
+            </div>
+            <div class="form-group">
+              <label for="model">Modelo *</label>
+              <input id="model" type="text" required placeholder="Ex.: Ford Transit 350"
+                     th:field="*{modelo}">
+            </div>
+            <div class="form-group">
+              <label for="year">Ano *</label>
+              <input id="year" type="number" required
+                     th:field="*{ano}">
+            </div>
+            <div class="form-group">
+              <label for="mileage">Quilometragem *</label>
+              <input id="mileage" type="number" min="0" required
+                     th:field="*{quilometragem}">
+            </div>
+            <div class="form-group">
+              <label for="status">Status *</label>
+              <select id="status" required th:field="*{status}">
+                <option value="">Selecione...</option>
+                <option>Disponível</option>
+                <option>Em trânsito</option>
+                <option>Em manutenção</option>
+                <option>Indisponível</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="form-section">
+          <div class="form-section-heading">
+            <h2>Manutenção</h2>
+            <p>Controle o calendário de revisões preventivas.</p>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="last-review">Data da última revisão</label>
+              <input id="last-review" type="date" th:field="*{ultimaRevisao}">
+            </div>
+            <div class="form-group">
+              <label for="next-review">Data da próxima revisão</label>
+              <input id="next-review" type="date" th:field="*{proximaRevisao}">
+            </div>
+            <div class="form-group form-group-full">
+              <label for="notes">Observações</label>
+              <textarea id="notes" rows="4" th:field="*{observacoes}"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <a class="button button-secondary" th:href="@{/veiculos}" href="veiculos.html">Cancelar</a>
+          <button class="button button-primary" type="submit">Cadastrar Veículo</button>
+        </div>
+      </form>
+    </main>
+  </div>
+  <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
+</body>
+</html>
