@@ -212,8 +212,10 @@ const Utils = {
 
 // --- TELA: Dashboard (index.html) ---
 function initDashboard() {
+  const formFiltros = document.querySelector('.filters');
   const tbody = document.querySelector('.data-table tbody');
-  if (!tbody) return;
+  // Se existir .filters, estamos na tela de veículos, não no dashboard
+  if (formFiltros || !tbody) return;
 
   const veiculos = VehicleService.listarTodos();
   
@@ -232,26 +234,42 @@ function initDashboard() {
         <td>${v.modelo}</td>
         <td>${Utils.formatarData(v.proximaRevisao)}</td>
         <td><span class="status-badge ${Utils.obterClasseBadge(v.status)}">${v.status}</span></td>
-        <td class="table-actions">
-          <a href="/veiculos/${v.id}">Detalhes</a>
-          <a href="/veiculos/${v.id}/editar">Editar</a>
+        <td class="cell-actions">
+          <div class="table-actions">
+            <a href="/veiculos/${v.id}">Detalhes</a>
+            <a href="/veiculos/${v.id}/editar">Editar</a>
+            <button type="button" class="btn-delete" data-id="${v.id}">Excluir</button>
+          </div>
         </td>
       `;
       tbody.appendChild(tr);
+    });
+
+    // Eventos do botão de exclusão
+    tbody.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.target.getAttribute('data-id');
+        if (confirm('Tem certeza que deseja remover este veículo da frota?')) {
+          VehicleService.excluir(id);
+          Utils.mostrarNotificacao('Veículo excluído com sucesso!', 'sucesso');
+          initDashboard();
+        }
+      });
     });
   }
 }
 
 // --- TELA: Listagem de Veículos (veiculos.html) ---
 function initListaVeiculos() {
-  const tbody = document.querySelector('.data-table tbody');
   const formFiltros = document.querySelector('.filters');
+  const tbody = document.querySelector('.data-table tbody');
   const inputBusca = document.getElementById('search');
   const selectStatus = document.getElementById('status');
   const linkLimpar = document.querySelector('.link-button');
   const subtitle = document.querySelector('.page-subtitle');
 
-  if (!tbody) return;
+  // Apenas executa se estiver na tela de listagem de veículos (que possui o formulário .filters)
+  if (!formFiltros || !tbody) return;
 
   function renderizarTabela(lista) {
     tbody.innerHTML = '';
@@ -263,7 +281,7 @@ function initListaVeiculos() {
     if (lista.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" style="text-align:center; padding: 32px; color: var(--muted);">
+          <td colspan="6" style="text-align:center; padding: 32px; color: #6c7b89;">
             Nenhum veículo encontrado com os filtros atuais.
           </td>
         </tr>
@@ -279,10 +297,12 @@ function initListaVeiculos() {
         <td>${v.ano}</td>
         <td>${Utils.formatarKm(v.quilometragem)}</td>
         <td><span class="status-badge ${Utils.obterClasseBadge(v.status)}">${v.status}</span></td>
-        <td class="table-actions">
-          <a href="/veiculos/${v.id}">Detalhes</a>
-          <a href="/veiculos/${v.id}/editar">Editar</a>
-          <button type="button" class="btn-delete" data-id="${v.id}" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:bold;padding:0;">Excluir</button>
+        <td class="cell-actions">
+          <div class="table-actions">
+            <a href="/veiculos/${v.id}">Detalhes</a>
+            <a href="/veiculos/${v.id}/editar">Editar</a>
+            <button type="button" class="btn-delete" data-id="${v.id}">Excluir</button>
+          </div>
         </td>
       `;
       tbody.appendChild(tr);
@@ -498,7 +518,7 @@ function initDetalhesVeiculo() {
       if (veiculo.historico.length === 0) {
         tbodyHistorico.innerHTML = `
           <tr>
-            <td colspan="5" style="text-align:center; padding: 24px; color: var(--muted);">
+            <td colspan="5" style="text-align:center; padding: 24px; color: #6c7b89;">
               Nenhum histórico de manutenção registrado para este veículo.
             </td>
           </tr>

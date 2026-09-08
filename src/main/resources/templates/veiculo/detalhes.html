@@ -53,9 +53,9 @@
             <dd>
               <span
                 class="status-badge"
-                th:classappend="${veiculo.status == 'Disponível'} ? 'status-success' :
-                                 ${veiculo.status == 'Em trânsito'} ? 'status-info' :
-                                 ${veiculo.status == 'Em manutenção'} ? 'status-warning' : 'status-danger'"
+                th:classappend="${veiculo.status == 'Disponível' ? 'status-success' :
+                                 (veiculo.status == 'Em trânsito' ? 'status-info' :
+                                 (veiculo.status == 'Em manutenção' ? 'status-warning' : 'status-danger'))}"
                 th:text="${veiculo.status}"
               >Disponível</span>
             </dd>
