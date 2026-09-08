@@ -86,7 +86,7 @@ public class VeiculoController {
         return "redirect:/veiculos";
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/detalhes/{id}")
     public String detalhes(@PathVariable("id") Long id, Model model) {
         Veiculo veiculo = veiculosMock.stream()
                 .filter(v -> v.getId().equals(id))
@@ -102,7 +102,7 @@ public class VeiculoController {
         return "veiculo/detalhes";
     }
 
-    @GetMapping("/{id}/editar")
+    @GetMapping("/editar/{id}")
     public String formularioEditar(@PathVariable("id") Long id, Model model) {
         Veiculo veiculo = veiculosMock.stream()
                 .filter(v -> v.getId().equals(id))
@@ -113,16 +113,16 @@ public class VeiculoController {
         return "veiculo/editar";
     }
 
-    @PostMapping("/{id}/editar")
+    @PostMapping("/editar/{id}")
     public String atualizar(@PathVariable("id") Long id,
                             @ModelAttribute Veiculo veiculo) {
         veiculosMock.removeIf(v -> v.getId().equals(id));
         veiculo.setId(id);
         veiculosMock.add(veiculo);
-        return "redirect:/veiculos/" + id;
+        return "redirect:/veiculos/detalhes/" + id;
     }
 
-    @PostMapping("/{id}/excluir")
+    @PostMapping("/excluir/{id}")
     public String excluir(@PathVariable("id") Long id) {
         veiculosMock.removeIf(v -> v.getId().equals(id));
         return "redirect:/veiculos";

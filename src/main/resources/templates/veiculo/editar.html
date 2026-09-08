@@ -14,6 +14,7 @@
           <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
           <span><strong>Fleet</strong><b>Ops</b></span>
         </a>
+        <div class="system-label">Gestão de Frota <span>/</span> Operações</div>
         <nav class="nav-menu" aria-label="Navegação principal">
           <a class="nav-item" th:href="@{/}" href="index.html">Dashboard</a>
           <a class="nav-item active" th:href="@{/veiculos}" href="veiculos.html">Veículos</a>
@@ -25,35 +26,39 @@
     <main class="page-container" th:if="${veiculo}">
       <div class="page-header">
         <div>
-          <p class="eyebrow">Cadastro de veículo</p>
+          <p class="eyebrow">Edição cadastral</p>
           <h1>Editar Veículo</h1>
-          <p class="page-subtitle">Atualize os dados cadastrais e de manutenção.</p>
+          <p class="page-subtitle">Atualize as informações cadastrais e o plano de manutenção do veículo.</p>
         </div>
       </div>
       <form class="form-card" method="post"
-            th:action="@{/veiculos/{id}/editar(id=${veiculo.id})}"
+            th:action="@{/veiculos/editar/{id}(id=${veiculo.id})}"
             th:object="${veiculo}">
+        <!-- Componente 1: Dados do veículo -->
         <div class="form-section">
-          <div class="form-section-heading"><h2>Dados do veículo</h2></div>
+          <div class="form-section-heading">
+            <h2>Dados do veículo</h2>
+            <p>Informações básicas para identificação e controle operacional.</p>
+          </div>
           <div class="form-grid">
-            <div class="form-group">
-              <label for="plate">Placa *</label>
-              <input id="plate" type="text" required th:field="*{placa}">
+            <div class="form-group col-span-4">
+              <label for="plate">Placa <span class="required-mark">*</span></label>
+              <input id="plate" type="text" required placeholder="Ex.: ABC1D23" th:field="*{placa}">
             </div>
-            <div class="form-group">
-              <label for="model">Modelo *</label>
-              <input id="model" type="text" required th:field="*{modelo}">
+            <div class="form-group col-span-8">
+              <label for="model">Modelo <span class="required-mark">*</span></label>
+              <input id="model" type="text" required placeholder="Ex.: Ford Transit 350" th:field="*{modelo}">
             </div>
-            <div class="form-group">
-              <label for="year">Ano *</label>
-              <input id="year" type="number" required th:field="*{ano}">
+            <div class="form-group col-span-4">
+              <label for="year">Ano <span class="required-mark">*</span></label>
+              <input id="year" type="number" required placeholder="Ex.: 2023" th:field="*{ano}">
             </div>
-            <div class="form-group">
-              <label for="mileage">Quilometragem *</label>
-              <input id="mileage" type="number" min="0" required th:field="*{quilometragem}">
+            <div class="form-group col-span-4">
+              <label for="mileage">Quilometragem (km) <span class="required-mark">*</span></label>
+              <input id="mileage" type="number" min="0" required placeholder="Ex.: 42000" th:field="*{quilometragem}">
             </div>
-            <div class="form-group">
-              <label for="status">Status *</label>
+            <div class="form-group col-span-4">
+              <label for="status">Status <span class="required-mark">*</span></label>
               <select id="status" required th:field="*{status}">
                 <option value="Disponível">Disponível</option>
                 <option value="Em trânsito">Em trânsito</option>
@@ -61,28 +66,41 @@
                 <option value="Indisponível">Indisponível</option>
               </select>
             </div>
-            <div class="form-group">
+          </div>
+        </div>
+
+        <!-- Componente 2: Manutenção -->
+        <div class="form-section">
+          <div class="form-section-heading">
+            <h2>Manutenção</h2>
+            <p>Controle do calendário de revisões preventivas e apontamentos.</p>
+          </div>
+          <div class="form-grid">
+            <div class="form-group col-span-6">
               <label for="last-review">Data da última revisão</label>
               <input id="last-review" type="date" th:field="*{ultimaRevisao}">
             </div>
-            <div class="form-group">
+            <div class="form-group col-span-6">
               <label for="next-review">Data da próxima revisão</label>
               <input id="next-review" type="date" th:field="*{proximaRevisao}">
             </div>
-            <div class="form-group form-group-full">
-              <label for="notes">Observações</label>
-              <textarea id="notes" rows="4" th:field="*{observacoes}"></textarea>
+            <div class="form-group col-span-12">
+              <label for="notes">Observações operacionais</label>
+              <textarea id="notes" rows="4" placeholder="Adicione notas sobre o uso, rotas ou pendências do veículo..." th:field="*{observacoes}"></textarea>
             </div>
           </div>
         </div>
+
+        <!-- Ações do Formulário -->
         <div class="form-actions">
           <a class="button button-secondary"
-             th:href="@{/veiculos/{id}(id=${veiculo.id})}"
+             th:href="@{/veiculos/detalhes/{id}(id=${veiculo.id})}"
              href="veiculo-detalhes.html">Cancelar</a>
           <button class="button button-primary" type="submit">Salvar Alterações</button>
         </div>
       </form>
     </main>
+    <footer class="app-footer">FleetOps · Gestão de Frota e Manutenção · © 2026</footer>
   </div>
   <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
 </body>

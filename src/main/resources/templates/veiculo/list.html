@@ -80,9 +80,9 @@
                 </td>
                 <td class="cell-actions">
                   <div class="table-actions">
-                    <a th:href="@{/veiculos/{id}(id=${veiculo.id})}" href="veiculo-detalhes.html">Detalhes</a>
-                    <a th:href="@{/veiculos/{id}/editar(id=${veiculo.id})}" href="veiculo-editar.html">Editar</a>
-                    <form th:action="@{/veiculos/{id}/excluir(id=${veiculo.id})}" method="post" onsubmit="return confirm('Tem certeza que deseja remover este veículo da frota?');">
+                    <a th:href="@{/veiculos/detalhes/{id}(id=${veiculo.id})}" href="veiculo-detalhes.html">Detalhes</a>
+                    <a th:href="@{/veiculos/editar/{id}(id=${veiculo.id})}" href="veiculo-editar.html">Editar</a>
+                    <form th:action="@{/veiculos/excluir/{id}(id=${veiculo.id})}" method="post" onsubmit="return confirm('Tem certeza que deseja remover este veículo da frota?');">
                       <button type="submit" class="btn-action-delete">Excluir</button>
                     </form>
                   </div>

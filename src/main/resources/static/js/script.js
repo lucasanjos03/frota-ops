@@ -170,38 +170,28 @@ const Utils = {
   obterIdDaUrl() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('id')) return params.get('id');
-    const match = window.location.pathname.match(/\/veiculos\/(\d+)/);
+    const match = window.location.pathname.match(/\/veiculos\/(?:detalhes\/|editar\/)?(\d+)/);
     return match ? match[1] : '1';
   },
 
-  // Sistema simples de notificação na tela (Toast)
+  // Sistema de notificação na tela (Toast) utilizando classes CSS formatadas
   mostrarNotificacao(mensagem, tipo = 'sucesso') {
     let toast = document.getElementById('fleet-toast');
     if (!toast) {
       toast = document.createElement('div');
       toast.id = 'fleet-toast';
-      toast.style.position = 'fixed';
-      toast.style.bottom = '24px';
-      toast.style.right = '24px';
-      toast.style.padding = '14px 20px';
-      toast.style.borderRadius = '8px';
-      toast.style.color = '#fff';
-      toast.style.fontWeight = 'bold';
-      toast.style.fontSize = '13px';
-      toast.style.boxShadow = '0 4px 14px rgba(0,0,0,0.15)';
-      toast.style.zIndex = '9999';
-      toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
       document.body.appendChild(toast);
     }
 
-    toast.style.backgroundColor = tipo === 'sucesso' ? '#247a58' : '#b44040';
+    // Aplica o texto e as classes estilizadas
     toast.textContent = mensagem;
-    toast.style.opacity = '1';
-    toast.style.transform = 'translateY(0)';
+    const tipoClasse = tipo === 'sucesso' ? 'fleet-toast-success' : 'fleet-toast-error';
+    toast.className = `fleet-toast ${tipoClasse} show`;
 
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateY(10px)';
+    // Reseta temporizador anterior se houver chamadas consecutivas
+    clearTimeout(toast.timeoutId);
+    toast.timeoutId = setTimeout(() => {
+      toast.classList.remove('show');
     }, 3200);
   }
 };
@@ -236,8 +226,8 @@ function initDashboard() {
         <td><span class="status-badge ${Utils.obterClasseBadge(v.status)}">${v.status}</span></td>
         <td class="cell-actions">
           <div class="table-actions">
-            <a href="/veiculos/${v.id}">Detalhes</a>
-            <a href="/veiculos/${v.id}/editar">Editar</a>
+            <a href="/veiculos/detalhes/${v.id}">Detalhes</a>
+            <a href="/veiculos/editar/${v.id}">Editar</a>
             <button type="button" class="btn-delete" data-id="${v.id}">Excluir</button>
           </div>
         </td>
@@ -299,8 +289,8 @@ function initListaVeiculos() {
         <td><span class="status-badge ${Utils.obterClasseBadge(v.status)}">${v.status}</span></td>
         <td class="cell-actions">
           <div class="table-actions">
-            <a href="/veiculos/${v.id}">Detalhes</a>
-            <a href="/veiculos/${v.id}/editar">Editar</a>
+            <a href="/veiculos/detalhes/${v.id}">Detalhes</a>
+            <a href="/veiculos/editar/${v.id}">Editar</a>
             <button type="button" class="btn-delete" data-id="${v.id}">Excluir</button>
           </div>
         </td>
@@ -441,7 +431,7 @@ function initEditarVeiculo() {
     // Ajusta o link de "Cancelar" para voltar aos detalhes do mesmo veículo
     const btnCancelar = form.querySelector('a.button-secondary');
     if (btnCancelar) {
-      btnCancelar.href = `/veiculos/${veiculo.id}`;
+      btnCancelar.href = `/veiculos/detalhes/${veiculo.id}`;
     }
   }
 
@@ -478,7 +468,7 @@ function initEditarVeiculo() {
 // --- TELA: Detalhes do Veículo (veiculo-detalhes.html) ---
 function initDetalhesVeiculo() {
   const detailGrid = document.querySelector('.detail-grid');
-  if (!detailGrid || window.location.pathname.includes('/editar') || (!window.location.pathname.match(/\/veiculos\/\d+/) && !window.location.pathname.includes('veiculo-detalhes'))) return;
+  if (!detailGrid || window.location.pathname.includes('/editar') || (!window.location.pathname.match(/\/veiculos\/(?:detalhes\/)?\d+/) && !window.location.pathname.includes('veiculo-detalhes'))) return;
 
   const id = Utils.obterIdDaUrl();
   const veiculo = VehicleService.buscarPorId(id);
@@ -488,7 +478,7 @@ function initDetalhesVeiculo() {
   // Atualiza o botão de editar para apontar para o ID correto
   const btnEditar = document.querySelector('.page-header a.button-primary');
   if (btnEditar) {
-    btnEditar.href = `/veiculos/${veiculo.id}/editar`;
+    btnEditar.href = `/veiculos/editar/${veiculo.id}`;
   }
 
   // Preenche a grade de detalhes

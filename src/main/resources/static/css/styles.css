@@ -284,27 +284,21 @@ textarea {
   overflow: hidden; /* Mantém os cantos arredondados e alinha as bordas da tabela com o card */
 }
 
-.section-heading,
-.form-section-heading {
+.section-heading {
   padding: 23px 24px 19px;
   border-bottom: 1px solid #e9eef2;
-}
-
-.section-heading {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.section-heading h2,
-.form-section-heading h2 {
+.section-heading h2 {
   margin: 0;
   color: #0e3048;
   font-size: 17px;
 }
 
-.section-heading p,
-.form-section-heading p {
+.section-heading p {
   margin: 5px 0 0;
   color: #6c7b89;
   font-size: 12px;
@@ -467,6 +461,10 @@ td.table-actions > * + * {
 /* --------------------------------------------------------------------------
    9. FORMULÁRIOS E FILTROS
    -------------------------------------------------------------------------- */
+.form-card {
+  max-width: 880px;
+}
+
 .filters {
   display: flex;
   gap: 12px;
@@ -477,10 +475,7 @@ td.table-actions > * + * {
 }
 
 .filters input,
-.filters select,
-.form-group input,
-.form-group select,
-.form-group textarea {
+.filters select {
   border: 1px solid #dce5eb;
   border-radius: 5px;
   background-color: #ffffff;
@@ -491,10 +486,7 @@ td.table-actions > * + * {
 }
 
 .filters input:focus,
-.filters select:focus,
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
+.filters select:focus {
   outline: none;
   border-color: #2378a9;
   box-shadow: 0 0 0 3px rgba(35, 120, 169, 0.15);
@@ -505,43 +497,122 @@ td.table-actions > * + * {
 }
 
 .form-section {
-  padding: 28px 32px;
+  padding: 32px;
   border-bottom: 1px solid #e9eef2;
 }
 
+.form-section:last-of-type {
+  border-bottom: none;
+}
+
+.form-section-heading {
+  padding: 0 0 16px 0;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e9eef2;
+}
+
+.form-section-heading h2 {
+  margin: 0;
+  color: #0e3048;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.form-section-heading p {
+  margin: 4px 0 0;
+  color: #6c7b89;
+  font-size: 12px;
+}
+
+/* Grid com suporte a 12 colunas para alinhamento simétrico */
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 20px 24px;
-  max-width: 850px;
+  width: 100%;
+}
+
+.col-span-12,
+.form-group-full {
+  grid-column: span 12;
+}
+
+.col-span-8 {
+  grid-column: span 8;
+}
+
+.col-span-6 {
+  grid-column: span 6;
+}
+
+.col-span-4 {
+  grid-column: span 4;
+}
+
+.col-span-3 {
+  grid-column: span 3;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
 }
 
 .form-group label {
-  display: block;
-  color: #425465;
+  color: #364858;
   font-size: 12px;
   font-weight: 700;
   margin-bottom: 7px;
+}
+
+.form-group label .required-mark {
+  color: #b44040;
+  margin-left: 2px;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
   width: 100%;
+  border: 1px solid #dce5eb;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #1d2b3a;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.4;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
-.form-group-full {
-  grid-column: 1 / -1;
+.form-group input:hover,
+.form-group select:hover,
+.form-group textarea:hover {
+  border-color: #b5c7d3;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #2378a9;
+  box-shadow: 0 0 0 3px rgba(35, 120, 169, 0.15);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 96px;
+  font-family: inherit;
 }
 
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
   padding: 20px 32px;
   background-color: #fafbfd;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
+  border-top: 1px solid #e9eef2;
 }
 
 /* --------------------------------------------------------------------------
@@ -632,7 +703,41 @@ td.table-actions > * + * {
 }
 
 /* --------------------------------------------------------------------------
-   13. RESPONSIVIDADE (MEDIA QUERIES)
+   13. COMPONENTE DE NOTIFICAÇÃO (TOAST)
+   -------------------------------------------------------------------------- */
+.fleet-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 14px 20px;
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.fleet-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.fleet-toast-success {
+  background-color: #247a58;
+}
+
+.fleet-toast-error {
+  background-color: #b44040;
+}
+
+/* --------------------------------------------------------------------------
+   14. RESPONSIVIDADE (MEDIA QUERIES)
    -------------------------------------------------------------------------- */
 @media (max-width: 760px) {
   .header-inner {
@@ -689,20 +794,35 @@ td.table-actions > * + * {
     min-width: 720px;
   }
 
-  .form-grid {
-    grid-template-columns: 1fr;
+  .form-card {
+    max-width: 100%;
   }
 
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .col-span-12,
+  .col-span-8,
+  .col-span-6,
+  .col-span-4,
+  .col-span-3,
   .form-group-full {
-    grid-column: auto;
+    grid-column: span 1 !important;
   }
 
   .form-section {
-    padding: 23px 18px;
+    padding: 22px 18px;
   }
 
   .form-actions {
     padding: 16px 18px;
+    flex-direction: column-reverse;
+  }
+
+  .form-actions .button {
+    width: 100%;
   }
 
   .detail-grid {
