@@ -4,11 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Dashboard | FleetOps</title>
-    <link
-      rel="stylesheet"
-      th:href="@{/css/styles.css}"
-      href="css/styles.css"
-    />
+    <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css" />
   </head>
   <body>
     <div class="fleet-app">
@@ -81,10 +77,22 @@
                 </tr>
               </thead>
               <tbody>
+                <tr th:if="${#lists.isEmpty(veiculosAlerta)}">
+                  <td
+                    colspan="5"
+                    style="text-align: center; padding: 32px; color: #6c7b89"
+                  >
+                    Nenhum alerta de manutenção pendente no momento.
+                  </td>
+                </tr>
                 <tr th:each="veiculo : ${veiculosAlerta}">
-                  <td><strong class="plate" th:text="${veiculo.placa}">ABC1D23</strong></td>
-                  <td th:text="${veiculo.modelo}">Ford Transit 350</td>
-                  <td th:text="${#temporals.format(veiculo.proximaRevisao, 'dd/MM/yyyy')}">18/09/2026</td>
+                  <td>
+                    <strong class="plate" th:text="${veiculo.placa}"></strong>
+                  </td>
+                  <td th:text="${veiculo.modelo}"></td>
+                  <td
+                    th:text="${#temporals.format(veiculo.proximaRevisao, 'dd/MM/yyyy')}"
+                  ></td>
                   <td>
                     <span
                       class="status-badge"
@@ -92,7 +100,7 @@
                                        (veiculo.status == 'Em trânsito' ? 'status-info' :
                                        (veiculo.status == 'Em manutenção' ? 'status-warning' : 'status-danger'))}"
                       th:text="${veiculo.status}"
-                    >Disponível</span>
+                    ></span>
                   </td>
                   <td class="cell-actions">
                     <div class="table-actions">
@@ -109,9 +117,15 @@
                       <form
                         th:action="@{/veiculos/excluir/{id}(id=${veiculo.id})}"
                         method="post"
-                        onsubmit="return confirm('Tem certeza que deseja remover este veículo da frota?');"
+                        onsubmit="
+                          return confirm(
+                            'Tem certeza que deseja remover este veículo da frota?',
+                          );
+                        "
                       >
-                        <button type="submit" class="btn-action-delete">Excluir</button>
+                        <button type="submit" class="btn-action-delete">
+                          Excluir
+                        </button>
                       </form>
                     </div>
                   </td>

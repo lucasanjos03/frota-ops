@@ -1,129 +1,181 @@
 <!doctype html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Detalhes do veículo | FleetOps</title>
-  <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css">
-</head>
-<body>
-  <div class="fleet-app">
-    <header class="app-header">
-      <div class="header-inner">
-        <a class="brand" th:href="@{/}" href="index.html">
-          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-          <span><strong>Fleet</strong><b>Ops</b></span>
-        </a>
-        <nav class="nav-menu" aria-label="Navegação principal">
-          <a class="nav-item" th:href="@{/}" href="index.html">Dashboard</a>
-          <a class="nav-item active" th:href="@{/veiculos}" href="veiculos.html">Veículos</a>
-          <a class="nav-item" th:href="@{/veiculos/novo}" href="veiculo-novo.html">Novo veículo</a>
-          <a class="nav-item nav-logout" th:href="@{/login}" href="login.html">Sair</a>
-        </nav>
-      </div>
-    </header>
-    <main class="page-container" th:if="${veiculo}">
-      <div class="page-header">
-        <div>
-          <p class="eyebrow">Ficha do veículo</p>
-          <h1>Detalhes do Veículo</h1>
-          <p class="page-subtitle">Informações cadastrais e histórico de manutenção.</p>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Detalhes do veículo | FleetOps</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="fleet-app">
+      <header class="app-header">
+        <div class="header-inner">
+          <a class="brand" th:href="@{/}" href="index.html">
+            <span class="brand-mark" aria-hidden="true"
+              ><i></i><i></i><i></i
+            ></span>
+            <span><strong>Fleet</strong><b>Ops</b></span>
+          </a>
+          <nav class="nav-menu" aria-label="Navegação principal">
+            <a class="nav-item" th:href="@{/}" href="index.html">Dashboard</a>
+            <a
+              class="nav-item active"
+              th:href="@{/veiculos}"
+              href="veiculos.html"
+              >Veículos</a
+            >
+            <a
+              class="nav-item"
+              th:href="@{/veiculos/novo}"
+              href="veiculo-novo.html"
+              >Novo veículo</a
+            >
+            <a class="nav-item nav-logout" th:href="@{/login}" href="login.html"
+              >Sair</a
+            >
+          </nav>
         </div>
-        <a class="button button-primary"
-           th:href="@{/veiculos/editar/{id}(id=${veiculo.id})}"
-           href="veiculo-editar.html">Editar Veículo</a>
-      </div>
-      <section class="content-section">
-        <div class="section-heading">
+      </header>
+      <main class="page-container" th:if="${veiculo}">
+        <div class="page-header">
           <div>
-            <h2>Identificação</h2>
-            <p>Dados atuais do veículo.</p>
+            <p class="eyebrow">Ficha do veículo</p>
+            <h1>Detalhes do Veículo</h1>
+            <p class="page-subtitle">
+              Informações cadastrais e histórico de manutenção.
+            </p>
           </div>
+          <a
+            class="button button-primary"
+            th:href="@{/veiculos/editar/{id}(id=${veiculo.id})}"
+            href="veiculo-editar.html"
+            >Editar Veículo</a
+          >
         </div>
-        <dl class="detail-grid">
-          <div class="detail-item"><dt>Placa</dt><dd th:text="${veiculo.placa}">ABC1D23</dd></div>
-          <div class="detail-item"><dt>Modelo</dt><dd th:text="${veiculo.modelo}">Ford Transit 350</dd></div>
-          <div class="detail-item"><dt>Ano</dt><dd th:text="${veiculo.ano}">2023</dd></div>
-          <div class="detail-item">
-            <dt>Quilometragem</dt>
-            <dd th:text="${#numbers.formatDecimal(veiculo.quilometragem, 1, 0, 'POINT')} + ' km'">42.180 km</dd>
+        <section class="content-section">
+          <div class="section-heading">
+            <div>
+              <h2>Identificação</h2>
+              <p>Dados atuais do veículo.</p>
+            </div>
           </div>
-          <div class="detail-item">
-            <dt>Status</dt>
-            <dd>
-              <span
-                class="status-badge"
-                th:classappend="${veiculo.status == 'Disponível' ? 'status-success' :
+          <dl class="detail-grid">
+            <div class="detail-item">
+              <dt>Placa</dt>
+              <dd th:text="${veiculo.placa}"></dd>
+            </div>
+            <div class="detail-item">
+              <dt>Modelo</dt>
+              <dd th:text="${veiculo.modelo}"></dd>
+            </div>
+            <div class="detail-item">
+              <dt>Ano</dt>
+              <dd th:text="${veiculo.ano}"></dd>
+            </div>
+            <div class="detail-item">
+              <dt>Quilometragem</dt>
+              <dd
+                th:text="${#numbers.formatDecimal(veiculo.quilometragem, 1, 0, 'POINT')} + ' km'"
+              ></dd>
+            </div>
+            <div class="detail-item">
+              <dt>Status</dt>
+              <dd>
+                <span
+                  class="status-badge"
+                  th:classappend="${veiculo.status == 'Disponível' ? 'status-success' :
                                  (veiculo.status == 'Em trânsito' ? 'status-info' :
                                  (veiculo.status == 'Em manutenção' ? 'status-warning' : 'status-danger'))}"
-                th:text="${veiculo.status}"
-              >Disponível</span>
-            </dd>
+                  th:text="${veiculo.status}"
+                ></span>
+              </dd>
+            </div>
+            <div class="detail-item">
+              <dt>Situação da manutenção</dt>
+              <dd th:text="${veiculo.situacaoManutencao}"></dd>
+            </div>
+            <div class="detail-item">
+              <dt>Última revisão</dt>
+              <dd
+                th:text="${#temporals.format(veiculo.ultimaRevisao, 'dd/MM/yyyy')}"
+              ></dd>
+            </div>
+            <div class="detail-item">
+              <dt>Próxima revisão</dt>
+              <dd
+                th:text="${#temporals.format(veiculo.proximaRevisao, 'dd/MM/yyyy')}"
+              ></dd>
+            </div>
+            <div class="detail-item">
+              <dt>Quilometragem da última revisão</dt>
+              <dd
+                th:text="${#numbers.formatDecimal(veiculo.quilometragemUltimaRevisao, 1, 0, 'POINT')} + ' km'"
+              ></dd>
+            </div>
+          </dl>
+        </section>
+        <section class="content-section" style="margin-top: 20px">
+          <div class="section-heading">
+            <div>
+              <h2>Observações</h2>
+              <p>Registro operacional do veículo.</p>
+            </div>
           </div>
-          <div class="detail-item">
-            <dt>Situação da manutenção</dt>
-            <dd th:text="${veiculo.situacaoManutencao}">Em dia</dd>
+          <div
+            style="padding: 24px; color: #526170"
+            th:text="${veiculo.observacoes}"
+          ></div>
+        </section>
+        <section class="content-section" style="margin-top: 20px">
+          <div class="section-heading">
+            <div>
+              <h2>Histórico de manutenção</h2>
+              <p>Serviços registrados para este veículo.</p>
+            </div>
           </div>
-          <div class="detail-item">
-            <dt>Última revisão</dt>
-            <dd th:text="${#temporals.format(veiculo.ultimaRevisao, 'dd/MM/yyyy')}">18/06/2026</dd>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Quilometragem</th>
+                  <th>Serviço realizado</th>
+                  <th>Responsável/Oficina</th>
+                  <th>Observação</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:if="${#lists.isEmpty(manutencoes)}">
+                  <td
+                    colspan="5"
+                    style="text-align: center; padding: 24px; color: #6c7b89"
+                  >
+                    Nenhum histórico de manutenção registrado para este veículo.
+                  </td>
+                </tr>
+                <tr th:each="m : ${manutencoes}">
+                  <td th:text="${#temporals.format(m.data, 'dd/MM/yyyy')}"></td>
+                  <td
+                    th:text="${#numbers.formatDecimal(m.quilometragem, 1, 0, 'POINT')} + ' km'"
+                  ></td>
+                  <td th:text="${m.servicoRealizado}"></td>
+                  <td th:text="${m.responsavel}"></td>
+                  <td th:text="${m.observacao}"></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div class="detail-item">
-            <dt>Próxima revisão</dt>
-            <dd th:text="${#temporals.format(veiculo.proximaRevisao, 'dd/MM/yyyy')}">18/09/2026</dd>
-          </div>
-          <div class="detail-item">
-            <dt>Quilometragem da última revisão</dt>
-            <dd th:text="${#numbers.formatDecimal(veiculo.quilometragemUltimaRevisao, 1, 0, 'POINT')} + ' km'">36.200 km</dd>
-          </div>
-        </dl>
-      </section>
-      <section class="content-section" style="margin-top:20px">
-        <div class="section-heading">
-          <div>
-            <h2>Observações</h2>
-            <p>Registro operacional do veículo.</p>
-          </div>
-        </div>
-        <div style="padding:24px;color:#526170" th:text="${veiculo.observacoes}">
-          Veículo utilizado em rotas urbanas e regionais.
-        </div>
-      </section>
-      <section class="content-section" style="margin-top:20px">
-        <div class="section-heading">
-          <div>
-            <h2>Histórico de manutenção</h2>
-            <p>Serviços registrados para este veículo.</p>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Quilometragem</th>
-                <th>Serviço realizado</th>
-                <th>Responsável/Oficina</th>
-                <th>Observação</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr th:each="m : ${manutencoes}">
-                <td th:text="${#temporals.format(m.data, 'dd/MM/yyyy')}">18/06/2026</td>
-                <td th:text="${#numbers.formatDecimal(m.quilometragem, 1, 0, 'POINT')} + ' km'">36.200 km</td>
-                <td th:text="${m.servicoRealizado}">Revisão preventiva</td>
-                <td th:text="${m.responsavel}">Oficina Central</td>
-                <td th:text="${m.observacao}">Troca de óleo e filtros</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <p style="margin-top:20px">
-        <a class="button button-secondary" th:href="@{/veiculos}" href="veiculos.html">← Voltar para Veículos</a>
-      </p>
-    </main>
-  </div>
-  <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
-</body>
+        </section>
+        <p style="margin-top: 20px">
+          <a
+            class="button button-secondary"
+            th:href="@{/veiculos}"
+            href="veiculos.html"
+            >← Voltar para Veículos</a
+          >
+        </p>
+      </main>
+    </div>
+    <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
+  </body>
 </html>
