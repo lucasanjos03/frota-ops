@@ -55,3 +55,8 @@ postgres-data/
 
 # ============ VS Code ============
 .vscode/
+
+
+# ============== Spec Kit ===========
+.agents/
+.specify/
