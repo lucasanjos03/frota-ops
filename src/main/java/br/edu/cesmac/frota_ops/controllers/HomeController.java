@@ -1,10 +1,10 @@
-package br.edu.cesmac.frota_ops.home;
+package br.edu.cesmac.frota_ops.controllers;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import br.edu.cesmac.frota_ops.veiculo.VeiculoService;
+import br.edu.cesmac.frota_ops.services.VeiculoService;
 
 @Controller
 public class HomeController {

@@ -1,20 +1,84 @@
-package br.edu.cesmac.frota_ops.veiculo;
+package br.edu.cesmac.frota_ops.entities;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "veiculo")
 public class Veiculo {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, unique = true, length = 10)
     private String placa;
+
+    @Column(nullable = false, length = 120)
     private String modelo;
+
+    @Column(nullable = false)
     private Integer ano;
-    private Long quilometragem;
-    private String status;
+
+    @Column(nullable = false)
+    private Long quilometragem = 0L;
+
+    @Column(nullable = false, length = 30)
+    private String status = "Disponível";
+
+    @Column(name = "ultima_revisao")
     private LocalDate ultimaRevisao;
+
+    @Column(name = "proxima_revisao")
     private LocalDate proximaRevisao;
+
+    @Column(name = "quilometragem_ultima_revisao")
     private Long quilometragemUltimaRevisao;
+
+    @Column(columnDefinition = "TEXT")
     private String observacoes;
-    private String situacaoManutencao;
+
+    @Column(name = "situacao_manutencao", length = 30)
+    private String situacaoManutencao = "Em dia";
+
+    @Column(name = "data_criacao", updatable = false)
+    private OffsetDateTime dataCriacao;
+
+    @Column(name = "data_atualizacao")
+    private OffsetDateTime dataAtualizacao;
+
+    @PrePersist
+    public void prePersist() {
+        if (dataCriacao == null) {
+            dataCriacao = OffsetDateTime.now();
+        }
+        if (dataAtualizacao == null) {
+            dataAtualizacao = OffsetDateTime.now();
+        }
+        if (status == null || status.isBlank()) {
+            status = "Disponível";
+        }
+        if (situacaoManutencao == null || situacaoManutencao.isBlank()) {
+            situacaoManutencao = "Em dia";
+        }
+        if (quilometragem == null) {
+            quilometragem = 0L;
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        dataAtualizacao = OffsetDateTime.now();
+    }
 
     public Veiculo() {
     }
@@ -121,5 +185,21 @@ public class Veiculo {
 
     public void setSituacaoManutencao(String situacaoManutencao) {
         this.situacaoManutencao = situacaoManutencao;
+    }
+
+    public OffsetDateTime getDataCriacao() {
+        return dataCriacao;
+    }
+
+    public void setDataCriacao(OffsetDateTime dataCriacao) {
+        this.dataCriacao = dataCriacao;
+    }
+
+    public OffsetDateTime getDataAtualizacao() {
+        return dataAtualizacao;
+    }
+
+    public void setDataAtualizacao(OffsetDateTime dataAtualizacao) {
+        this.dataAtualizacao = dataAtualizacao;
     }
 }

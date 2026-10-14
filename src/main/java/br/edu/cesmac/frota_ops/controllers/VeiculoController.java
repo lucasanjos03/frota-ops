@@ -1,4 +1,4 @@
-package br.edu.cesmac.frota_ops.veiculo;
+package br.edu.cesmac.frota_ops.controllers;
 
 import java.util.List;
 
@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import br.edu.cesmac.frota_ops.entities.Manutencao;
+import br.edu.cesmac.frota_ops.entities.Veiculo;
+import br.edu.cesmac.frota_ops.services.VeiculoService;
 
 @Controller
 @RequestMapping("/veiculos")
