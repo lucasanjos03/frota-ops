@@ -11,7 +11,7 @@
 
 O **FleetOps** é uma aplicação web desenvolvida para o gerenciamento operacional e controle de manutenção de frotas de veículos.
 
-O projeto é a evolução de um protótipo estático (HTML, CSS e JavaScript) integrado ao ecossistema **Java** com **Spring Boot** e renderização dinâmica no servidor via **Thymeleaf**. Os dados do sistema são mantidos e manipulados em memória durante o ciclo de execução da aplicação através da camada de serviço (`VeiculoService`), dispensando a necessidade de banco de dados nesta etapa.
+O projeto é a evolução de um protótipo estático (HTML, CSS e JavaScript) integrado ao ecossistema **Java** com **Spring Boot**, persistência relacional com **Spring Data JPA** e **PostgreSQL**, e renderização dinâmica no servidor via **Thymeleaf**.
 
 ---
 
@@ -55,7 +55,7 @@ O projeto é a evolução de um protótipo estático (HTML, CSS e JavaScript) in
 3. **Acesse no navegador:**
    Após a inicialização do Spring Boot, acesse a aplicação em:
    ```
-   http://localhost:8080
+   http://localhost:8081
    ```
 
 ---
@@ -78,20 +78,23 @@ O projeto é a evolução de um protótipo estático (HTML, CSS e JavaScript) in
 ---
 
 ## 📁 Estrutura do Projeto
-
+ 
 ```
 src/main/
 ├── java/br/edu/cesmac/frota_ops/
 │   ├── FrotaOpsApplication.java       # Classe principal de inicialização
-│   ├── auth/
-│   │   └── AuthController.java        # Controlador de login e autenticação
-│   ├── home/
-│   │   └── HomeController.java        # Controlador do Dashboard e visão geral
-│   └── veiculo/
-│       ├── Veiculo.java               # Modelo do veículo
-│       ├── Manutencao.java            # Modelo de histórico de manutenção
-│       ├── VeiculoService.java        # Camada de regras de negócio e dados em memória
-│       └── VeiculoController.java     # Controlador CRUD de veículos
+│   ├── controllers/
+│   │   ├── AuthController.java        # Controlador de login e autenticação
+│   │   ├── HomeController.java        # Controlador do Dashboard e visão geral
+│   │   └── VeiculoController.java     # Controlador CRUD de veículos
+│   ├── entities/
+│   │   ├── Veiculo.java               # Entidade JPA de veículo
+│   │   └── Manutencao.java            # Entidade JPA de histórico de manutenção
+│   ├── repositories/
+│   │   ├── VeiculoRepository.java     # Repositório Spring Data JPA de veículos
+│   │   └── ManutencaoRepository.java  # Repositório Spring Data JPA de manutenções
+│   └── services/
+│       └── VeiculoService.java        # Camada de regras de negócio e persistência
 └── resources/
     ├── static/
     │   ├── css/styles.css             # Folhas de estilo da interface

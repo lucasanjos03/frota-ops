@@ -1,16 +1,51 @@
-package br.edu.cesmac.frota_ops.veiculo;
+package br.edu.cesmac.frota_ops.entities;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "manutencao")
 public class Manutencao {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "data_manutencao", nullable = false)
     private LocalDate data;
+
+    @Column(nullable = false)
     private Long quilometragem;
+
+    @Column(name = "servico_realizado", nullable = false, length = 255)
     private String servicoRealizado;
+
+    @Column(nullable = false, length = 150)
     private String responsavel;
+
+    @Column(columnDefinition = "TEXT")
     private String observacao;
+
+    @Column(name = "veiculo_id", nullable = false)
     private Long veiculoId;
+
+    @Column(name = "data_registro")
+    private OffsetDateTime dataRegistro;
+
+    @PrePersist
+    public void prePersist() {
+        if (dataRegistro == null) {
+            dataRegistro = OffsetDateTime.now();
+        }
+    }
 
     public Manutencao() {
     }
@@ -80,5 +115,13 @@ public class Manutencao {
 
     public void setVeiculoId(Long veiculoId) {
         this.veiculoId = veiculoId;
+    }
+
+    public OffsetDateTime getDataRegistro() {
+        return dataRegistro;
+    }
+
+    public void setDataRegistro(OffsetDateTime dataRegistro) {
+        this.dataRegistro = dataRegistro;
     }
 }

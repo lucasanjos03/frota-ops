@@ -1,4 +1,4 @@
-package br.edu.cesmac.frota_ops.auth;
+package br.edu.cesmac.frota_ops.controllers;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
