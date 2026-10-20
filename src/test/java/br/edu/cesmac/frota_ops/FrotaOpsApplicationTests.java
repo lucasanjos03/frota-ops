@@ -2,6 +2,7 @@ package br.edu.cesmac.frota_ops;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -21,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import br.edu.cesmac.frota_ops.manutencao.ManutencaoService;
 import br.edu.cesmac.frota_ops.motorista.MotoristaService;
 import br.edu.cesmac.frota_ops.tag.TagService;
+import br.edu.cesmac.frota_ops.usuario.Usuario;
+import br.edu.cesmac.frota_ops.usuario.UsuarioRepository;
+import br.edu.cesmac.frota_ops.usuario.UsuarioService;
 import br.edu.cesmac.frota_ops.veiculo.VeiculoService;
 
 @SpringBootTest
@@ -42,6 +46,12 @@ class FrotaOpsApplicationTests {
 
     @Autowired
     private ManutencaoService manutencaoService;
+
+    @Autowired
+    private UsuarioService usuarioService;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @Test
     void contextLoadsAndMigrationsSeedData() {
@@ -109,6 +119,36 @@ class FrotaOpsApplicationTests {
         mockMvc.perform(get("/tags/novo"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("tag/novo"));
+
+        mockMvc.perform(get("/usuarios"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("usuario/list"))
+                .andExpect(content().string(containsString("carlos.silva")))
+                .andExpect(content().string(containsString("admin")));
+
+        mockMvc.perform(get("/usuarios/novo"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("usuario/novo"));
+
+        mockMvc.perform(get("/cadastro"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("auth/cadastro"));
+    }
+
+    @Test
+    void deveAutenticarUsuarioValidoERejeitarInvalidoNoLogin() throws Exception {
+        mockMvc.perform(post("/login")
+                .param("username", "admin")
+                .param("password", "admin123"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"));
+
+        mockMvc.perform(post("/login")
+                .param("username", "admin")
+                .param("password", "senha-errada"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"))
+                .andExpect(flash().attribute("erro", "Usuário ou senha inválidos."));
     }
 
     @Test
@@ -152,5 +192,85 @@ class FrotaOpsApplicationTests {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/veiculos"))
                 .andExpect(flash().attribute("sucesso", "Veículo cadastrado com sucesso!"));
+    }
+
+    @Test
+    void deveRespeitarPermissoesDeAdminOperadorEMotorista() throws Exception {
+        Usuario operador = new Usuario(null, "op.teste", "Operador Teste", "op.teste@fleetops.com", "123456", "OPERADOR", true);
+        usuarioService.salvar(operador);
+        Usuario motorista = usuarioService.autenticar("carlos.silva", "123456").orElseThrow();
+
+        // Operador: somente visualização e acesso ao próprio usuário (não pode criar/editar)
+        mockMvc.perform(get("/veiculos/novo").sessionAttr("usuarioLogado", operador))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/veiculos"));
+
+        mockMvc.perform(get("/tags/novo").sessionAttr("usuarioLogado", operador))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/tags"));
+
+        mockMvc.perform(get("/usuarios/editar/" + operador.getId()).sessionAttr("usuarioLogado", operador))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/usuarios"));
+
+        // Motorista: pode editar próprio usuário, próprio motorista, próprio veículo (id=1), suas manutenções e tags
+        mockMvc.perform(get("/usuarios/editar/" + motorista.getId()).sessionAttr("usuarioLogado", motorista))
+                .andExpect(status().isOk())
+                .andExpect(view().name("usuario/editar"));
+
+        mockMvc.perform(get("/motoristas/editar/1").sessionAttr("usuarioLogado", motorista))
+                .andExpect(status().isOk())
+                .andExpect(view().name("motorista/editar"));
+
+        mockMvc.perform(get("/veiculos/editar/1").sessionAttr("usuarioLogado", motorista))
+                .andExpect(status().isOk())
+                .andExpect(view().name("veiculo/editar"));
+
+        mockMvc.perform(get("/manutencoes/editar/1").sessionAttr("usuarioLogado", motorista))
+                .andExpect(status().isOk())
+                .andExpect(view().name("manutencao/editar"));
+
+        mockMvc.perform(get("/tags/novo").sessionAttr("usuarioLogado", motorista))
+                .andExpect(status().isOk())
+                .andExpect(view().name("tag/novo"));
+
+        // Motorista: bloqueado ao tentar editar veículo/motorista/usuário de terceiros
+        mockMvc.perform(get("/veiculos/editar/2").sessionAttr("usuarioLogado", motorista))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/veiculos"));
+
+        mockMvc.perform(get("/motoristas/editar/2").sessionAttr("usuarioLogado", motorista))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/motoristas"));
+
+        mockMvc.perform(get("/usuarios/editar/1").sessionAttr("usuarioLogado", motorista))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/usuarios"));
+    }
+
+    @Test
+    void deveRealizarSoftDeleteNoUsuarioEInvisibilizarNaListagemELogin() throws Exception {
+        Usuario temp = new Usuario(null, "soft.delete", "Usuario Soft Delete", "soft.delete@fleetops.com", "123456", "OPERADOR", true);
+        usuarioService.salvar(temp);
+        Long tempId = temp.getId();
+
+        mockMvc.perform(post("/usuarios/excluir/" + tempId))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/usuarios"))
+                .andExpect(flash().attribute("sucesso", "Usuário excluído com sucesso!"));
+
+        // Permanece no banco com ativo = false e data_modificacao preenchida
+        Usuario noBanco = usuarioRepository.findById(tempId).orElseThrow();
+        assertThat(noBanco.getAtivo()).isFalse();
+        assertThat(noBanco.getDataModificacao()).isNotNull();
+
+        // Não é mais visível na listagem nem em buscarPorId
+        assertThat(usuarioService.buscarPorId(tempId)).isEmpty();
+        mockMvc.perform(get("/usuarios"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("soft.delete@fleetops.com"))));
+
+        // Não consegue mais fazer login
+        assertThat(usuarioService.autenticar("soft.delete", "123456")).isEmpty();
     }
 }

@@ -111,8 +111,16 @@ O projeto utiliza **Java 21** com **Spring Boot**, renderização dinâmica no s
 | `GET`  | `/tags/editar/{id}`          | **Edição de Tag**: Carrega a tag para edição.                                                                                           |
 | `POST` | `/tags/editar/{id}`          | **Atualização de Tag**: Atualiza o nome da tag via `TagService`.                                                                        |
 | `POST` | `/tags/excluir/{id}`         | **Exclusão de Tag**: Remove a tag operacional.                                                                                          |
-| `GET`  | `/login`                     | **Tela de Login**: Interface de autenticação de usuários no sistema.                                                                    |
-| `POST` | `/login`                     | **Acesso ao Sistema**: Processa o login e redireciona para o dashboard.                                                                 |
+| `GET`  | `/usuarios`                  | **Listagem de Usuários**: Exibe todos os usuários (administradores, operadores e motoristas vinculados).                                |
+| `GET`  | `/usuarios/novo`             | **Formulário de Usuário**: Tela de cadastro de novo usuário do sistema.                                                                 |
+| `POST` | `/usuarios/novo`             | **Cadastro de Usuário**: Valida e salva o usuário via `UsuarioService`.                                                                 |
+| `GET`  | `/usuarios/editar/{id}`      | **Edição de Usuário**: Carrega os dados do usuário para edição.                                                                         |
+| `POST` | `/usuarios/editar/{id}`      | **Atualização de Usuário**: Atualiza o usuário via `UsuarioService`.                                                                    |
+| `POST` | `/usuarios/excluir/{id}`     | **Exclusão de Usuário**: Remove o usuário do banco de dados.                                                                            |
+| `GET`  | `/login`                     | **Tela de Login**: Interface de autenticação validando contra a tabela `usuario`.                                                       |
+| `POST` | `/login`                     | **Acesso ao Sistema**: Autentica `username`/`email` e `senha` no banco via `UsuarioService`.                                            |
+| `GET`  | `/cadastro`                  | **Criar Conta**: Tela de autocadastro de usuário acessível a partir do login.                                                           |
+| `POST` | `/cadastro`                  | **Processar Autocadastro**: Cria a conta na tabela `usuario` e redireciona para o login.                                                |
 
 ---
 
@@ -142,27 +150,36 @@ src/
 │   │   │   ├── MotoristaRepository.java        # Repositório Spring Data JPA de Motorista
 │   │   │   ├── MotoristaService.java           # Regras de negócio e persistência de Motorista
 │   │   │   └── MotoristaController.java        # Controlador CRUD de motoristas (injeta apenas MotoristaService)
-│   │   └── tag/
-│   │       ├── Tag.java                        # Entidade JPA Tag
-│   │       ├── TagRepository.java              # Repositório Spring Data JPA de Tag
-│   │       ├── TagService.java                 # Regras de negócio e persistência de Tag
-│   │       └── TagController.java              # Controlador CRUD de tags (injeta apenas TagService)
+│   │   ├── tag/
+│   │   │   ├── Tag.java                        # Entidade JPA Tag
+│   │   │   ├── TagRepository.java              # Repositório Spring Data JPA de Tag
+│   │   │   ├── TagService.java                 # Regras de negócio e persistência de Tag
+│   │   │   └── TagController.java              # Controlador CRUD de tags (injeta apenas TagService)
+│   │   └── usuario/
+│   │       ├── Usuario.java                    # Entidade JPA Usuario (1:1 opcional com Motorista)
+│   │       ├── UsuarioRepository.java          # Repositório Spring Data JPA de Usuario
+│   │       ├── UsuarioService.java             # Regras de negócio, autenticação e persistência de Usuario
+│   │       └── UsuarioController.java          # Controlador CRUD de usuários (injeta apenas UsuarioService)
 │   └── resources/
 │       ├── application.properties              # Configurações de porta (8081), PostgreSQL, JPA (validate) e Flyway
 │       ├── application-dev.properties          # Configurações de ambiente de desenvolvimento
 │       ├── db/migration/
-│       │   ├── V1__create_initial_tables.sql   # Migration inicial (tabelas veiculo, manutencao, usuario e seed)
-│       │   └── V2__add_motoristas_and_tags.sql # Migration de relacionamentos (motorista, tags, veiculo_tags e seed)
+│       │   ├── V1__create_initial_tables.sql            # Migration inicial (tabelas veiculo, manutencao, usuario e seed)
+│       │   ├── V2__add_motoristas_and_tags.sql          # Migration de relacionamentos (motorista, tags, veiculo_tags e seed)
+│       │   ├── V3__link_motoristas_to_usuarios.sql      # Migration de vínculo obrigatório Motorista -> Usuario
+│       │   ├── V4__add_perfil_to_usuario.sql            # Migration de perfis de acesso (ADMIN, OPERADOR, MOTORISTA)
+│       │   └── V5__add_data_modificacao_to_usuario.sql  # Migration de data_modificacao e Soft Delete em usuario
 │       ├── static/
 │       │   ├── css/styles.css                  # Folha de estilos principal
 │       │   └── js/script.js                    # Scripts auxiliares de UI
 │       └── templates/
-│           ├── auth/login.html                 # Tela de autenticação
+│           ├── auth/                           # Telas de login e autocadastro de conta (login, cadastro)
 │           ├── home/index.html                 # Dashboard com KPIs e alertas operacionais
 │           ├── veiculo/                        # Telas do componente Veículo (list, novo, editar, detalhes)
 │           ├── motorista/                      # Telas do componente Motorista (list, novo, editar)
 │           ├── manutencao/                     # Telas do componente Manutenção (list, novo, editar)
-│           └── tag/                            # Telas do componente Tag (list, novo, editar)
+│           ├── tag/                            # Telas do componente Tag (list, novo, editar)
+│           └── usuario/                        # Telas do componente Usuário (list, novo, editar)
 └── test/
     └── java/br/edu/cesmac/frota_ops/
         └── FrotaOpsApplicationTests.java       # Testes de integração de todos os componentes
