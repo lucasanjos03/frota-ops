@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Motoristas | FleetOps</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="fleet-app">
+      <header class="app-header">
+        <div class="header-inner">
+          <a class="brand" th:href="@{/}" href="index.html">
+            <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span><strong>Fleet</strong><b>Ops</b></span>
+          </a>
+          <div class="system-label">Gestão de Frota <span>/</span> Operações</div>
+          <nav class="nav-menu" aria-label="Navegação principal">
+            <a class="nav-item" th:href="@{/}">Dashboard</a>
+            <a class="nav-item" th:href="@{/veiculos}">Veículos</a>
+            <a class="nav-item active" th:href="@{/motoristas}">Motoristas</a>
+            <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
+            <a class="nav-item" th:href="@{/tags}">Tags</a>
+            <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
+          </nav>
+        </div>
+      </header>
+      <main class="page-container">
+        <div class="page-header">
+          <div>
+            <p class="eyebrow">Equipe operacional</p>
+            <h1>Motoristas</h1>
+            <p class="page-subtitle">
+              <span th:text="${totalMotoristas}">0</span>
+              motoristas cadastrados na operação.
+            </p>
+          </div>
+          <a class="button button-primary" th:href="@{/motoristas/novo}">+ Novo motorista</a>
+        </div>
+
+        <p class="alert alert-sucesso" th:if="${sucesso}" th:text="${sucesso}"></p>
+        <p class="alert alert-erro" th:if="${erro}" th:text="${erro}"></p>
+
+        <section class="content-section">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>CPF</th>
+                  <th>CNH</th>
+                  <th>Categoria</th>
+                  <th>Validade CNH</th>
+                  <th>Telefone</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:if="${#lists.isEmpty(motoristas)}">
+                  <td colspan="8" style="text-align: center; padding: 32px; color: #6c7b89">
+                    Nenhum motorista cadastrado.
+                  </td>
+                </tr>
+                <tr th:each="motorista : ${motoristas}">
+                  <td><strong th:text="${motorista.nome}"></strong></td>
+                  <td th:text="${motorista.cpf}"></td>
+                  <td th:text="${motorista.numeroCnh}"></td>
+                  <td th:text="${motorista.categoriaCnh}"></td>
+                  <td th:text="${motorista.validadeCnh != null ? #temporals.format(motorista.validadeCnh, 'dd/MM/yyyy') : '-'}"></td>
+                  <td th:text="${!#strings.isEmpty(motorista.telefone) ? motorista.telefone : '-'}"></td>
+                  <td>
+                    <span class="status-badge"
+                          th:classappend="${motorista.status == 'Ativo' ? 'status-success' : 'status-warning'}"
+                          th:text="${motorista.status}"></span>
+                  </td>
+                  <td class="cell-actions">
+                    <div class="table-actions">
+                      <a th:href="@{/motoristas/editar/{id}(id=${motorista.id})}">Editar</a>
+                      <form th:action="@{/motoristas/excluir/{id}(id=${motorista.id})}"
+                            method="post"
+                            onsubmit="return confirm('Tem certeza que deseja excluir este motorista?');">
+                        <button type="submit" class="btn-action-delete">Excluir</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+      <footer class="app-footer">FleetOps · Gestão de Frota e Manutenção · © 2026</footer>
+    </div>
+    <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
+  </body>
+</html>
+

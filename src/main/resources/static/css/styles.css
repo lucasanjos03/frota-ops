@@ -833,3 +833,264 @@ td.table-actions > * + * {
     padding: 28px 22px;
   }
 }
+
+
+/* --------------------------------------------------------------------------
+   15. VALIDAÇÕES BACKEND
+   -------------------------------------------------------------------------- */
+.campo-erro {
+  border-color: #b44040 !important;
+  background-color: #fffafa !important;
+}
+
+.mensagem-erro {
+  color: #b44040;
+  font-size: 0.85rem;
+  margin: 5px 0 0;
+  font-weight: 600;
+}
+
+.alert {
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 24px;
+  border: 1px solid transparent;
+}
+
+.alert-sucesso {
+  color: #1e6346;
+  background-color: #e8f5ef;
+  border-color: #b9e2cf;
+}
+
+.alert-erro {
+  color: #9e3232;
+  background-color: #fbeaea;
+  border-color: #f0c2c2;
+}
+
+.tags-checkbox-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.tag-checkbox-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid #dce5eb;
+  border-radius: 6px;
+  background-color: #fafbfd;
+  color: #1d2b3a;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.tag-checkbox-item:hover {
+  border-color: #2378a9;
+  background-color: #f0f6fa;
+}
+
+.tag-checkbox-item input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #123b59;
+  cursor: pointer;
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background-color: #eef3f7;
+  color: #123b59;
+  border: 1px solid #d5e0e8;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.kpi-card {
+  background-color: #ffffff;
+  border: 1px solid #dce5eb;
+  border-radius: 8px;
+  padding: 20px 24px;
+  box-shadow: 0 4px 14px rgba(31, 61, 83, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kpi-label {
+  color: #6c7b89;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.kpi-value {
+  color: #0e3048;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+@media (max-width: 760px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   15. VALIDAÇÕES BACKEND
+   -------------------------------------------------------------------------- */
+.campo-erro {
+  border-color: #b44040 !important;
+  background-color: #fffafa !important;
+}
+
+.mensagem-erro {
+  color: #b44040;
+  font-size: 0.85rem;
+  margin: 5px 0 0;
+  font-weight: 600;
+}
+
+.alert {
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 24px;
+  border: 1px solid transparent;
+}
+
+.alert-sucesso {
+  color: #1e6346;
+  background-color: #e8f5ef;
+  border-color: #b9e2cf;
+}
+
+.alert-erro {
+  color: #9e3232;
+  background-color: #fbeaea;
+  border-color: #f0c2c2;
+}
+
+.tags-checkbox-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.tag-checkbox-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid #dce5eb;
+  border-radius: 6px;
+  background-color: #fafbfd;
+  color: #1d2b3a;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.tag-checkbox-item:hover {
+  border-color: #2378a9;
+  background-color: #f0f6fa;
+}
+
+.tag-checkbox-item input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #123b59;
+  cursor: pointer;
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background-color: #eef3f7;
+  color: #123b59;
+  border: 1px solid #d5e0e8;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.kpi-card {
+  background-color: #ffffff;
+  border: 1px solid #dce5eb;
+  border-radius: 8px;
+  padding: 20px 24px;
+  box-shadow: 0 4px 14px rgba(31, 61, 83, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kpi-label {
+  color: #6c7b89;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.kpi-value {
+  color: #0e3048;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+@media (max-width: 760px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+

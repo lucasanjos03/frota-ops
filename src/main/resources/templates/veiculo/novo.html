@@ -16,10 +16,12 @@
         </a>
         <div class="system-label">Gestão de Frota <span>/</span> Operações</div>
         <nav class="nav-menu" aria-label="Navegação principal">
-          <a class="nav-item" th:href="@{/}" href="index.html">Dashboard</a>
-          <a class="nav-item" th:href="@{/veiculos}" href="veiculos.html">Veículos</a>
-          <a class="nav-item active" th:href="@{/veiculos/novo}" href="veiculo-novo.html">Novo veículo</a>
-          <a class="nav-item nav-logout" th:href="@{/login}" href="login.html">Sair</a>
+          <a class="nav-item" th:href="@{/}">Dashboard</a>
+          <a class="nav-item active" th:href="@{/veiculos}">Veículos</a>
+          <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
+          <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
+          <a class="nav-item" th:href="@{/tags}">Tags</a>
+          <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
         </nav>
       </div>
     </header>
@@ -28,10 +30,10 @@
         <div>
           <p class="eyebrow">Cadastro de veículo</p>
           <h1>Cadastrar Novo Veículo</h1>
-          <p class="page-subtitle">Preencha os dados cadastrais e de manutenção para adicionar o veículo à frota.</p>
+          <p class="page-subtitle">Preencha os dados cadastrais, motorista responsável, classificações e plano de manutenção.</p>
         </div>
       </div>
-      <form class="form-card" method="post" th:action="@{/veiculos/novo}" th:object="${veiculo}">
+      <form class="form-card" method="post" th:action="@{/veiculos/novo}" th:object="${veiculo}" novalidate>
         <!-- Componente 1: Dados do veículo -->
         <div class="form-section">
           <div class="form-section-heading">
@@ -41,34 +43,68 @@
           <div class="form-grid">
             <div class="form-group col-span-4">
               <label for="plate">Placa <span class="required-mark">*</span></label>
-              <input id="plate" type="text" required placeholder="Ex.: ABC1D23" th:field="*{placa}">
+              <input id="plate" type="text" placeholder="Ex.: ABC1D23" th:field="*{placa}" th:errorclass="campo-erro">
+              <p class="mensagem-erro" th:if="${#fields.hasErrors('placa')}" th:errors="*{placa}"></p>
             </div>
             <div class="form-group col-span-8">
               <label for="model">Modelo <span class="required-mark">*</span></label>
-              <input id="model" type="text" required placeholder="Ex.: Ford Transit 350" th:field="*{modelo}">
+              <input id="model" type="text" placeholder="Ex.: Ford Transit 350" th:field="*{modelo}" th:errorclass="campo-erro">
+              <p class="mensagem-erro" th:if="${#fields.hasErrors('modelo')}" th:errors="*{modelo}"></p>
             </div>
             <div class="form-group col-span-4">
               <label for="year">Ano <span class="required-mark">*</span></label>
-              <input id="year" type="number" required placeholder="Ex.: 2023" th:field="*{ano}">
+              <input id="year" type="number" placeholder="Ex.: 2023" th:field="*{ano}" th:errorclass="campo-erro">
+              <p class="mensagem-erro" th:if="${#fields.hasErrors('ano')}" th:errors="*{ano}"></p>
             </div>
             <div class="form-group col-span-4">
               <label for="mileage">Quilometragem (km) <span class="required-mark">*</span></label>
-              <input id="mileage" type="number" min="0" required placeholder="Ex.: 0" th:field="*{quilometragem}">
+              <input id="mileage" type="number" min="0" placeholder="Ex.: 0" th:field="*{quilometragem}" th:errorclass="campo-erro">
+              <p class="mensagem-erro" th:if="${#fields.hasErrors('quilometragem')}" th:errors="*{quilometragem}"></p>
             </div>
             <div class="form-group col-span-4">
               <label for="status">Status <span class="required-mark">*</span></label>
-              <select id="status" required th:field="*{status}">
+              <select id="status" th:field="*{status}" th:errorclass="campo-erro">
                 <option value="">Selecione o status...</option>
                 <option value="Disponível">Disponível</option>
                 <option value="Em trânsito">Em trânsito</option>
                 <option value="Em manutenção">Em manutenção</option>
                 <option value="Indisponível">Indisponível</option>
               </select>
+              <p class="mensagem-erro" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></p>
             </div>
           </div>
         </div>
 
-        <!-- Componente 2: Manutenção -->
+        <!-- Componente 2: Alocação e Classificações -->
+        <div class="form-section">
+          <div class="form-section-heading">
+            <h2>Alocação e Classificações</h2>
+            <p>Vincule o motorista responsável (1:N) e selecione as tags operacionais do veículo (N:N).</p>
+          </div>
+          <div class="form-grid">
+            <div class="form-group col-span-6">
+              <label for="motorista">Motorista responsável</label>
+              <select id="motorista" th:field="*{motorista}">
+                <option value="">Selecione um motorista</option>
+                <option th:each="motorista : ${motoristas}"
+                        th:value="${motorista.id}"
+                        th:text="${motorista.nome + ' (CNH: ' + motorista.cnh + ')'}">
+                </option>
+              </select>
+            </div>
+            <div class="form-group col-span-12">
+              <label>Tags operacionais</label>
+              <div class="tags-checkbox-grid">
+                <label class="tag-checkbox-item" th:each="tag : ${tags}">
+                  <input type="checkbox" th:field="*{tags}" th:value="${tag.id}">
+                  <span th:text="${tag.nome}"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Componente 3: Manutenção -->
         <div class="form-section">
           <div class="form-section-heading">
             <h2>Manutenção</h2>
@@ -85,7 +121,8 @@
             </div>
             <div class="form-group col-span-12">
               <label for="notes">Observações operacionais</label>
-              <textarea id="notes" rows="4" placeholder="Adicione notas sobre o uso, rotas ou pendências do veículo..." th:field="*{observacoes}"></textarea>
+              <textarea id="notes" rows="4" placeholder="Adicione notas sobre o uso, rotas ou pendências do veículo..." th:field="*{observacoes}" th:errorclass="campo-erro"></textarea>
+              <p class="mensagem-erro" th:if="${#fields.hasErrors('observacoes')}" th:errors="*{observacoes}"></p>
             </div>
           </div>
         </div>
