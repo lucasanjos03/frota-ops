@@ -21,6 +21,7 @@
             <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
             <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
             <a class="nav-item active" th:href="@{/tags}">Tags</a>
+            <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
             <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
           </nav>
         </div>
@@ -35,7 +36,9 @@
               tags cadastradas para classificação dos veículos.
             </p>
           </div>
-          <a class="button button-primary" th:href="@{/tags/novo}">+ Nova tag</a>
+          <a class="button button-primary"
+             th:if="${usuarioLogado.podeGerenciarTags()}"
+             th:href="@{/tags/novo}">+ Nova tag</a>
         </div>
 
         <p class="alert alert-sucesso" th:if="${sucesso}" th:text="${sucesso}"></p>
@@ -62,12 +65,16 @@
                   <td><span class="tag-badge" th:text="${tag.nome}"></span></td>
                   <td class="cell-actions">
                     <div class="table-actions">
-                      <a th:href="@{/tags/editar/{id}(id=${tag.id})}">Editar</a>
-                      <form th:action="@{/tags/excluir/{id}(id=${tag.id})}"
+                      <a th:if="${usuarioLogado.podeGerenciarTags()}"
+                         th:href="@{/tags/editar/{id}(id=${tag.id})}">Editar</a>
+                      <form th:if="${usuarioLogado.admin}"
+                            th:action="@{/tags/excluir/{id}(id=${tag.id})}"
                             method="post"
                             onsubmit="return confirm('Tem certeza que deseja excluir esta tag?');">
                         <button type="submit" class="btn-action-delete">Excluir</button>
                       </form>
+                      <span class="text-muted"
+                            th:if="${!usuarioLogado.podeGerenciarTags() and !usuarioLogado.admin}">Somente leitura</span>
                     </div>
                   </td>
                 </tr>

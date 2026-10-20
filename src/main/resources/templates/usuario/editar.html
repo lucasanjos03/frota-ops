@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Editar usuário | FleetOps</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css">
+</head>
+<body>
+  <div class="fleet-app">
+    <header class="app-header">
+      <div class="header-inner">
+        <a class="brand" th:href="@{/}" href="index.html">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span><strong>Fleet</strong><b>Ops</b></span>
+        </a>
+        <div class="system-label">Gestão de Frota <span>/</span> Operações</div>
+        <nav class="nav-menu" aria-label="Navegação principal">
+          <a class="nav-item" th:href="@{/}">Dashboard</a>
+          <a class="nav-item" th:href="@{/veiculos}">Veículos</a>
+          <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
+          <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
+          <a class="nav-item" th:href="@{/tags}">Tags</a>
+          <a class="nav-item active" th:href="@{/usuarios}">Usuários</a>
+          <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
+        </nav>
+      </div>
+    </header>
+    <main class="page-container" th:if="${usuario}">
+      <div class="page-header">
+        <div>
+          <p class="eyebrow">Controle de acesso</p>
+          <h1>Editar Usuário</h1>
+          <p class="page-subtitle">Atualize as informações e credenciais da conta.</p>
+        </div>
+      </div>
+      <form class="form-card" method="post" th:action="@{/usuarios/editar/{id}(id=${usuario.id})}" th:object="${usuario}" novalidate>
+        <input type="hidden" th:field="*{id}">
+        <div class="form-section">
+          <div class="form-section-heading">
+            <h2>Dados de acesso</h2>
+            <p>Credenciais e informações básicas do usuário.</p>
+          </div>
+          <div class="form-grid">
+            <div class="form-group col-span-6">
+              <label for="nome">Nome completo <span class="required-mark">*</span></label>
+              <input id="nome" type="text" th:field="*{nome}" th:errorclass="campo-erro">
+              <p class="mensagem-erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
+            </div>
+            <div class="form-group col-span-6">
+              <label for="username">Username (Login) <span class="required-mark">*</span></label>
+              <input id="username" type="text" th:field="*{username}" th:errorclass="campo-erro">
+              <p class="mensagem-erro" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></p>
+            </div>
+            <div class="form-group col-span-5">
+              <label for="email">E-mail <span class="required-mark">*</span></label>
+              <input id="email" type="email" th:field="*{email}" th:errorclass="campo-erro">
+              <p class="mensagem-erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+            </div>
+            <div class="form-group col-span-3">
+              <label for="senha">Senha <span class="required-mark">*</span></label>
+              <input id="senha" type="text" th:field="*{senha}" th:errorclass="campo-erro">
+              <p class="mensagem-erro" th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}"></p>
+            </div>
+            <div class="form-group col-span-4" th:if="${usuarioLogado.admin}">
+              <label for="perfil">Perfil de acesso <span class="required-mark">*</span></label>
+              <select id="perfil" th:field="*{perfil}" th:errorclass="campo-erro">
+                <option value="OPERADOR">OPERADOR (Visualização)</option>
+                <option value="MOTORISTA">MOTORISTA (Edita próprios dados)</option>
+                <option value="ADMIN">ADMIN (Acesso total)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <a class="button button-secondary" th:href="@{/usuarios}">Cancelar</a>
+          <button class="button button-primary" type="submit">Salvar Alterações</button>
+        </div>
+      </form>
+    </main>
+    <footer class="app-footer">FleetOps · Gestão de Frota e Manutenção · © 2026</footer>
+  </div>
+  <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
+</body>
+</html>

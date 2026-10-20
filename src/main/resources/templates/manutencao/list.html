@@ -21,6 +21,7 @@
             <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
             <a class="nav-item active" th:href="@{/manutencoes}">Manutenções</a>
             <a class="nav-item" th:href="@{/tags}">Tags</a>
+            <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
             <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
           </nav>
         </div>
@@ -35,7 +36,9 @@
               registros de manutenção na frota.
             </p>
           </div>
-          <a class="button button-primary" th:href="@{/manutencoes/novo}">+ Nova manutenção</a>
+          <a class="button button-primary"
+             th:if="${usuarioLogado.podeGerenciarManutencoes()}"
+             th:href="@{/manutencoes/novo}">+ Nova manutenção</a>
         </div>
 
         <p class="alert alert-sucesso" th:if="${sucesso}" th:text="${sucesso}"></p>
@@ -88,12 +91,16 @@
                   <td th:text="${!#strings.isEmpty(m.observacao) ? m.observacao : '-'}"></td>
                   <td class="cell-actions">
                     <div class="table-actions">
-                      <a th:href="@{/manutencoes/editar/{id}(id=${m.id})}">Editar</a>
-                      <form th:action="@{/manutencoes/excluir/{id}(id=${m.id})}"
+                      <a th:if="${m.veiculo != null and usuarioLogado.podeEditarVeiculo(m.veiculo.motorista != null ? m.veiculo.motorista.id : null)}"
+                         th:href="@{/manutencoes/editar/{id}(id=${m.id})}">Editar</a>
+                      <form th:if="${usuarioLogado.admin or (m.veiculo != null and usuarioLogado.podeEditarVeiculo(m.veiculo.motorista != null ? m.veiculo.motorista.id : null))}"
+                            th:action="@{/manutencoes/excluir/{id}(id=${m.id})}"
                             method="post"
                             onsubmit="return confirm('Tem certeza que deseja excluir esta manutenção?');">
                         <button type="submit" class="btn-action-delete">Excluir</button>
                       </form>
+                      <span class="text-muted"
+                            th:if="${!usuarioLogado.admin and !(m.veiculo != null and usuarioLogado.podeEditarVeiculo(m.veiculo.motorista != null ? m.veiculo.motorista.id : null))}">Somente leitura</span>
                     </div>
                   </td>
                 </tr>

@@ -21,6 +21,7 @@
           <a class="nav-item active" th:href="@{/motoristas}">Motoristas</a>
           <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
           <a class="nav-item" th:href="@{/tags}">Tags</a>
+          <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
           <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
         </nav>
       </div>
@@ -30,14 +31,35 @@
         <div>
           <p class="eyebrow">Edição cadastral</p>
           <h1>Editar Motorista</h1>
-          <p class="page-subtitle">Atualize os dados pessoais, CNH e status operacional do motorista.</p>
+          <p class="page-subtitle">Atualize o vínculo de usuário, dados pessoais, CNH e status operacional do motorista.</p>
         </div>
       </div>
       <form class="form-card" method="post" th:action="@{/motoristas/editar/{id}(id=${motorista.id})}" th:object="${motorista}" novalidate>
         <input type="hidden" th:field="*{id}">
+        <div class="form-section" th:if="${usuarioLogado.admin}">
+          <div class="form-section-heading">
+            <h2>Vínculo com Usuário do Sistema</h2>
+            <p>Usuário do sistema associado a este motorista.</p>
+          </div>
+          <div class="form-grid">
+            <div class="form-group col-span-12">
+              <label for="usuario">Usuário do sistema <span class="required-mark">*</span></label>
+              <select id="usuario" th:field="*{usuario}" th:errorclass="campo-erro">
+                <option value="">Selecione um usuário disponível...</option>
+                <option th:each="u : ${usuariosDisponiveis}"
+                        th:value="${u.id}"
+                        th:text="${u.nome + ' (@' + u.username + ' · ' + u.email + ')'}">
+                </option>
+              </select>
+              <p class="mensagem-erro" th:if="${#fields.hasErrors('usuario')}" th:errors="*{usuario}"></p>
+            </div>
+          </div>
+        </div>
+        <input type="hidden" th:if="${!usuarioLogado.admin}" th:field="*{usuario}">
+
         <div class="form-section">
           <div class="form-section-heading">
-            <h2>Dados do motorista</h2>
+            <h2>Dados do motorista e Habilitação</h2>
             <p>Informações de identificação, CNH e contato.</p>
           </div>
           <div class="form-grid">
@@ -107,4 +129,3 @@
   <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
 </body>
 </html>
-

@@ -21,6 +21,7 @@
           <a class="nav-item active" th:href="@{/motoristas}">Motoristas</a>
           <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
           <a class="nav-item" th:href="@{/tags}">Tags</a>
+          <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
           <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
         </nav>
       </div>
@@ -30,13 +31,35 @@
         <div>
           <p class="eyebrow">Cadastro de motorista</p>
           <h1>Cadastrar Novo Motorista</h1>
-          <p class="page-subtitle">Preencha os dados pessoais, habilitação e contato do motorista.</p>
+          <p class="page-subtitle">Todo motorista deve obrigatoriamente estar vinculado a um usuário do sistema.</p>
         </div>
       </div>
       <form class="form-card" method="post" th:action="@{/motoristas/novo}" th:object="${motorista}" novalidate>
         <div class="form-section">
           <div class="form-section-heading">
-            <h2>Dados do motorista</h2>
+            <h2>Vínculo com Usuário do Sistema</h2>
+            <p>Selecione o usuário do sistema que atuará como motorista. <a th:href="@{/usuarios/novo}" style="font-weight: 600;">+ Cadastrar novo usuário</a></p>
+          </div>
+          <div class="form-grid">
+            <div class="form-group col-span-12">
+              <label for="usuario">Usuário do sistema <span class="required-mark">*</span></label>
+              <select id="usuario" th:field="*{usuario}" th:errorclass="campo-erro"
+                      onchange="const opt = this.options[this.selectedIndex]; if (opt && opt.dataset.nome) { document.getElementById('nome').value = opt.dataset.nome; document.getElementById('email').value = opt.dataset.email || ''; }">
+                <option value="">Selecione um usuário disponível...</option>
+                <option th:each="u : ${usuariosDisponiveis}"
+                        th:value="${u.id}"
+                        th:attr="data-nome=${u.nome},data-email=${u.email}"
+                        th:text="${u.nome + ' (@' + u.username + ' · ' + u.email + ')'}">
+                </option>
+              </select>
+              <p class="mensagem-erro" th:if="${#fields.hasErrors('usuario')}" th:errors="*{usuario}"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-heading">
+            <h2>Dados do motorista e Habilitação</h2>
             <p>Informações de identificação, CNH e contato.</p>
           </div>
           <div class="form-grid">
@@ -106,4 +129,3 @@
   <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
 </body>
 </html>
-

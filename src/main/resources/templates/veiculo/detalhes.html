@@ -22,6 +22,7 @@
             <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
             <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
             <a class="nav-item" th:href="@{/tags}">Tags</a>
+            <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
             <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
           </nav>
         </div>
@@ -37,6 +38,7 @@
           </div>
           <a
             class="button button-primary"
+            th:if="${usuarioLogado.podeEditarVeiculo(veiculo.motorista != null ? veiculo.motorista.id : null)}"
             th:href="@{/veiculos/editar/{id}(id=${veiculo.id})}"
             href="veiculo-editar.html"
             >Editar Veículo</a
@@ -142,7 +144,9 @@
               <h2>Histórico de manutenção</h2>
               <p>Serviços registrados para este veículo (Relacionamento 1:N).</p>
             </div>
-            <a class="button button-primary" th:href="@{/manutencoes/novo(veiculoId=${veiculo.id})}">+ Nova manutenção</a>
+            <a class="button button-primary"
+               th:if="${usuarioLogado.podeEditarVeiculo(veiculo.motorista != null ? veiculo.motorista.id : null)}"
+               th:href="@{/manutencoes/novo(veiculoId=${veiculo.id})}">+ Nova manutenção</a>
           </div>
           <div class="table-wrap">
             <table class="data-table">

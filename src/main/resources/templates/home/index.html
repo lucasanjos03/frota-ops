@@ -25,6 +25,7 @@
             <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
             <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
             <a class="nav-item" th:href="@{/tags}">Tags</a>
+            <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
             <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
           </nav>
         </div>
@@ -41,6 +42,7 @@
           </div>
           <a
             class="button button-primary"
+            th:if="${usuarioLogado.admin}"
             th:href="@{/veiculos/novo}"
             href="veiculo-novo.html"
             >+ Novo veículo</a
@@ -123,11 +125,13 @@
                         >Detalhes</a
                       >
                       <a
+                        th:if="${usuarioLogado.podeEditarVeiculo(veiculo.motorista != null ? veiculo.motorista.id : null)}"
                         th:href="@{/veiculos/editar/{id}(id=${veiculo.id})}"
                         href="veiculo-editar.html"
                         >Editar</a
                       >
                       <form
+                        th:if="${usuarioLogado.admin}"
                         th:action="@{/veiculos/excluir/{id}(id=${veiculo.id})}"
                         method="post"
                         onsubmit="return confirm('Tem certeza que deseja remover este veículo da frota?');"

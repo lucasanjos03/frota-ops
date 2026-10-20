@@ -21,6 +21,7 @@
           <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
           <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
           <a class="nav-item" th:href="@{/tags}">Tags</a>
+          <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
           <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
         </nav>
       </div>
@@ -87,7 +88,7 @@
             <p>Vincule o motorista responsável (1:N) e selecione as tags operacionais do veículo (N:N).</p>
           </div>
           <div class="form-grid">
-            <div class="form-group col-span-6">
+            <div class="form-group col-span-6" th:if="${usuarioLogado.admin}">
               <label for="motorista">Motorista responsável</label>
               <select id="motorista" th:field="*{motorista}">
                 <option value="">Selecione um motorista</option>
@@ -97,6 +98,7 @@
                 </option>
               </select>
             </div>
+            <input type="hidden" th:if="${!usuarioLogado.admin}" th:field="*{motorista}">
             <div class="form-group col-span-12">
               <label>Tags operacionais</label>
               <div class="tags-checkbox-grid">
