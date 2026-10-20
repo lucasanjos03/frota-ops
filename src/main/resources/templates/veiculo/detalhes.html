@@ -17,22 +17,13 @@
             <span><strong>Fleet</strong><b>Ops</b></span>
           </a>
           <nav class="nav-menu" aria-label="Navegação principal">
-            <a class="nav-item" th:href="@{/}" href="index.html">Dashboard</a>
-            <a
-              class="nav-item active"
-              th:href="@{/veiculos}"
-              href="veiculos.html"
-              >Veículos</a
-            >
-            <a
-              class="nav-item"
-              th:href="@{/veiculos/novo}"
-              href="veiculo-novo.html"
-              >Novo veículo</a
-            >
-            <a class="nav-item nav-logout" th:href="@{/login}" href="login.html"
-              >Sair</a
-            >
+            <a class="nav-item" th:href="@{/}">Dashboard</a>
+            <a class="nav-item active" th:href="@{/veiculos}">Veículos</a>
+            <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
+            <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
+            <a class="nav-item" th:href="@{/tags}">Tags</a>
+            <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
+            <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
           </nav>
         </div>
       </header>
@@ -42,21 +33,27 @@
             <p class="eyebrow">Ficha do veículo</p>
             <h1>Detalhes do Veículo</h1>
             <p class="page-subtitle">
-              Informações cadastrais e histórico de manutenção.
+              Informações cadastrais, relacionamentos e histórico de manutenção.
             </p>
           </div>
           <a
             class="button button-primary"
+            th:if="${usuarioLogado.podeEditarVeiculo(veiculo.motorista != null ? veiculo.motorista.id : null)}"
             th:href="@{/veiculos/editar/{id}(id=${veiculo.id})}"
             href="veiculo-editar.html"
             >Editar Veículo</a
           >
         </div>
+
+        <!-- Feedback de operações -->
+        <p class="alert alert-sucesso" th:if="${sucesso}" th:text="${sucesso}"></p>
+        <p class="alert alert-erro" th:if="${erro}" th:text="${erro}"></p>
+
         <section class="content-section">
           <div class="section-heading">
             <div>
-              <h2>Identificação</h2>
-              <p>Dados atuais do veículo.</p>
+              <h2>Identificação e Alocação</h2>
+              <p>Dados atuais do veículo, motorista vinculado e classificações.</p>
             </div>
           </div>
           <dl class="detail-grid">
@@ -92,28 +89,42 @@
             </div>
             <div class="detail-item">
               <dt>Situação da manutenção</dt>
-              <dd th:text="${veiculo.situacaoManutencao}"></dd>
+              <dd th:text="${veiculo.situacaoManutencao != null ? veiculo.situacaoManutencao : 'Em dia'}"></dd>
+            </div>
+            <div class="detail-item">
+              <dt>Motorista responsável</dt>
+              <dd th:text="${veiculo.motorista != null ? veiculo.motorista.nome + ' · CNH ' + veiculo.motorista.cnh : 'Não alocado'}"></dd>
+            </div>
+            <div class="detail-item">
+              <dt>Tags operacionais</dt>
+              <dd>
+                <span th:if="${#lists.isEmpty(veiculo.tags)}" class="text-muted">Nenhuma tag vinculada</span>
+                <div class="tags-list" th:if="${!#lists.isEmpty(veiculo.tags)}">
+                  <span class="tag-badge" th:each="tag : ${veiculo.tags}" th:text="${tag.nome}"></span>
+                </div>
+              </dd>
             </div>
             <div class="detail-item">
               <dt>Última revisão</dt>
               <dd
-                th:text="${#temporals.format(veiculo.ultimaRevisao, 'dd/MM/yyyy')}"
+                th:text="${veiculo.ultimaRevisao != null ? #temporals.format(veiculo.ultimaRevisao, 'dd/MM/yyyy') : '-'}"
               ></dd>
             </div>
             <div class="detail-item">
               <dt>Próxima revisão</dt>
               <dd
-                th:text="${#temporals.format(veiculo.proximaRevisao, 'dd/MM/yyyy')}"
+                th:text="${veiculo.proximaRevisao != null ? #temporals.format(veiculo.proximaRevisao, 'dd/MM/yyyy') : '-'}"
               ></dd>
             </div>
             <div class="detail-item">
               <dt>Quilometragem da última revisão</dt>
               <dd
-                th:text="${#numbers.formatDecimal(veiculo.quilometragemUltimaRevisao, 1, 0, 'POINT')} + ' km'"
+                th:text="${veiculo.quilometragemUltimaRevisao != null ? #numbers.formatDecimal(veiculo.quilometragemUltimaRevisao, 1, 0, 'POINT') + ' km' : '-'}"
               ></dd>
             </div>
           </dl>
         </section>
+
         <section class="content-section" style="margin-top: 20px">
           <div class="section-heading">
             <div>
@@ -123,15 +134,19 @@
           </div>
           <div
             style="padding: 24px; color: #526170"
-            th:text="${veiculo.observacoes}"
+            th:text="${!#strings.isEmpty(veiculo.observacoes) ? veiculo.observacoes : 'Sem observações registradas.'}"
           ></div>
         </section>
+
         <section class="content-section" style="margin-top: 20px">
           <div class="section-heading">
             <div>
               <h2>Histórico de manutenção</h2>
-              <p>Serviços registrados para este veículo.</p>
+              <p>Serviços registrados para este veículo (Relacionamento 1:N).</p>
             </div>
+            <a class="button button-primary"
+               th:if="${usuarioLogado.podeEditarVeiculo(veiculo.motorista != null ? veiculo.motorista.id : null)}"
+               th:href="@{/manutencoes/novo(veiculoId=${veiculo.id})}">+ Nova manutenção</a>
           </div>
           <div class="table-wrap">
             <table class="data-table">
@@ -166,6 +181,7 @@
             </table>
           </div>
         </section>
+
         <p style="margin-top: 20px">
           <a
             class="button button-secondary"

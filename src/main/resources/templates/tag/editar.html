@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Editar tag | FleetOps</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css">
+</head>
+<body>
+  <div class="fleet-app">
+    <header class="app-header">
+      <div class="header-inner">
+        <a class="brand" th:href="@{/}" href="index.html">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span><strong>Fleet</strong><b>Ops</b></span>
+        </a>
+        <div class="system-label">Gestão de Frota <span>/</span> Operações</div>
+        <nav class="nav-menu" aria-label="Navegação principal">
+          <a class="nav-item" th:href="@{/}">Dashboard</a>
+          <a class="nav-item" th:href="@{/veiculos}">Veículos</a>
+          <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
+          <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
+          <a class="nav-item active" th:href="@{/tags}">Tags</a>
+          <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
+          <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
+        </nav>
+      </div>
+    </header>
+    <main class="page-container" th:if="${tag}">
+      <div class="page-header">
+        <div>
+          <p class="eyebrow">Edição de tag</p>
+          <h1>Editar Tag</h1>
+          <p class="page-subtitle">Atualize o nome da tag operacional.</p>
+        </div>
+      </div>
+      <form class="form-card" method="post" th:action="@{/tags/editar/{id}(id=${tag.id})}" th:object="${tag}" novalidate>
+        <input type="hidden" th:field="*{id}">
+        <div class="form-section">
+          <div class="form-section-heading">
+            <h2>Dados da tag</h2>
+            <p>Informe o nome identificador da tag operacional.</p>
+          </div>
+          <div class="form-grid">
+            <div class="form-group col-span-12">
+              <label for="nome">Nome da Tag <span class="required-mark">*</span></label>
+              <input id="nome" type="text" th:field="*{nome}" th:errorclass="campo-erro">
+              <p class="mensagem-erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <a class="button button-secondary" th:href="@{/tags}">Cancelar</a>
+          <button class="button button-primary" type="submit">Salvar Alterações</button>
+        </div>
+      </form>
+    </main>
+    <footer class="app-footer">FleetOps · Gestão de Frota e Manutenção · © 2026</footer>
+  </div>
+  <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
+</body>
+</html>
+

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Usuários | FleetOps</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="fleet-app">
+      <header class="app-header">
+        <div class="header-inner">
+          <a class="brand" th:href="@{/}" href="index.html">
+            <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span><strong>Fleet</strong><b>Ops</b></span>
+          </a>
+          <div class="system-label">
+            Gestão de Frota <span>/</span>
+            <span th:text="${usuarioLogado != null ? usuarioLogado.username + ' (' + usuarioLogado.perfil + ')' : 'Operações'}">Operações</span>
+          </div>
+          <nav class="nav-menu" aria-label="Navegação principal">
+            <a class="nav-item" th:href="@{/}">Dashboard</a>
+            <a class="nav-item" th:href="@{/veiculos}">Veículos</a>
+            <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
+            <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
+            <a class="nav-item" th:href="@{/tags}">Tags</a>
+            <a class="nav-item active" th:href="@{/usuarios}">Usuários</a>
+            <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
+          </nav>
+        </div>
+      </header>
+      <main class="page-container">
+        <div class="page-header">
+          <div>
+            <p class="eyebrow">Controle de acesso</p>
+            <h1 th:text="${usuarioLogado.admin ? 'Usuários do Sistema' : 'Meu Perfil de Usuário'}">Usuários do Sistema</h1>
+            <p class="page-subtitle">
+              <span th:text="${totalUsuarios}">0</span>
+              usuário(s) ativo(s) disponível(is) para o seu nível de permissão (<strong th:text="${usuarioLogado.perfil}"></strong>).
+            </p>
+          </div>
+          <a class="button button-primary"
+             th:if="${usuarioLogado.admin}"
+             th:href="@{/usuarios/novo}">+ Novo usuário</a>
+        </div>
+
+        <p class="alert alert-sucesso" th:if="${sucesso}" th:text="${sucesso}"></p>
+        <p class="alert alert-erro" th:if="${erro}" th:text="${erro}"></p>
+
+        <section class="content-section">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Nome</th>
+                  <th>E-mail</th>
+                  <th>Perfil</th>
+                  <th>Vínculo Motorista</th>
+                  <th>Última Modificação</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:if="${#lists.isEmpty(usuarios)}">
+                  <td colspan="7" style="text-align: center; padding: 32px; color: #6c7b89">
+                    Nenhum usuário ativo encontrado.
+                  </td>
+                </tr>
+                <tr th:each="u : ${usuarios}">
+                  <td><strong th:text="${u.username}"></strong></td>
+                  <td th:text="${u.nome}"></td>
+                  <td th:text="${u.email}"></td>
+                  <td>
+                    <span class="status-badge"
+                          th:classappend="${u.perfil == 'ADMIN' ? 'status-info' : (u.perfil == 'MOTORISTA' ? 'status-success' : 'status-warning')}"
+                          th:text="${u.perfil}"></span>
+                  </td>
+                  <td>
+                    <span class="tag-badge"
+                          th:if="${u.motorista != null}"
+                          th:text="${'CNH ' + u.motorista.numeroCnh}"></span>
+                    <span class="text-muted"
+                          th:if="${u.motorista == null}">-</span>
+                  </td>
+                  <td th:text="${u.dataModificacao != null ? #temporals.format(u.dataModificacao, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+                  <td class="cell-actions">
+                    <div class="table-actions">
+                      <a th:if="${usuarioLogado.podeEditarUsuario(u.id)}"
+                         th:href="@{/usuarios/editar/{id}(id=${u.id})}">Editar</a>
+                      <form th:if="${usuarioLogado.admin}"
+                            th:action="@{/usuarios/excluir/{id}(id=${u.id})}"
+                            method="post"
+                            onsubmit="return confirm('Tem certeza que deseja excluir este usuário?');">
+                        <button type="submit" class="btn-action-delete">Excluir</button>
+                      </form>
+                      <span class="text-muted"
+                            th:if="${!usuarioLogado.podeEditarUsuario(u.id) and !usuarioLogado.admin}">Somente leitura</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+      <footer class="app-footer">FleetOps · Gestão de Frota e Manutenção · © 2026</footer>
+    </div>
+    <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
+  </body>
+</html>

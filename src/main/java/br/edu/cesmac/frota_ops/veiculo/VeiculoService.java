@@ -1,64 +1,78 @@
 package br.edu.cesmac.frota_ops.veiculo;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import br.edu.cesmac.frota_ops.motorista.Motorista;
+import br.edu.cesmac.frota_ops.motorista.MotoristaService;
+import br.edu.cesmac.frota_ops.tag.Tag;
+import br.edu.cesmac.frota_ops.tag.TagService;
+import br.edu.cesmac.frota_ops.usuario.Usuario;
+import br.edu.cesmac.frota_ops.usuario.UsuarioService;
+import jakarta.servlet.http.HttpSession;
+
 @Service
 public class VeiculoService {
 
-    private List<Veiculo> veiculos = new ArrayList<>();
-    private List<Manutencao> manutencoes = new ArrayList<>();
+    private final VeiculoRepository veiculoRepository;
+    private final MotoristaService motoristaService;
+    private final TagService tagService;
+    private final UsuarioService usuarioService;
 
-    public VeiculoService() {
-        veiculos.add(new Veiculo(1L, "ABC1D23", "Ford Transit 350", 2023, 42180L,
-                "Disponível", LocalDate.of(2026, 6, 18),
-                LocalDate.of(2026, 9, 18), 36200L,
-                "Veículo utilizado em rotas urbanas e regionais. Pneus revisados na última manutenção preventiva.",
-                "Em dia"));
+    public VeiculoService(VeiculoRepository veiculoRepository,
+                          MotoristaService motoristaService,
+                          TagService tagService,
+                          UsuarioService usuarioService) {
+        this.veiculoRepository = veiculoRepository;
+        this.motoristaService = motoristaService;
+        this.tagService = tagService;
+        this.usuarioService = usuarioService;
+    }
 
-        veiculos.add(new Veiculo(2L, "DEF4G56", "Mercedes-Benz Sprinter", 2022, 67420L,
-                "Em trânsito", LocalDate.of(2026, 3, 12),
-                LocalDate.of(2026, 9, 4), 28700L,
-                "Veículo de longa distância, utilizado principalmente em rodovias.",
-                "Atenção"));
+    public boolean podeCriarOuExcluir(HttpSession session) {
+        return usuarioService.obterUsuarioLogado(session).isAdmin();
+    }
 
-        veiculos.add(new Veiculo(3L, "GHI7J89", "Volkswagen Delivery", 2021, 112300L,
-                "Em manutenção", LocalDate.of(2026, 5, 20),
-                LocalDate.of(2026, 11, 20), 98500L,
-                "Em revisão geral de freios e suspensão.",
-                "Em manutenção"));
+    public boolean podeEditar(HttpSession session, Veiculo veiculo) {
+        if (veiculo == null) {
+            return false;
+        }
+        Long motoristaId = veiculo.getMotorista() != null ? veiculo.getMotorista().getId() : null;
+        return usuarioService.obterUsuarioLogado(session).podeEditarVeiculo(motoristaId);
+    }
 
-        veiculos.add(new Veiculo(4L, "JKL0M12", "Iveco Daily", 2024, 15800L,
-                "Disponível", LocalDate.of(2026, 7, 1),
-                LocalDate.of(2026, 10, 1), 12000L,
-                "Veículo novo, adquirido recentemente.",
-                "Em dia"));
-
-        manutencoes.add(new Manutencao(1L, LocalDate.of(2026, 6, 18), 36200L,
-                "Revisão preventiva", "Oficina Central", "Troca de óleo e filtros", 1L));
-        manutencoes.add(new Manutencao(2L, LocalDate.of(2026, 3, 12), 28700L,
-                "Inspeção de freios", "Equipe interna", "Sem irregularidades", 1L));
-        manutencoes.add(new Manutencao(3L, LocalDate.of(2026, 3, 12), 28700L,
-                "Revisão preventiva", "Oficina Central", "Troca de pastilhas", 2L));
+    public List<Veiculo> listarVeiculosGerenciaveis(HttpSession session) {
+        Usuario logado = usuarioService.obterUsuarioLogado(session);
+        if (logado.isAdmin()) {
+            return veiculoRepository.findAll();
+        }
+        if (logado.isMotorista() && logado.getMotorista() != null && logado.getMotorista().getId() != null) {
+            Long meuMotoristaId = logado.getMotorista().getId();
+            return veiculoRepository.findAll().stream()
+                    .filter(v -> v.getMotorista() != null && meuMotoristaId.equals(v.getMotorista().getId()))
+                    .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 
     public List<Veiculo> listarTodos() {
-        return veiculos;
+        return veiculoRepository.findAll();
     }
 
     public List<Veiculo> filtrar(String q, String status) {
-        List<Veiculo> filtrados = veiculos;
+        List<Veiculo> filtrados = veiculoRepository.findAll();
 
         if (q != null && !q.isBlank()) {
             String busca = q.toLowerCase();
             filtrados = filtrados.stream()
                     .filter(v -> (v.getPlaca() != null && v.getPlaca().toLowerCase().contains(busca))
-                            || (v.getModelo() != null && v.getModelo().toLowerCase().contains(busca)))
+                            || (v.getModelo() != null && v.getModelo().toLowerCase().contains(busca))
+                            || (v.getMotorista() != null && v.getMotorista().getNome().toLowerCase().contains(busca)))
                     .collect(Collectors.toList());
         }
 
@@ -72,62 +86,112 @@ public class VeiculoService {
     }
 
     public Optional<Veiculo> buscarPorId(Long id) {
-        return veiculos.stream()
-                .filter(v -> v.getId().equals(id))
-                .findFirst();
+        return veiculoRepository.findById(id);
     }
 
     public void salvar(Veiculo veiculo) {
-        Long proximoId = veiculos.stream()
-                .mapToLong(Veiculo::getId)
-                .max()
-                .orElse(0L) + 1;
-        veiculo.setId(proximoId);
-        veiculos.add(veiculo);
-    }
-
-    public void atualizar(Long id, Veiculo dadosAtualizados) {
-        for (int i = 0; i < veiculos.size(); i++) {
-            if (veiculos.get(i).getId().equals(id)) {
-                dadosAtualizados.setId(id);
-                // Preserva situacao e km da última revisão se não informados no formulário
-                if (dadosAtualizados.getSituacaoManutencao() == null) {
-                    dadosAtualizados.setSituacaoManutencao(veiculos.get(i).getSituacaoManutencao());
-                }
-                if (dadosAtualizados.getQuilometragemUltimaRevisao() == null) {
-                    dadosAtualizados.setQuilometragemUltimaRevisao(veiculos.get(i).getQuilometragemUltimaRevisao());
-                }
-                veiculos.set(i, dadosAtualizados);
-                return;
-            }
+        if (veiculo.getPlaca() != null) {
+            veiculo.setPlaca(veiculo.getPlaca().trim().toUpperCase());
         }
+        if (veiculo.getStatus() == null || veiculo.getStatus().isBlank()) {
+            veiculo.setStatus("Disponível");
+        }
+        if (veiculo.getUltimaRevisao() != null && veiculo.getQuilometragemUltimaRevisao() == null) {
+            veiculo.setQuilometragemUltimaRevisao(veiculo.getQuilometragem());
+        }
+        veiculo.setSituacaoManutencao(calcularSituacaoManutencao(veiculo));
+
+        veiculoRepository.save(veiculo);
     }
 
-    public void excluir(Long id) {
-        veiculos.removeIf(v -> v.getId().equals(id));
+    public boolean atualizar(Long id, Veiculo dadosAtualizados, HttpSession session) {
+        Veiculo veiculo = veiculoRepository.findById(id).orElse(null);
+        if (veiculo == null) {
+            return false;
+        }
+
+        Usuario logado = usuarioService.obterUsuarioLogado(session);
+
+        if (dadosAtualizados.getPlaca() != null) {
+            veiculo.setPlaca(dadosAtualizados.getPlaca().trim().toUpperCase());
+        }
+        veiculo.setModelo(dadosAtualizados.getModelo());
+        veiculo.setAno(dadosAtualizados.getAno());
+        veiculo.setQuilometragem(dadosAtualizados.getQuilometragem());
+        veiculo.setStatus(dadosAtualizados.getStatus());
+        veiculo.setUltimaRevisao(dadosAtualizados.getUltimaRevisao());
+        veiculo.setProximaRevisao(dadosAtualizados.getProximaRevisao());
+        veiculo.setObservacoes(dadosAtualizados.getObservacoes());
+        if (logado.isAdmin()) {
+            veiculo.setMotorista(dadosAtualizados.getMotorista());
+        }
+        veiculo.setTags(dadosAtualizados.getTags());
+
+        if (dadosAtualizados.getQuilometragemUltimaRevisao() != null) {
+            veiculo.setQuilometragemUltimaRevisao(dadosAtualizados.getQuilometragemUltimaRevisao());
+        } else if (veiculo.getUltimaRevisao() != null && veiculo.getQuilometragemUltimaRevisao() == null) {
+            veiculo.setQuilometragemUltimaRevisao(veiculo.getQuilometragem());
+        }
+
+        veiculo.setSituacaoManutencao(calcularSituacaoManutencao(veiculo));
+
+        veiculoRepository.save(veiculo);
+        return true;
     }
 
-    public List<Manutencao> buscarManutencoesPorVeiculo(Long veiculoId) {
-        return manutencoes.stream()
-                .filter(m -> m.getVeiculoId().equals(veiculoId))
-                .collect(Collectors.toList());
+    public boolean excluir(Long id) {
+        if (!veiculoRepository.existsById(id)) {
+            return false;
+        }
+        veiculoRepository.deleteById(id);
+        return true;
+    }
+
+    public void atualizarAposManutencao(Veiculo veiculo, LocalDate dataManutencao, Long kmManutencao) {
+        if (veiculo.getUltimaRevisao() == null || !dataManutencao.isBefore(veiculo.getUltimaRevisao())) {
+            veiculo.setUltimaRevisao(dataManutencao);
+            veiculo.setQuilometragemUltimaRevisao(kmManutencao);
+        }
+        if (kmManutencao != null && kmManutencao > veiculo.getQuilometragem()) {
+            veiculo.setQuilometragem(kmManutencao);
+        }
+        veiculo.setSituacaoManutencao(calcularSituacaoManutencao(veiculo));
+        veiculoRepository.save(veiculo);
+    }
+
+    private String calcularSituacaoManutencao(Veiculo veiculo) {
+        if ("Em manutenção".equalsIgnoreCase(veiculo.getStatus())) {
+            return "Em manutenção";
+        }
+        if (veiculo.getProximaRevisao() != null
+                && !veiculo.getProximaRevisao().isAfter(LocalDate.now().plusDays(15))) {
+            return "Atenção";
+        }
+        return "Em dia";
     }
 
     public List<Veiculo> buscarVeiculosAlerta() {
-        return veiculos.stream()
+        return veiculoRepository.findAll().stream()
                 .filter(v -> v.getProximaRevisao() != null)
                 .sorted((v1, v2) -> v1.getProximaRevisao().compareTo(v2.getProximaRevisao()))
                 .collect(Collectors.toList());
     }
 
+    public List<Motorista> listarMotoristas() {
+        return motoristaService.listarTodos();
+    }
+
+    public List<Tag> listarTags() {
+        return tagService.listarTodas();
+    }
+
     public long contarTotal() {
-        return veiculos.size();
+        return veiculoRepository.count();
     }
 
     public long contarPorStatus(String status) {
-        return veiculos.stream()
+        return veiculoRepository.findAll().stream()
                 .filter(v -> status.equalsIgnoreCase(v.getStatus()))
                 .count();
     }
 }
-

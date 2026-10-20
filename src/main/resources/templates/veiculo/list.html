@@ -20,22 +20,13 @@
             Gestão de Frota <span>/</span> Operações
           </div>
           <nav class="nav-menu" aria-label="Navegação principal">
-            <a class="nav-item" th:href="@{/}" href="index.html">Dashboard</a>
-            <a
-              class="nav-item active"
-              th:href="@{/veiculos}"
-              href="veiculos.html"
-              >Veículos</a
-            >
-            <a
-              class="nav-item"
-              th:href="@{/veiculos/novo}"
-              href="veiculo-novo.html"
-              >Novo veículo</a
-            >
-            <a class="nav-item nav-logout" th:href="@{/login}" href="login.html"
-              >Sair</a
-            >
+            <a class="nav-item" th:href="@{/}">Dashboard</a>
+            <a class="nav-item active" th:href="@{/veiculos}">Veículos</a>
+            <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
+            <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
+            <a class="nav-item" th:href="@{/tags}">Tags</a>
+            <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
+            <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
           </nav>
         </div>
       </header>
@@ -46,20 +37,25 @@
             <h1>Veículos</h1>
             <p class="page-subtitle">
               <span th:text="${totalVeiculos}">0</span>
-              <span th:unless="${totalVeiculos}">0</span>
               veículos cadastrados na sua operação.
             </p>
           </div>
           <a
             class="button button-primary"
+            th:if="${usuarioLogado.admin}"
             th:href="@{/veiculos/novo}"
             href="veiculo-novo.html"
             >+ Novo veículo</a
           >
         </div>
+
+        <!-- Feedback de operações -->
+        <p class="alert alert-sucesso" th:if="${sucesso}" th:text="${sucesso}"></p>
+        <p class="alert alert-erro" th:if="${erro}" th:text="${erro}"></p>
+
         <section class="content-section">
           <form class="filters" method="get" th:action="@{/veiculos}">
-            <label for="search">Buscar por placa ou modelo</label>
+            <label for="search">Buscar por placa, modelo ou motorista</label>
             <input
               id="search"
               name="q"
@@ -90,6 +86,12 @@
               >
                 Em manutenção
               </option>
+              <option
+                value="Indisponível"
+                th:selected="${filtroStatus == 'Indisponível'}"
+              >
+                Indisponível
+              </option>
             </select>
             <button class="button button-secondary" type="submit">
               Filtrar
@@ -104,6 +106,8 @@
                 <tr>
                   <th>Placa</th>
                   <th>Modelo</th>
+                  <th>Motorista</th>
+                  <th>Tags</th>
                   <th>Ano</th>
                   <th>Quilometragem</th>
                   <th>Status</th>
@@ -113,7 +117,7 @@
               <tbody>
                 <tr th:if="${#lists.isEmpty(veiculos)}">
                   <td
-                    colspan="6"
+                    colspan="8"
                     style="text-align: center; padding: 32px; color: #6c7b89"
                   >
                     Nenhum veículo encontrado com os filtros atuais.
@@ -124,6 +128,13 @@
                     <strong class="plate" th:text="${veiculo.placa}"></strong>
                   </td>
                   <td th:text="${veiculo.modelo}"></td>
+                  <td th:text="${veiculo.motorista != null ? veiculo.motorista.nome : '-'}"></td>
+                  <td>
+                    <span th:if="${#lists.isEmpty(veiculo.tags)}" class="text-muted">-</span>
+                    <div class="tags-list" th:if="${!#lists.isEmpty(veiculo.tags)}">
+                      <span class="tag-badge" th:each="tag : ${veiculo.tags}" th:text="${tag.nome}"></span>
+                    </div>
+                  </td>
                   <td th:text="${veiculo.ano}"></td>
                   <td
                     th:text="${#numbers.formatDecimal(veiculo.quilometragem, 1, 0, 'POINT')} + ' km'"
@@ -145,18 +156,16 @@
                         >Detalhes</a
                       >
                       <a
+                        th:if="${usuarioLogado.podeEditarVeiculo(veiculo.motorista != null ? veiculo.motorista.id : null)}"
                         th:href="@{/veiculos/editar/{id}(id=${veiculo.id})}"
                         href="veiculo-editar.html"
                         >Editar</a
                       >
                       <form
+                        th:if="${usuarioLogado.admin}"
                         th:action="@{/veiculos/excluir/{id}(id=${veiculo.id})}"
                         method="post"
-                        onsubmit="
-                          return confirm(
-                            'Tem certeza que deseja remover este veículo da frota?',
-                          );
-                        "
+                        onsubmit="return confirm('Tem certeza que deseja remover este veículo da frota?');"
                       >
                         <button type="submit" class="btn-action-delete">
                           Excluir

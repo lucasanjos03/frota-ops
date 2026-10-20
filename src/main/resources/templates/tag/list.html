@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Tags | FleetOps</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="fleet-app">
+      <header class="app-header">
+        <div class="header-inner">
+          <a class="brand" th:href="@{/}" href="index.html">
+            <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span><strong>Fleet</strong><b>Ops</b></span>
+          </a>
+          <div class="system-label">Gestão de Frota <span>/</span> Operações</div>
+          <nav class="nav-menu" aria-label="Navegação principal">
+            <a class="nav-item" th:href="@{/}">Dashboard</a>
+            <a class="nav-item" th:href="@{/veiculos}">Veículos</a>
+            <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
+            <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
+            <a class="nav-item active" th:href="@{/tags}">Tags</a>
+            <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
+            <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
+          </nav>
+        </div>
+      </header>
+      <main class="page-container">
+        <div class="page-header">
+          <div>
+            <p class="eyebrow">Classificação da frota</p>
+            <h1>Tags Operacionais</h1>
+            <p class="page-subtitle">
+              <span th:text="${totalTags}">0</span>
+              tags cadastradas para classificação dos veículos.
+            </p>
+          </div>
+          <a class="button button-primary"
+             th:if="${usuarioLogado.podeGerenciarTags()}"
+             th:href="@{/tags/novo}">+ Nova tag</a>
+        </div>
+
+        <p class="alert alert-sucesso" th:if="${sucesso}" th:text="${sucesso}"></p>
+        <p class="alert alert-erro" th:if="${erro}" th:text="${erro}"></p>
+
+        <section class="content-section">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nome da Tag</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:if="${#lists.isEmpty(tags)}">
+                  <td colspan="3" style="text-align: center; padding: 32px; color: #6c7b89">
+                    Nenhuma tag cadastrada.
+                  </td>
+                </tr>
+                <tr th:each="tag : ${tags}">
+                  <td th:text="${tag.id}"></td>
+                  <td><span class="tag-badge" th:text="${tag.nome}"></span></td>
+                  <td class="cell-actions">
+                    <div class="table-actions">
+                      <a th:if="${usuarioLogado.podeGerenciarTags()}"
+                         th:href="@{/tags/editar/{id}(id=${tag.id})}">Editar</a>
+                      <form th:if="${usuarioLogado.admin}"
+                            th:action="@{/tags/excluir/{id}(id=${tag.id})}"
+                            method="post"
+                            onsubmit="return confirm('Tem certeza que deseja excluir esta tag?');">
+                        <button type="submit" class="btn-action-delete">Excluir</button>
+                      </form>
+                      <span class="text-muted"
+                            th:if="${!usuarioLogado.podeGerenciarTags() and !usuarioLogado.admin}">Somente leitura</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+      <footer class="app-footer">FleetOps · Gestão de Frota e Manutenção · © 2026</footer>
+    </div>
+    <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
+  </body>
+</html>
+
