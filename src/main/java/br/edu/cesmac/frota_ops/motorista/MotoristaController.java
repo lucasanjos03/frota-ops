@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 @Controller
@@ -30,16 +31,33 @@ public class MotoristaController {
     }
 
     @GetMapping("/novo")
-    public String formularioNovo(Model model) {
+    public String formularioNovo(HttpSession session,
+                                 Model model,
+                                 RedirectAttributes redirectAttributes) {
+        if (!motoristaService.podeCriarOuExcluir(session)) {
+            redirectAttributes.addFlashAttribute("erro", "Acesso negado: apenas administradores podem cadastrar novos motoristas.");
+            return "redirect:/motoristas";
+        }
+
         model.addAttribute("motorista", new Motorista());
+        model.addAttribute("usuariosDisponiveis", motoristaService.listarUsuariosDisponiveis(null));
         return "motorista/novo";
     }
 
     @PostMapping("/novo")
     public String cadastrar(@Valid @ModelAttribute("motorista") Motorista motorista,
                             BindingResult result,
+                            HttpSession session,
+                            Model model,
                             RedirectAttributes redirectAttributes) {
+        if (!motoristaService.podeCriarOuExcluir(session)) {
+            redirectAttributes.addFlashAttribute("erro", "Acesso negado: apenas administradores podem cadastrar novos motoristas.");
+            return "redirect:/motoristas";
+        }
+
         if (result.hasErrors()) {
+            Long usuarioId = motorista.getUsuario() != null ? motorista.getUsuario().getId() : null;
+            model.addAttribute("usuariosDisponiveis", motoristaService.listarUsuariosDisponiveis(usuarioId));
             return "motorista/novo";
         }
 
@@ -50,15 +68,23 @@ public class MotoristaController {
 
     @GetMapping("/editar/{id}")
     public String formularioEditar(@PathVariable("id") Long id,
+                                   HttpSession session,
                                    Model model,
                                    RedirectAttributes redirectAttributes) {
+        if (!motoristaService.podeEditar(session, id)) {
+            redirectAttributes.addFlashAttribute("erro", "Acesso negado: você só tem permissão para editar seu próprio perfil de motorista.");
+            return "redirect:/motoristas";
+        }
+
         Motorista motorista = motoristaService.buscarPorId(id).orElse(null);
         if (motorista == null) {
             redirectAttributes.addFlashAttribute("erro", "Motorista não encontrado.");
             return "redirect:/motoristas";
         }
 
+        Long usuarioIdAtual = motorista.getUsuario() != null ? motorista.getUsuario().getId() : null;
         model.addAttribute("motorista", motorista);
+        model.addAttribute("usuariosDisponiveis", motoristaService.listarUsuariosDisponiveis(usuarioIdAtual));
         return "motorista/editar";
     }
 
@@ -66,9 +92,18 @@ public class MotoristaController {
     public String atualizar(@PathVariable("id") Long id,
                             @Valid @ModelAttribute("motorista") Motorista motorista,
                             BindingResult result,
+                            HttpSession session,
+                            Model model,
                             RedirectAttributes redirectAttributes) {
+        if (!motoristaService.podeEditar(session, id)) {
+            redirectAttributes.addFlashAttribute("erro", "Acesso negado: você só tem permissão para editar seu próprio perfil de motorista.");
+            return "redirect:/motoristas";
+        }
+
         if (result.hasErrors()) {
             motorista.setId(id);
+            Long usuarioIdAtual = motorista.getUsuario() != null ? motorista.getUsuario().getId() : null;
+            model.addAttribute("usuariosDisponiveis", motoristaService.listarUsuariosDisponiveis(usuarioIdAtual));
             return "motorista/editar";
         }
 
@@ -84,7 +119,13 @@ public class MotoristaController {
 
     @PostMapping("/excluir/{id}")
     public String excluir(@PathVariable("id") Long id,
+                          HttpSession session,
                           RedirectAttributes redirectAttributes) {
+        if (!motoristaService.podeCriarOuExcluir(session)) {
+            redirectAttributes.addFlashAttribute("erro", "Acesso negado: apenas administradores podem excluir motoristas.");
+            return "redirect:/motoristas";
+        }
+
         boolean excluido = motoristaService.excluir(id);
         if (!excluido) {
             redirectAttributes.addFlashAttribute("erro", "Motorista não encontrado.");
@@ -95,4 +136,3 @@ public class MotoristaController {
         return "redirect:/motoristas";
     }
 }
-

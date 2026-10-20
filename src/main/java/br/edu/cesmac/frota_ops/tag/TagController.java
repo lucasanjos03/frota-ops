@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 @Controller
@@ -30,7 +31,14 @@ public class TagController {
     }
 
     @GetMapping("/novo")
-    public String formularioNovo(Model model) {
+    public String formularioNovo(HttpSession session,
+                                 Model model,
+                                 RedirectAttributes redirectAttributes) {
+        if (!tagService.podeGerenciar(session)) {
+            redirectAttributes.addFlashAttribute("erro", "Acesso negado: perfil Operador possui permissão apenas de visualização.");
+            return "redirect:/tags";
+        }
+
         model.addAttribute("tag", new Tag());
         return "tag/novo";
     }
@@ -38,7 +46,13 @@ public class TagController {
     @PostMapping("/novo")
     public String cadastrar(@Valid @ModelAttribute("tag") Tag tag,
                             BindingResult result,
+                            HttpSession session,
                             RedirectAttributes redirectAttributes) {
+        if (!tagService.podeGerenciar(session)) {
+            redirectAttributes.addFlashAttribute("erro", "Acesso negado: perfil Operador possui permissão apenas de visualização.");
+            return "redirect:/tags";
+        }
+
         if (result.hasErrors()) {
             return "tag/novo";
         }
@@ -50,8 +64,14 @@ public class TagController {
 
     @GetMapping("/editar/{id}")
     public String formularioEditar(@PathVariable("id") Long id,
+                                   HttpSession session,
                                    Model model,
                                    RedirectAttributes redirectAttributes) {
+        if (!tagService.podeGerenciar(session)) {
+            redirectAttributes.addFlashAttribute("erro", "Acesso negado: perfil Operador possui permissão apenas de visualização.");
+            return "redirect:/tags";
+        }
+
         Tag tag = tagService.buscarPorId(id).orElse(null);
         if (tag == null) {
             redirectAttributes.addFlashAttribute("erro", "Tag não encontrada.");
@@ -66,7 +86,13 @@ public class TagController {
     public String atualizar(@PathVariable("id") Long id,
                             @Valid @ModelAttribute("tag") Tag tag,
                             BindingResult result,
+                            HttpSession session,
                             RedirectAttributes redirectAttributes) {
+        if (!tagService.podeGerenciar(session)) {
+            redirectAttributes.addFlashAttribute("erro", "Acesso negado: perfil Operador possui permissão apenas de visualização.");
+            return "redirect:/tags";
+        }
+
         if (result.hasErrors()) {
             tag.setId(id);
             return "tag/editar";
@@ -84,7 +110,13 @@ public class TagController {
 
     @PostMapping("/excluir/{id}")
     public String excluir(@PathVariable("id") Long id,
+                          HttpSession session,
                           RedirectAttributes redirectAttributes) {
+        if (!tagService.podeExcluir(session)) {
+            redirectAttributes.addFlashAttribute("erro", "Acesso negado: apenas administradores podem excluir tags.");
+            return "redirect:/tags";
+        }
+
         boolean excluido = tagService.excluir(id);
         if (!excluido) {
             redirectAttributes.addFlashAttribute("erro", "Tag não encontrada.");
@@ -95,4 +127,3 @@ public class TagController {
         return "redirect:/tags";
     }
 }
-

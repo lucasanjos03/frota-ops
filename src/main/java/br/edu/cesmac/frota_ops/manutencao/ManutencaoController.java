@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 @Controller
@@ -39,19 +40,33 @@ public class ManutencaoController {
     }
 
     @GetMapping("/novo")
-    public String formularioNovo(@RequestParam(required = false) Long veiculoId, Model model) {
+    public String formularioNovo(@RequestParam(required = false) Long veiculoId,
+                                 HttpSession session,
+                                 Model model,
+                                 RedirectAttributes redirectAttributes) {
+        if (!manutencaoService.podeCriar(session)) {
+            redirectAttributes.addFlashAttribute("erro", "Acesso negado: você não possui permissão para registrar manutenções.");
+            return "redirect:/manutencoes";
+        }
+
         model.addAttribute("manutencao", manutencaoService.criarNovaManutencao(veiculoId));
-        model.addAttribute("veiculos", manutencaoService.listarVeiculos());
+        model.addAttribute("veiculos", manutencaoService.listarVeiculosPermitidos(session));
         return "manutencao/novo";
     }
 
     @PostMapping("/novo")
     public String cadastrar(@Valid @ModelAttribute("manutencao") Manutencao manutencao,
                             BindingResult result,
+                            HttpSession session,
                             Model model,
                             RedirectAttributes redirectAttributes) {
+        if (!manutencaoService.podeGerenciarVeiculo(session, manutencao.getVeiculo())) {
+            redirectAttributes.addFlashAttribute("erro", "Acesso negado: você só pode registrar manutenções nos seus próprios veículos.");
+            return "redirect:/manutencoes";
+        }
+
         if (result.hasErrors()) {
-            model.addAttribute("veiculos", manutencaoService.listarVeiculos());
+            model.addAttribute("veiculos", manutencaoService.listarVeiculosPermitidos(session));
             return "manutencao/novo";
         }
 
@@ -62,6 +77,7 @@ public class ManutencaoController {
 
     @GetMapping("/editar/{id}")
     public String formularioEditar(@PathVariable("id") Long id,
+                                   HttpSession session,
                                    Model model,
                                    RedirectAttributes redirectAttributes) {
         Manutencao manutencao = manutencaoService.buscarPorId(id).orElse(null);
@@ -70,8 +86,13 @@ public class ManutencaoController {
             return "redirect:/manutencoes";
         }
 
+        if (!manutencaoService.podeEditarManutencao(session, manutencao)) {
+            redirectAttributes.addFlashAttribute("erro", "Acesso negado: você só pode editar manutenções dos seus próprios veículos.");
+            return "redirect:/manutencoes";
+        }
+
         model.addAttribute("manutencao", manutencao);
-        model.addAttribute("veiculos", manutencaoService.listarVeiculos());
+        model.addAttribute("veiculos", manutencaoService.listarVeiculosPermitidos(session));
         return "manutencao/editar";
     }
 
@@ -79,35 +100,48 @@ public class ManutencaoController {
     public String atualizar(@PathVariable("id") Long id,
                             @Valid @ModelAttribute("manutencao") Manutencao manutencao,
                             BindingResult result,
+                            HttpSession session,
                             Model model,
                             RedirectAttributes redirectAttributes) {
-        if (result.hasErrors()) {
-            manutencao.setId(id);
-            model.addAttribute("veiculos", manutencaoService.listarVeiculos());
-            return "manutencao/editar";
-        }
-
-        boolean atualizado = manutencaoService.atualizar(id, manutencao);
-        if (!atualizado) {
+        Manutencao existente = manutencaoService.buscarPorId(id).orElse(null);
+        if (existente == null) {
             redirectAttributes.addFlashAttribute("erro", "Manutenção não encontrada.");
             return "redirect:/manutencoes";
         }
 
+        if (!manutencaoService.podeEditarManutencao(session, existente)) {
+            redirectAttributes.addFlashAttribute("erro", "Acesso negado: você só pode editar manutenções dos seus próprios veículos.");
+            return "redirect:/manutencoes";
+        }
+
+        if (result.hasErrors()) {
+            manutencao.setId(id);
+            model.addAttribute("veiculos", manutencaoService.listarVeiculosPermitidos(session));
+            return "manutencao/editar";
+        }
+
+        manutencaoService.atualizar(id, manutencao);
         redirectAttributes.addFlashAttribute("sucesso", "Manutenção atualizada com sucesso!");
         return "redirect:/manutencoes";
     }
 
     @PostMapping("/excluir/{id}")
     public String excluir(@PathVariable("id") Long id,
+                          HttpSession session,
                           RedirectAttributes redirectAttributes) {
-        boolean excluido = manutencaoService.excluir(id);
-        if (!excluido) {
+        Manutencao existente = manutencaoService.buscarPorId(id).orElse(null);
+        if (existente == null) {
             redirectAttributes.addFlashAttribute("erro", "Manutenção não encontrada.");
             return "redirect:/manutencoes";
         }
 
+        if (!manutencaoService.podeExcluir(session, existente)) {
+            redirectAttributes.addFlashAttribute("erro", "Acesso negado: você não tem permissão para excluir esta manutenção.");
+            return "redirect:/manutencoes";
+        }
+
+        manutencaoService.excluir(id);
         redirectAttributes.addFlashAttribute("sucesso", "Manutenção excluída com sucesso!");
         return "redirect:/manutencoes";
     }
 }
-

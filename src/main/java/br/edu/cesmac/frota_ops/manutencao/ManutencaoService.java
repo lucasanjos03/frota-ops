@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import br.edu.cesmac.frota_ops.veiculo.Veiculo;
 import br.edu.cesmac.frota_ops.veiculo.VeiculoService;
+import jakarta.servlet.http.HttpSession;
 
 @Service
 public class ManutencaoService {
@@ -19,6 +20,26 @@ public class ManutencaoService {
                              VeiculoService veiculoService) {
         this.manutencaoRepository = manutencaoRepository;
         this.veiculoService = veiculoService;
+    }
+
+    public boolean podeCriar(HttpSession session) {
+        return !veiculoService.listarVeiculosGerenciaveis(session).isEmpty()
+                || veiculoService.podeCriarOuExcluir(session);
+    }
+
+    public boolean podeGerenciarVeiculo(HttpSession session, Veiculo veiculo) {
+        return veiculoService.podeEditar(session, veiculo);
+    }
+
+    public boolean podeEditarManutencao(HttpSession session, Manutencao manutencao) {
+        if (manutencao == null || manutencao.getVeiculo() == null) {
+            return false;
+        }
+        return veiculoService.podeEditar(session, manutencao.getVeiculo());
+    }
+
+    public boolean podeExcluir(HttpSession session, Manutencao manutencao) {
+        return veiculoService.podeCriarOuExcluir(session) || podeEditarManutencao(session, manutencao);
     }
 
     public List<Manutencao> listarTodas() {
@@ -93,6 +114,10 @@ public class ManutencaoService {
 
     public List<Veiculo> listarVeiculos() {
         return veiculoService.listarTodos();
+    }
+
+    public List<Veiculo> listarVeiculosPermitidos(HttpSession session) {
+        return veiculoService.listarVeiculosGerenciaveis(session);
     }
 
     public long contarTotal() {

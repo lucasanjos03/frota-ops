@@ -5,13 +5,27 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import br.edu.cesmac.frota_ops.usuario.UsuarioService;
+import jakarta.servlet.http.HttpSession;
+
 @Service
 public class TagService {
 
     private final TagRepository tagRepository;
+    private final UsuarioService usuarioService;
 
-    public TagService(TagRepository tagRepository) {
+    public TagService(TagRepository tagRepository,
+                      UsuarioService usuarioService) {
         this.tagRepository = tagRepository;
+        this.usuarioService = usuarioService;
+    }
+
+    public boolean podeGerenciar(HttpSession session) {
+        return usuarioService.obterUsuarioLogado(session).podeGerenciarTags();
+    }
+
+    public boolean podeExcluir(HttpSession session) {
+        return usuarioService.obterUsuarioLogado(session).isAdmin();
     }
 
     public List<Tag> listarTodas() {

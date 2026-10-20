@@ -1,6 +1,7 @@
 package br.edu.cesmac.frota_ops.veiculo;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -11,6 +12,9 @@ import br.edu.cesmac.frota_ops.motorista.Motorista;
 import br.edu.cesmac.frota_ops.motorista.MotoristaService;
 import br.edu.cesmac.frota_ops.tag.Tag;
 import br.edu.cesmac.frota_ops.tag.TagService;
+import br.edu.cesmac.frota_ops.usuario.Usuario;
+import br.edu.cesmac.frota_ops.usuario.UsuarioService;
+import jakarta.servlet.http.HttpSession;
 
 @Service
 public class VeiculoService {
@@ -18,13 +22,42 @@ public class VeiculoService {
     private final VeiculoRepository veiculoRepository;
     private final MotoristaService motoristaService;
     private final TagService tagService;
+    private final UsuarioService usuarioService;
 
     public VeiculoService(VeiculoRepository veiculoRepository,
                           MotoristaService motoristaService,
-                          TagService tagService) {
+                          TagService tagService,
+                          UsuarioService usuarioService) {
         this.veiculoRepository = veiculoRepository;
         this.motoristaService = motoristaService;
         this.tagService = tagService;
+        this.usuarioService = usuarioService;
+    }
+
+    public boolean podeCriarOuExcluir(HttpSession session) {
+        return usuarioService.obterUsuarioLogado(session).isAdmin();
+    }
+
+    public boolean podeEditar(HttpSession session, Veiculo veiculo) {
+        if (veiculo == null) {
+            return false;
+        }
+        Long motoristaId = veiculo.getMotorista() != null ? veiculo.getMotorista().getId() : null;
+        return usuarioService.obterUsuarioLogado(session).podeEditarVeiculo(motoristaId);
+    }
+
+    public List<Veiculo> listarVeiculosGerenciaveis(HttpSession session) {
+        Usuario logado = usuarioService.obterUsuarioLogado(session);
+        if (logado.isAdmin()) {
+            return veiculoRepository.findAll();
+        }
+        if (logado.isMotorista() && logado.getMotorista() != null && logado.getMotorista().getId() != null) {
+            Long meuMotoristaId = logado.getMotorista().getId();
+            return veiculoRepository.findAll().stream()
+                    .filter(v -> v.getMotorista() != null && meuMotoristaId.equals(v.getMotorista().getId()))
+                    .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 
     public List<Veiculo> listarTodos() {
@@ -71,11 +104,13 @@ public class VeiculoService {
         veiculoRepository.save(veiculo);
     }
 
-    public boolean atualizar(Long id, Veiculo dadosAtualizados) {
+    public boolean atualizar(Long id, Veiculo dadosAtualizados, HttpSession session) {
         Veiculo veiculo = veiculoRepository.findById(id).orElse(null);
         if (veiculo == null) {
             return false;
         }
+
+        Usuario logado = usuarioService.obterUsuarioLogado(session);
 
         if (dadosAtualizados.getPlaca() != null) {
             veiculo.setPlaca(dadosAtualizados.getPlaca().trim().toUpperCase());
@@ -87,7 +122,9 @@ public class VeiculoService {
         veiculo.setUltimaRevisao(dadosAtualizados.getUltimaRevisao());
         veiculo.setProximaRevisao(dadosAtualizados.getProximaRevisao());
         veiculo.setObservacoes(dadosAtualizados.getObservacoes());
-        veiculo.setMotorista(dadosAtualizados.getMotorista());
+        if (logado.isAdmin()) {
+            veiculo.setMotorista(dadosAtualizados.getMotorista());
+        }
         veiculo.setTags(dadosAtualizados.getTags());
 
         if (dadosAtualizados.getQuilometragemUltimaRevisao() != null) {
