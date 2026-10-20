@@ -11,15 +11,21 @@
 
 O **FleetOps** é uma aplicação web monolítica desenvolvida para o gerenciamento operacional e controle de manutenção de frotas de veículos.
 
-O projeto utiliza **Java 21** com **Spring Boot**, renderização dinâmica no servidor via **Thymeleaf** e persistência em banco de dados relacional **PostgreSQL**. A arquitetura é dividida por componente de domínio (`veiculo`, `manutencao`, `motorista`, `tag`, `home`, `auth`), onde cada componente encapsula sua Entidade, Repository, Service e Controller, contando com:
+O projeto utiliza **Java 21** com **Spring Boot**, renderização dinâmica no servidor via **Thymeleaf** e persistência em banco de dados relacional **PostgreSQL**. A arquitetura é dividida por componente de domínio (`veiculo`, `manutencao`, `motorista`, `tag`, `usuario`, `home`, `auth`), onde cada componente encapsula sua Entidade, Repository, Service e Controller, contando com:
 
-- **Versionamento de Banco de Dados com Flyway** (`V1` e `V2`) e validação de schema via Hibernate (`ddl-auto=validate`).
+- **Versionamento de Banco de Dados com Flyway** (`V1` a `V5`) e validação de schema via Hibernate (`ddl-auto=validate`).
 - **Persistência com Spring Data JPA**, substituindo o armazenamento em memória por repositórios JPA.
 - **Validação Backend com Jakarta Bean Validation** (`@NotBlank`, `@Size`, `@NotNull`, `@Min`, `@Valid` e `BindingResult`) integrada visualmente aos formulários Thymeleaf (`th:errors` e `th:errorclass`).
 - **Feedback de Operações** com mensagens temporárias (*Flash Attributes* via `RedirectAttributes`) e tratamento de registros inexistentes.
 - **Relacionamentos JPA**:
+  - **`@OneToOne` (1:1)**: Vínculo entre **Motorista** e **Usuário** do sistema (`usuario_id`), garantindo que todo motorista possua conta vinculada.
   - **`@ManyToOne` (1:N)**: Associação de veículos a um **Motorista** responsável (`<select>` nos formulários) e vínculo do histórico de **Manutenção** ao **Veículo**.
   - **`@ManyToMany` (N:N)**: Classificação de veículos com múltiplas **Tags Operacionais** via tabela associativa (`veiculo_tags`) e seleção por *checkboxes*.
+- **Controle de Perfis de Acesso (`ADMIN`, `OPERADOR`, `MOTORISTA`) e Soft Delete**:
+  - **`ADMIN`**: Acesso total a todos os módulos e operações do sistema.
+  - **`OPERADOR`**: Visualização da frota, motoristas, manutenções e tags, com edição restrita ao próprio usuário.
+  - **`MOTORISTA`**: Além das permissões de visualização e edição do próprio usuário/motorista, gerencia seus próprios veículos, manutenções e tags operacionais.
+  - **Exclusão Lógica (*Soft Delete*)**: A exclusão de usuário marca `ativo = false` e registra `data_modificacao`, ocultando o registro das listagens e bloqueando o login sem perda de integridade referencial.
 
 ---
 
@@ -52,7 +58,7 @@ O projeto utiliza **Java 21** com **Spring Boot**, renderização dinâmica no s
    CREATE DATABASE "frota-ops";
    ```
 2. Por padrão, o arquivo [`application.properties`](src/main/resources/application.properties) conecta em `jdbc:postgresql://localhost:5432/frota-ops` com usuário `postgres` e senha `postgres` (você também pode sobrescrever via variáveis de ambiente `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`).
-3. **Não é necessário rodar scripts SQL manualmente**: ao iniciar a aplicação, o **Flyway** executa automaticamente as migrations `V1__create_initial_tables.sql` e `V2__add_motoristas_and_tags.sql`, criando todas as tabelas e inserindo os dados iniciais de exemplo.
+3. **Não é necessário rodar scripts SQL manualmente**: ao iniciar a aplicação, o **Flyway** executa automaticamente as migrations `V1` a `V5` em `src/main/resources/db/migration/`, criando todas as tabelas, relacionamentos, perfis de acesso e inserindo os dados iniciais de exemplo.
 
 ### Passos para execução
 
@@ -111,12 +117,12 @@ O projeto utiliza **Java 21** com **Spring Boot**, renderização dinâmica no s
 | `GET`  | `/tags/editar/{id}`          | **Edição de Tag**: Carrega a tag para edição.                                                                                           |
 | `POST` | `/tags/editar/{id}`          | **Atualização de Tag**: Atualiza o nome da tag via `TagService`.                                                                        |
 | `POST` | `/tags/excluir/{id}`         | **Exclusão de Tag**: Remove a tag operacional.                                                                                          |
-| `GET`  | `/usuarios`                  | **Listagem de Usuários**: Exibe todos os usuários (administradores, operadores e motoristas vinculados).                                |
+| `GET`  | `/usuarios`                  | **Listagem de Usuários**: Exibe todos os usuários ativos (administradores, operadores e motoristas vinculados).                         |
 | `GET`  | `/usuarios/novo`             | **Formulário de Usuário**: Tela de cadastro de novo usuário do sistema.                                                                 |
 | `POST` | `/usuarios/novo`             | **Cadastro de Usuário**: Valida e salva o usuário via `UsuarioService`.                                                                 |
 | `GET`  | `/usuarios/editar/{id}`      | **Edição de Usuário**: Carrega os dados do usuário para edição.                                                                         |
 | `POST` | `/usuarios/editar/{id}`      | **Atualização de Usuário**: Atualiza o usuário via `UsuarioService`.                                                                    |
-| `POST` | `/usuarios/excluir/{id}`     | **Exclusão de Usuário**: Remove o usuário do banco de dados.                                                                            |
+| `POST` | `/usuarios/excluir/{id}`     | **Exclusão Lógica de Usuário**: Realiza *Soft Delete* (`ativo = false` e atualiza `data_modificacao`), ocultando o usuário do sistema.  |
 | `GET`  | `/login`                     | **Tela de Login**: Interface de autenticação validando contra a tabela `usuario`.                                                       |
 | `POST` | `/login`                     | **Acesso ao Sistema**: Autentica `username`/`email` e `senha` no banco via `UsuarioService`.                                            |
 | `GET`  | `/cadastro`                  | **Criar Conta**: Tela de autocadastro de usuário acessível a partir do login.                                                           |
@@ -132,7 +138,8 @@ src/
 │   ├── java/br/edu/cesmac/frota_ops/
 │   │   ├── FrotaOpsApplication.java            # Classe principal de inicialização
 │   │   ├── auth/
-│   │   │   └── AuthController.java             # Controlador de login e autenticação
+│   │   │   ├── AuthController.java             # Controlador de login, logout e autocadastro
+│   │   │   └── SessionControllerAdvice.java    # Atributos globais de sessão e controle de perfis nas views
 │   │   ├── home/
 │   │   │   └── HomeController.java             # Controlador do Dashboard e visão geral
 │   │   ├── veiculo/
@@ -156,7 +163,7 @@ src/
 │   │   │   ├── TagService.java                 # Regras de negócio e persistência de Tag
 │   │   │   └── TagController.java              # Controlador CRUD de tags (injeta apenas TagService)
 │   │   └── usuario/
-│   │       ├── Usuario.java                    # Entidade JPA Usuario (1:1 opcional com Motorista)
+│   │       ├── Usuario.java                    # Entidade JPA Usuario (1:1 com Motorista, perfil e Soft Delete)
 │   │       ├── UsuarioRepository.java          # Repositório Spring Data JPA de Usuario
 │   │       ├── UsuarioService.java             # Regras de negócio, autenticação e persistência de Usuario
 │   │       └── UsuarioController.java          # Controlador CRUD de usuários (injeta apenas UsuarioService)
