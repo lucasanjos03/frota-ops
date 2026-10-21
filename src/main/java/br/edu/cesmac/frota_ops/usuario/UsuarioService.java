@@ -4,7 +4,6 @@ import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -46,10 +45,7 @@ public class UsuarioService {
     }
 
     public List<Usuario> listarDisponiveisParaMotorista(Long usuarioIdAtual) {
-        return usuarioRepository.findAllByAtivoTrue().stream()
-                .filter(u -> u.getMotorista() == null
-                        || (usuarioIdAtual != null && u.getId().equals(usuarioIdAtual)))
-                .collect(Collectors.toList());
+        return usuarioRepository.listarDisponiveisParaMotorista(usuarioIdAtual);
     }
 
     public Optional<Usuario> buscarPorId(Long id) {
@@ -60,10 +56,7 @@ public class UsuarioService {
         if (login == null || login.isBlank() || senha == null || senha.isBlank()) {
             return Optional.empty();
         }
-        String identificador = login.trim();
-        return usuarioRepository
-                .findByUsernameIgnoreCaseOrEmailIgnoreCase(identificador, identificador)
-                .filter(u -> Boolean.TRUE.equals(u.getAtivo()) && senha.equals(u.getSenha()));
+        return usuarioRepository.autenticarUsuarioAtivo(login.trim(), senha);
     }
 
     public void salvar(Usuario usuario) {

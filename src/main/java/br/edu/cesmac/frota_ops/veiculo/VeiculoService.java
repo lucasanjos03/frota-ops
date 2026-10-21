@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -52,10 +51,7 @@ public class VeiculoService {
             return veiculoRepository.findAll();
         }
         if (logado.isMotorista() && logado.getMotorista() != null && logado.getMotorista().getId() != null) {
-            Long meuMotoristaId = logado.getMotorista().getId();
-            return veiculoRepository.findAll().stream()
-                    .filter(v -> v.getMotorista() != null && meuMotoristaId.equals(v.getMotorista().getId()))
-                    .collect(Collectors.toList());
+            return veiculoRepository.findByMotoristaId(logado.getMotorista().getId());
         }
         return Collections.emptyList();
     }
@@ -65,24 +61,7 @@ public class VeiculoService {
     }
 
     public List<Veiculo> filtrar(String q, String status) {
-        List<Veiculo> filtrados = veiculoRepository.findAll();
-
-        if (q != null && !q.isBlank()) {
-            String busca = q.toLowerCase();
-            filtrados = filtrados.stream()
-                    .filter(v -> (v.getPlaca() != null && v.getPlaca().toLowerCase().contains(busca))
-                            || (v.getModelo() != null && v.getModelo().toLowerCase().contains(busca))
-                            || (v.getMotorista() != null && v.getMotorista().getNome().toLowerCase().contains(busca)))
-                    .collect(Collectors.toList());
-        }
-
-        if (status != null && !status.isBlank()) {
-            filtrados = filtrados.stream()
-                    .filter(v -> status.equalsIgnoreCase(v.getStatus()))
-                    .collect(Collectors.toList());
-        }
-
-        return filtrados;
+        return veiculoRepository.filtrarVeiculosDaFrota(q, status);
     }
 
     public Optional<Veiculo> buscarPorId(Long id) {
@@ -171,10 +150,7 @@ public class VeiculoService {
     }
 
     public List<Veiculo> buscarVeiculosAlerta() {
-        return veiculoRepository.findAll().stream()
-                .filter(v -> v.getProximaRevisao() != null)
-                .sorted((v1, v2) -> v1.getProximaRevisao().compareTo(v2.getProximaRevisao()))
-                .collect(Collectors.toList());
+        return veiculoRepository.findByProximaRevisaoIsNotNullOrderByProximaRevisaoAsc();
     }
 
     public List<Motorista> listarMotoristas() {
@@ -190,8 +166,6 @@ public class VeiculoService {
     }
 
     public long contarPorStatus(String status) {
-        return veiculoRepository.findAll().stream()
-                .filter(v -> status.equalsIgnoreCase(v.getStatus()))
-                .count();
+        return veiculoRepository.countByStatusIgnoreCase(status);
     }
 }
