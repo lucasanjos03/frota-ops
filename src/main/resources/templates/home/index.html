@@ -13,8 +13,23 @@
             <p class="eyebrow">Visão geral</p>
             <h1>Visão Geral da Frota</h1>
             <p class="page-subtitle">
-              Resumo operacional e alertas de manutenção dos veículos
-              cadastrados.
+              Painel operacional com dados reais de frota, manutenções, revisões e
+              habilitações.
+            </p>
+            <p class="scope-note">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z" />
+              </svg>
+              Escopo exibido:
+              <span th:text="${dashboard.escopoDescricao}">Frota completa</span>
             </p>
           </div>
           <a
@@ -25,98 +40,343 @@
           >
         </div>
 
-        <div class="kpi-grid">
+        <!-- ============================ ALERTAS PRIORIZADOS ============================ -->
+        <section class="content-section" aria-labelledby="titulo-alertas">
+          <div class="section-heading">
+            <div>
+              <h2 id="titulo-alertas">Alertas operacionais</h2>
+              <p>
+                Priorizados por criticidade: revisões, habilitações e veículos em
+                manutenção.
+              </p>
+            </div>
+          </div>
+
+          <div class="alert-panel" th:if="${!#lists.isEmpty(dashboard.alertas)}">
+            <div
+              class="alert-item"
+              th:each="alerta : ${dashboard.alertas}"
+              th:classappend="'alert-item--' + ${#strings.toLowerCase(alerta.nivel)}"
+            >
+              <svg
+                class="alert-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+                <path d="M12 9v4M12 17h.01" />
+              </svg>
+              <div class="alert-body">
+                <strong class="alert-title" th:text="${alerta.titulo}">Título</strong>
+                <p class="alert-desc" th:text="${alerta.descricao}">Descrição</p>
+              </div>
+              <a
+                class="alert-action"
+                th:href="@{${alerta.url}}"
+                th:text="${alerta.rotuloAcao}"
+                >Ver</a
+              >
+            </div>
+          </div>
+
+          <div class="empty-state" th:if="${#lists.isEmpty(dashboard.alertas)}">
+            <strong>Nenhum alerta operacional</strong>
+            Não há revisões vencidas, revisões próximas, CNHs a vencer ou veículos em
+            manutenção no momento.
+          </div>
+        </section>
+
+        <!-- ================================== KPIs ================================== -->
+        <div class="kpi-grid mt-5">
           <div class="kpi-card">
-            <span class="kpi-label">Total da Frota</span>
-            <strong class="kpi-value" th:text="${totalVeiculos}">0</strong>
+            <span class="kpi-label">Total da frota</span>
+            <strong class="kpi-value" th:text="${dashboard.indicadores.totalVeiculos}">0</strong>
+            <span
+              class="kpi-hint"
+              th:text="${dashboard.indicadores.indisponiveis} + ' indisponível(is)'"
+              >0 indisponível(is)</span
+            >
           </div>
           <div class="kpi-card">
             <span class="kpi-label">Disponíveis</span>
-            <strong class="kpi-value text-success" th:text="${totalDisponiveis}">0</strong>
+            <strong
+              class="kpi-value text-success"
+              th:text="${dashboard.indicadores.disponiveis}"
+              >0</strong
+            >
           </div>
           <div class="kpi-card">
-            <span class="kpi-label">Em Trânsito</span>
-            <strong class="kpi-value text-blue" th:text="${totalEmTransito}">0</strong>
+            <span class="kpi-label">Em trânsito</span>
+            <strong class="kpi-value text-blue" th:text="${dashboard.indicadores.emTransito}"
+              >0</strong
+            >
           </div>
           <div class="kpi-card">
-            <span class="kpi-label">Em Manutenção</span>
-            <strong class="kpi-value text-warning" th:text="${totalEmManutencao}">0</strong>
+            <span class="kpi-label">Em manutenção</span>
+            <strong
+              class="kpi-value text-warning"
+              th:text="${dashboard.indicadores.emManutencao}"
+              >0</strong
+            >
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Revisões vencidas</span>
+            <strong
+              class="kpi-value text-danger"
+              th:text="${dashboard.indicadores.revisoesVencidas}"
+              >0</strong
+            >
+            <span class="kpi-hint">data de revisão já ultrapassada</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Revisões próximas</span>
+            <strong
+              class="kpi-value text-warning"
+              th:text="${dashboard.indicadores.revisoesProximas}"
+              >0</strong
+            >
+            <span class="kpi-hint" th:text="|janela de 15 dias|">janela de 15 dias</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Revisões em dia</span>
+            <strong
+              class="kpi-value text-success"
+              th:text="${dashboard.indicadores.revisoesEmDia}"
+              >0</strong
+            >
+            <span class="kpi-hint">sem revisão agendada ou fora da janela</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">CNHs a vencer</span>
+            <strong
+              class="kpi-value text-danger"
+              th:text="${dashboard.indicadores.cnhsVencendo}"
+              >0</strong
+            >
+            <span class="kpi-hint" th:text="|vencidas: ${dashboard.indicadores.cnhsVencidas}|"
+              >vencidas: 0</span
+            >
           </div>
         </div>
 
-        <section class="content-section">
+        <!-- ================================= GRÁFICOS ================================= -->
+        <div class="dash-grid">
+          <section class="content-section chart-card" aria-labelledby="titulo-chart-status">
+            <div class="section-heading">
+              <div>
+                <h2 id="titulo-chart-status">Distribuição da frota por status</h2>
+                <p>Contagem de veículos por situação operacional cadastrada.</p>
+              </div>
+            </div>
+            <div class="chart-card__body">
+              <div
+                class="chart-box"
+                th:if="${dashboard.indicadores.totalVeiculos > 0}"
+              >
+                <canvas
+                  id="chart-distribuicao"
+                  width="300"
+                  height="260"
+                  role="img"
+                  aria-label="Gráfico de rosca com a quantidade de veículos por status"
+                ></canvas>
+                <p class="chart-state">Carregando gráfico…</p>
+              </div>
+              <div class="empty-state" th:if="${dashboard.indicadores.totalVeiculos == 0}">
+                <strong>Sem veículos cadastrados</strong>
+                Cadastre o primeiro veículo para visualizar a distribuição da frota.
+              </div>
+              <ul class="chart-legend" aria-label="Legenda da distribuição por status">
+                <li th:each="item : ${dashboard.distribuicaoStatus}">
+                  <span class="dot" th:style="|background-color:${item.cor}|"></span>
+                  <span th:text="${item.status}">Disponível</span>
+                  <span class="qtd" th:text="${item.total}">0</span>
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          <section class="content-section chart-card" aria-labelledby="titulo-chart-manutencoes">
+            <div class="section-heading">
+              <div>
+                <h2 id="titulo-chart-manutencoes">Manutenções realizadas</h2>
+                <p th:text="${dashboard.janelaManutencoes}">últimos 6 meses</p>
+              </div>
+            </div>
+            <div class="chart-card__body">
+              <div class="chart-box" th:if="${dashboard.exibirGraficoManutencoes}">
+                <canvas
+                  id="chart-manutencoes"
+                  width="300"
+                  height="260"
+                  role="img"
+                  aria-label="Gráfico de barras com as manutenções realizadas nos últimos 6 meses"
+                ></canvas>
+                <p class="chart-state">Carregando gráfico…</p>
+              </div>
+              <div class="empty-state" th:if="${!dashboard.exibirGraficoManutencoes}">
+                <strong>Nenhuma manutenção registrada</strong>
+                Não há manutenções com data de realização na janela analisada.
+              </div>
+              <ul class="chart-legend" aria-label="Série mensal de manutenções">
+                <li th:each="mes : ${dashboard.manutencoesPorMes}">
+                  <span th:text="${mes.rotulo}">Mai/26</span>
+                  <span class="qtd" th:text="${mes.total}">0</span>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </div>
+
+        <div class="dash-grid">
+          <section
+            class="content-section chart-card"
+            aria-labelledby="titulo-chart-tags"
+            th:if="${dashboard.exibirGraficoTags}"
+          >
+            <div class="section-heading">
+              <div>
+                <h2 id="titulo-chart-tags">Veículos por tag</h2>
+                <p>
+                  As tags são cumulativas: um veículo pode pertencer a mais de uma tag.
+                </p>
+              </div>
+            </div>
+            <div class="chart-card__body">
+              <div class="chart-box chart-box--tags">
+                <canvas
+                  id="chart-tags"
+                  width="300"
+                  height="320"
+                  role="img"
+                  aria-label="Gráfico de barras horizontais com a quantidade de veículos por tag"
+                ></canvas>
+                <p class="chart-state">Carregando gráfico…</p>
+              </div>
+              <ul class="chart-legend" aria-label="Quantidade de veículos por tag">
+                <li th:each="tag : ${dashboard.veiculosPorTag}">
+                  <span th:text="${tag.tag}">Tag</span>
+                  <span class="qtd" th:text="${tag.total}">0</span>
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- ============================== CNHs EM ALERTA ============================== -->
+          <section class="content-section" aria-labelledby="titulo-cnh">
+            <div class="section-heading">
+              <div>
+                <h2 id="titulo-cnh">Habilitações em alerta</h2>
+                <p th:text="|CNHs ${dashboard.janelaCnh}|">CNHs vencidas ou a vencer</p>
+              </div>
+              <a class="text-button" th:href="@{/motoristas}">Ver motoristas →</a>
+            </div>
+            <div class="revision-list" th:if="${!#lists.isEmpty(dashboard.cnhsEmAlerta)}">
+              <div class="revision-item" th:each="cnh : ${dashboard.cnhsEmAlerta}">
+                <div class="revision-main">
+                  <span class="revision-title" th:text="${cnh.nome}">Nome</span>
+                  <p
+                    class="revision-meta"
+                    th:text="|CNH ${cnh.numeroCnh} · validade ${#temporals.format(cnh.validade, 'dd/MM/yyyy')}|"
+                  >
+                    CNH · validade
+                  </p>
+                </div>
+                <span
+                  class="status-badge"
+                  th:classappend="${cnh.situacao == 'Vencida' ? 'status-danger' : 'status-warning'}"
+                  th:text="${cnh.situacao}"
+                  >A vencer</span
+                >
+                <span
+                  class="revision-days"
+                  th:classappend="${cnh.diasRestantes < 0 ? 'revision-days--overdue' : 'revision-days--soon'}"
+                  th:text="${cnh.diasRestantes < 0
+                             ? 'vencida há ' + (-cnh.diasRestantes) + ' dia(s)'
+                             : 'vence em ' + cnh.diasRestantes + ' dia(s)'}"
+                  >vence em 0 dia(s)</span
+                >
+              </div>
+            </div>
+            <div class="empty-state" th:if="${#lists.isEmpty(dashboard.cnhsEmAlerta)}">
+              <strong>Nenhuma CNH em alerta</strong>
+              Nenhuma habilitação vencida ou a vencer na janela analisada.
+            </div>
+          </section>
+        </div>
+
+        <!-- ============================ LISTA DE REVISÕES ============================ -->
+        <section class="content-section" aria-labelledby="titulo-revisoes">
           <div class="section-heading">
             <div>
-              <h2>Manutenções próximas do prazo</h2>
-              <p>Veículos que exigem atenção da equipe operacional.</p>
+              <h2 id="titulo-revisoes">Próximas revisões</h2>
+              <p th:text="|Revisões ${dashboard.janelaRevisoes}|">
+                Revisões vencidas ou com vencimento em até 15 dias
+              </p>
             </div>
-            <a class="text-button" th:href="@{/veiculos}">Ver todos →</a>
+            <a class="text-button" th:href="@{/veiculos}">Ver todos os veículos →</a>
           </div>
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Placa</th>
-                  <th>Modelo</th>
-                  <th>Motorista</th>
-                  <th>Próxima revisão</th>
-                  <th>Status</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr th:if="${#lists.isEmpty(veiculosAlerta)}">
-                  <td colspan="6" class="empty-state">
-                    Nenhum alerta de manutenção pendente no momento.
-                  </td>
-                </tr>
-                <tr th:each="veiculo : ${veiculosAlerta}">
-                  <td>
-                    <strong class="plate" th:text="${veiculo.placa}"></strong>
-                  </td>
-                  <td th:text="${veiculo.modelo}"></td>
-                  <td th:text="${veiculo.motorista != null ? veiculo.motorista.nome : '-'}"></td>
-                  <td
-                    th:text="${#temporals.format(veiculo.proximaRevisao, 'dd/MM/yyyy')}"
-                  ></td>
-                  <td>
-                    <span
-                      class="status-badge"
-                      th:classappend="${veiculo.status == 'Disponível' ? 'status-success' :
-                                       (veiculo.status == 'Em trânsito' ? 'status-info' :
-                                       (veiculo.status == 'Em manutenção' ? 'status-warning' : 'status-danger'))}"
-                      th:text="${veiculo.status}"
-                    ></span>
-                  </td>
-                  <td class="cell-actions">
-                    <div class="table-actions">
-                      <a th:href="@{/veiculos/detalhes/{id}(id=${veiculo.id})}">Detalhes</a>
-                      <a
-                        th:if="${usuarioLogado.podeEditarVeiculo(veiculo.motorista != null ? veiculo.motorista.id : null)}"
-                        th:href="@{/veiculos/editar/{id}(id=${veiculo.id})}"
-                        >Editar</a
-                      >
-                      <form
-                        th:if="${usuarioLogado.admin}"
-                        th:action="@{/veiculos/excluir/{id}(id=${veiculo.id})}"
-                        method="post"
-                        onsubmit="return confirm('Tem certeza que deseja remover este veículo da frota?');"
-                      >
-                        <button type="submit" class="btn-action-delete">
-                          Excluir
-                        </button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+
+          <div class="revision-list" th:if="${!#lists.isEmpty(dashboard.proximasRevisoes)}">
+            <div class="revision-item" th:each="revisao : ${dashboard.proximasRevisoes}">
+              <div class="revision-main">
+                <span class="revision-title">
+                  <a
+                    class="plate"
+                    th:href="@{/veiculos/detalhes/{id}(id=${revisao.veiculoId})}"
+                    th:text="${revisao.placa}"
+                    >PLACA</a
+                  >
+                  <span th:text="${revisao.modelo}">Modelo</span>
+                </span>
+                <p
+                  class="revision-meta"
+                  th:text="|Revisão prevista para ${#temporals.format(revisao.proximaRevisao, 'dd/MM/yyyy')}${revisao.motorista != null ? ' · ' + revisao.motorista : ''}|"
+                >
+                  Revisão prevista
+                </p>
+              </div>
+              <span
+                class="status-badge"
+                th:classappend="${revisao.situacao == 'Vencida' ? 'status-danger' : 'status-warning'}"
+                th:text="${revisao.situacao}"
+                >Vencida</span
+              >
+              <span
+                class="revision-days"
+                th:classappend="${revisao.diasRestantes < 0 ? 'revision-days--overdue' : 'revision-days--soon'}"
+                th:text="${revisao.diasRestantes < 0
+                           ? 'vencida há ' + (-revisao.diasRestantes) + ' dia(s)'
+                           : 'vence em ' + revisao.diasRestantes + ' dia(s)'}"
+                >vencida há 0 dia(s)</span
+              >
+            </div>
+          </div>
+
+          <div class="empty-state" th:if="${#lists.isEmpty(dashboard.proximasRevisoes)}">
+            <strong>Nenhuma revisão dentro da janela de alerta</strong>
+            Não há revisões vencidas nem com vencimento nos próximos 15 dias.
           </div>
         </section>
       </main>
 
       <footer th:replace="~{fragments/layout :: appFooter}"></footer>
     </div>
+
+    <!-- Dados agregados (apenas DTOs) consumidos pelos gráficos. Nenhuma entidade JPA é exposta. -->
+    <script th:inline="javascript">
+      window.FLEET_DASHBOARD = {
+        distribuicaoStatus: /*[[${dashboard.distribuicaoStatus}]]*/ [],
+        manutencoesPorMes: /*[[${dashboard.manutencoesPorMes}]]*/ [],
+        veiculosPorTag: /*[[${dashboard.veiculosPorTag}]]*/ []
+      };
+    </script>
+    <script th:src="@{/js/vendor/chart.umd.min.js}" defer></script>
     <script th:src="@{/js/script.js}" defer></script>
   </body>
 </html>

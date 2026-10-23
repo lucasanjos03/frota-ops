@@ -170,13 +170,6 @@ public class VeiculoService {
         return "Em dia";
     }
 
-    public List<Veiculo> buscarVeiculosAlerta() {
-        return veiculoRepository.findAll().stream()
-                .filter(v -> v.getProximaRevisao() != null)
-                .sorted((v1, v2) -> v1.getProximaRevisao().compareTo(v2.getProximaRevisao()))
-                .collect(Collectors.toList());
-    }
-
     public List<Motorista> listarMotoristas() {
         return motoristaService.listarTodos();
     }
@@ -187,11 +180,5 @@ public class VeiculoService {
 
     public long contarTotal() {
         return veiculoRepository.count();
-    }
-
-    public long contarPorStatus(String status) {
-        return veiculoRepository.findAll().stream()
-                .filter(v -> status.equalsIgnoreCase(v.getStatus()))
-                .count();
     }
 }
