@@ -1,33 +1,15 @@
 <!doctype html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Detalhes do veículo | FleetOps</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css" />
+    <th:block th:replace="~{fragments/layout :: head('Detalhes do veículo | FleetOps')}"></th:block>
   </head>
   <body>
     <div class="fleet-app">
-      <header class="app-header">
-        <div class="header-inner">
-          <a class="brand" th:href="@{/}" href="index.html">
-            <span class="brand-mark" aria-hidden="true"
-              ><i></i><i></i><i></i
-            ></span>
-            <span><strong>Fleet</strong><b>Ops</b></span>
-          </a>
-          <nav class="nav-menu" aria-label="Navegação principal">
-            <a class="nav-item" th:href="@{/}">Dashboard</a>
-            <a class="nav-item active" th:href="@{/veiculos}">Veículos</a>
-            <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
-            <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
-            <a class="nav-item" th:href="@{/tags}">Tags</a>
-            <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
-            <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
-          </nav>
-        </div>
-      </header>
+      <header th:replace="~{fragments/layout :: appHeader('veiculos')}"></header>
+
       <main class="page-container" th:if="${veiculo}">
+        <nav th:replace="~{fragments/layout :: breadcrumbs('Veículos', @{/veiculos}, 'Detalhes')}"></nav>
+
         <div class="page-header">
           <div>
             <p class="eyebrow">Ficha do veículo</p>
@@ -40,14 +22,11 @@
             class="button button-primary"
             th:if="${usuarioLogado.podeEditarVeiculo(veiculo.motorista != null ? veiculo.motorista.id : null)}"
             th:href="@{/veiculos/editar/{id}(id=${veiculo.id})}"
-            href="veiculo-editar.html"
             >Editar Veículo</a
           >
         </div>
 
-        <!-- Feedback de operações -->
-        <p class="alert alert-sucesso" th:if="${sucesso}" th:text="${sucesso}"></p>
-        <p class="alert alert-erro" th:if="${erro}" th:text="${erro}"></p>
+        <th:block th:replace="~{fragments/layout :: flash}"></th:block>
 
         <section class="content-section">
           <div class="section-heading">
@@ -125,7 +104,7 @@
           </dl>
         </section>
 
-        <section class="content-section" style="margin-top: 20px">
+        <section class="content-section">
           <div class="section-heading">
             <div>
               <h2>Observações</h2>
@@ -133,12 +112,12 @@
             </div>
           </div>
           <div
-            style="padding: 24px; color: #526170"
+            class="section-body"
             th:text="${!#strings.isEmpty(veiculo.observacoes) ? veiculo.observacoes : 'Sem observações registradas.'}"
           ></div>
         </section>
 
-        <section class="content-section" style="margin-top: 20px">
+        <section class="content-section">
           <div class="section-heading">
             <div>
               <h2>Histórico de manutenção</h2>
@@ -161,10 +140,7 @@
               </thead>
               <tbody>
                 <tr th:if="${#lists.isEmpty(manutencoes)}">
-                  <td
-                    colspan="5"
-                    style="text-align: center; padding: 24px; color: #6c7b89"
-                  >
+                  <td colspan="5" class="empty-state">
                     Nenhum histórico de manutenção registrado para este veículo.
                   </td>
                 </tr>
@@ -182,16 +158,13 @@
           </div>
         </section>
 
-        <p style="margin-top: 20px">
-          <a
-            class="button button-secondary"
-            th:href="@{/veiculos}"
-            href="veiculos.html"
-            >← Voltar para Veículos</a
-          >
+        <p class="mt-5">
+          <a class="button button-secondary" th:href="@{/veiculos}">← Voltar para Veículos</a>
         </p>
       </main>
+
+      <footer th:replace="~{fragments/layout :: appFooter}"></footer>
     </div>
-    <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
+    <script th:src="@{/js/script.js}" defer></script>
   </body>
 </html>

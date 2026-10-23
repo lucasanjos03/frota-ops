@@ -1,35 +1,12 @@
 <!doctype html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Dashboard | FleetOps</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css" />
+    <th:block th:replace="~{fragments/layout :: head('Dashboard | FleetOps')}"></th:block>
   </head>
   <body>
     <div class="fleet-app">
-      <header class="app-header">
-        <div class="header-inner">
-          <a class="brand" th:href="@{/}" href="index.html">
-            <span class="brand-mark" aria-hidden="true"
-              ><i></i><i></i><i></i
-            ></span>
-            <span><strong>Fleet</strong><b>Ops</b></span>
-          </a>
-          <div class="system-label">
-            Gestão de Frota <span>/</span> Operações
-          </div>
-          <nav class="nav-menu" aria-label="Navegação principal">
-            <a class="nav-item active" th:href="@{/}">Dashboard</a>
-            <a class="nav-item" th:href="@{/veiculos}">Veículos</a>
-            <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
-            <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
-            <a class="nav-item" th:href="@{/tags}">Tags</a>
-            <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
-            <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
-          </nav>
-        </div>
-      </header>
+      <header th:replace="~{fragments/layout :: appHeader('dashboard')}"></header>
+
       <main class="page-container">
         <div class="page-header">
           <div>
@@ -44,7 +21,6 @@
             class="button button-primary"
             th:if="${usuarioLogado.admin}"
             th:href="@{/veiculos/novo}"
-            href="veiculo-novo.html"
             >+ Novo veículo</a
           >
         </div>
@@ -74,9 +50,7 @@
               <h2>Manutenções próximas do prazo</h2>
               <p>Veículos que exigem atenção da equipe operacional.</p>
             </div>
-            <a class="text-button" th:href="@{/veiculos}" href="veiculos.html"
-              >Ver todos →</a
-            >
+            <a class="text-button" th:href="@{/veiculos}">Ver todos →</a>
           </div>
           <div class="table-wrap">
             <table class="data-table">
@@ -92,10 +66,7 @@
               </thead>
               <tbody>
                 <tr th:if="${#lists.isEmpty(veiculosAlerta)}">
-                  <td
-                    colspan="6"
-                    style="text-align: center; padding: 32px; color: #6c7b89"
-                  >
+                  <td colspan="6" class="empty-state">
                     Nenhum alerta de manutenção pendente no momento.
                   </td>
                 </tr>
@@ -119,15 +90,10 @@
                   </td>
                   <td class="cell-actions">
                     <div class="table-actions">
-                      <a
-                        th:href="@{/veiculos/detalhes/{id}(id=${veiculo.id})}"
-                        href="veiculo-detalhes.html"
-                        >Detalhes</a
-                      >
+                      <a th:href="@{/veiculos/detalhes/{id}(id=${veiculo.id})}">Detalhes</a>
                       <a
                         th:if="${usuarioLogado.podeEditarVeiculo(veiculo.motorista != null ? veiculo.motorista.id : null)}"
                         th:href="@{/veiculos/editar/{id}(id=${veiculo.id})}"
-                        href="veiculo-editar.html"
                         >Editar</a
                       >
                       <form
@@ -148,10 +114,9 @@
           </div>
         </section>
       </main>
-      <footer class="app-footer">
-        FleetOps · Gestão de Frota e Manutenção · © 2026
-      </footer>
+
+      <footer th:replace="~{fragments/layout :: appFooter}"></footer>
     </div>
-    <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
+    <script th:src="@{/js/script.js}" defer></script>
   </body>
 </html>

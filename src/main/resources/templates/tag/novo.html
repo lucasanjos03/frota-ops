@@ -1,62 +1,46 @@
 <!doctype html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Nova tag | FleetOps</title>
-  <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css">
-</head>
-<body>
-  <div class="fleet-app">
-    <header class="app-header">
-      <div class="header-inner">
-        <a class="brand" th:href="@{/}" href="index.html">
-          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-          <span><strong>Fleet</strong><b>Ops</b></span>
-        </a>
-        <div class="system-label">Gestão de Frota <span>/</span> Operações</div>
-        <nav class="nav-menu" aria-label="Navegação principal">
-          <a class="nav-item" th:href="@{/}">Dashboard</a>
-          <a class="nav-item" th:href="@{/veiculos}">Veículos</a>
-          <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
-          <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
-          <a class="nav-item active" th:href="@{/tags}">Tags</a>
-          <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
-          <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
-        </nav>
-      </div>
-    </header>
-    <main class="page-container">
-      <div class="page-header">
-        <div>
-          <p class="eyebrow">Cadastro de tag</p>
-          <h1>Cadastrar Nova Tag</h1>
-          <p class="page-subtitle">Defina uma nova tag operacional para classificar veículos da frota.</p>
-        </div>
-      </div>
-      <form class="form-card" method="post" th:action="@{/tags/novo}" th:object="${tag}" novalidate>
-        <div class="form-section">
-          <div class="form-section-heading">
-            <h2>Dados da tag</h2>
-            <p>Informe o nome identificador da tag operacional.</p>
+  <head>
+    <th:block th:replace="~{fragments/layout :: head('Nova tag | FleetOps')}"></th:block>
+  </head>
+  <body>
+    <div class="fleet-app">
+      <header th:replace="~{fragments/layout :: appHeader('tags')}"></header>
+
+      <main class="page-container">
+        <nav th:replace="~{fragments/layout :: breadcrumbs('Tags', @{/tags}, 'Nova')}"></nav>
+
+        <div class="page-header">
+          <div>
+            <p class="eyebrow">Cadastro de tag</p>
+            <h1>Cadastrar Nova Tag</h1>
+            <p class="page-subtitle">Defina uma nova tag operacional para classificar veículos da frota.</p>
           </div>
-          <div class="form-grid">
-            <div class="form-group col-span-12">
-              <label for="nome">Nome da Tag <span class="required-mark">*</span></label>
-              <input id="nome" type="text" placeholder="Ex.: Refrigerado" th:field="*{nome}" th:errorclass="campo-erro">
-              <p class="mensagem-erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
+        </div>
+
+        <form class="form-card" method="post" th:action="@{/tags/novo}" th:object="${tag}" novalidate>
+          <div class="form-section">
+            <div class="form-section-heading">
+              <h2>Dados da tag</h2>
+              <p>Informe o nome identificador da tag operacional.</p>
+            </div>
+            <div class="form-grid">
+              <div class="form-group col-span-12">
+                <label for="nome">Nome da Tag <span class="required-mark">*</span></label>
+                <input id="nome" type="text" placeholder="Ex.: Refrigerado" th:field="*{nome}" th:errorclass="campo-erro">
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="form-actions">
-          <a class="button button-secondary" th:href="@{/tags}">Cancelar</a>
-          <button class="button button-primary" type="submit">Cadastrar Tag</button>
-        </div>
-      </form>
-    </main>
-    <footer class="app-footer">FleetOps · Gestão de Frota e Manutenção · © 2026</footer>
-  </div>
-  <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
-</body>
-</html>
+          <div class="form-actions">
+            <a class="button button-secondary" th:href="@{/tags}">Cancelar</a>
+            <button class="button button-primary" type="submit">Cadastrar Tag</button>
+          </div>
+        </form>
+      </main>
 
+      <footer th:replace="~{fragments/layout :: appFooter}"></footer>
+    </div>
+    <script th:src="@{/js/script.js}" defer></script>
+  </body>
+</html>

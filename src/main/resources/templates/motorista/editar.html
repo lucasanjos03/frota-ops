@@ -1,131 +1,117 @@
 <!doctype html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Editar motorista | FleetOps</title>
-  <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css">
-</head>
-<body>
-  <div class="fleet-app">
-    <header class="app-header">
-      <div class="header-inner">
-        <a class="brand" th:href="@{/}" href="index.html">
-          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-          <span><strong>Fleet</strong><b>Ops</b></span>
-        </a>
-        <div class="system-label">Gestão de Frota <span>/</span> Operações</div>
-        <nav class="nav-menu" aria-label="Navegação principal">
-          <a class="nav-item" th:href="@{/}">Dashboard</a>
-          <a class="nav-item" th:href="@{/veiculos}">Veículos</a>
-          <a class="nav-item active" th:href="@{/motoristas}">Motoristas</a>
-          <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
-          <a class="nav-item" th:href="@{/tags}">Tags</a>
-          <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
-          <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
-        </nav>
-      </div>
-    </header>
-    <main class="page-container" th:if="${motorista}">
-      <div class="page-header">
-        <div>
-          <p class="eyebrow">Edição cadastral</p>
-          <h1>Editar Motorista</h1>
-          <p class="page-subtitle">Atualize o vínculo de usuário, dados pessoais, CNH e status operacional do motorista.</p>
-        </div>
-      </div>
-      <form class="form-card" method="post" th:action="@{/motoristas/editar/{id}(id=${motorista.id})}" th:object="${motorista}" novalidate>
-        <input type="hidden" th:field="*{id}">
-        <div class="form-section" th:if="${usuarioLogado.admin}">
-          <div class="form-section-heading">
-            <h2>Vínculo com Usuário do Sistema</h2>
-            <p>Usuário do sistema associado a este motorista.</p>
-          </div>
-          <div class="form-grid">
-            <div class="form-group col-span-12">
-              <label for="usuario">Usuário do sistema <span class="required-mark">*</span></label>
-              <select id="usuario" th:field="*{usuario}" th:errorclass="campo-erro">
-                <option value="">Selecione um usuário disponível...</option>
-                <option th:each="u : ${usuariosDisponiveis}"
-                        th:value="${u.id}"
-                        th:text="${u.nome + ' (@' + u.username + ' · ' + u.email + ')'}">
-                </option>
-              </select>
-              <p class="mensagem-erro" th:if="${#fields.hasErrors('usuario')}" th:errors="*{usuario}"></p>
-            </div>
-          </div>
-        </div>
-        <input type="hidden" th:if="${!usuarioLogado.admin}" th:field="*{usuario}">
+  <head>
+    <th:block th:replace="~{fragments/layout :: head('Editar motorista | FleetOps')}"></th:block>
+  </head>
+  <body>
+    <div class="fleet-app">
+      <header th:replace="~{fragments/layout :: appHeader('motoristas')}"></header>
 
-        <div class="form-section">
-          <div class="form-section-heading">
-            <h2>Dados do motorista e Habilitação</h2>
-            <p>Informações de identificação, CNH e contato.</p>
-          </div>
-          <div class="form-grid">
-            <div class="form-group col-span-8">
-              <label for="nome">Nome completo <span class="required-mark">*</span></label>
-              <input id="nome" type="text" th:field="*{nome}" th:errorclass="campo-erro">
-              <p class="mensagem-erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
-            </div>
-            <div class="form-group col-span-4">
-              <label for="cpf">CPF <span class="required-mark">*</span></label>
-              <input id="cpf" type="text" th:field="*{cpf}" th:errorclass="campo-erro">
-              <p class="mensagem-erro" th:if="${#fields.hasErrors('cpf')}" th:errors="*{cpf}"></p>
-            </div>
-            <div class="form-group col-span-4">
-              <label for="numeroCnh">Número da CNH <span class="required-mark">*</span></label>
-              <input id="numeroCnh" type="text" th:field="*{numeroCnh}" th:errorclass="campo-erro">
-              <p class="mensagem-erro" th:if="${#fields.hasErrors('numeroCnh')}" th:errors="*{numeroCnh}"></p>
-            </div>
-            <div class="form-group col-span-4">
-              <label for="categoriaCnh">Categoria CNH <span class="required-mark">*</span></label>
-              <select id="categoriaCnh" th:field="*{categoriaCnh}" th:errorclass="campo-erro">
-                <option value="">Selecione...</option>
-                <option value="A">A</option>
-                <option value="B">B</option>
-                <option value="AB">AB</option>
-                <option value="C">C</option>
-                <option value="D">D</option>
-                <option value="E">E</option>
-              </select>
-              <p class="mensagem-erro" th:if="${#fields.hasErrors('categoriaCnh')}" th:errors="*{categoriaCnh}"></p>
-            </div>
-            <div class="form-group col-span-4">
-              <label for="validadeCnh">Validade da CNH <span class="required-mark">*</span></label>
-              <input id="validadeCnh" type="date" th:field="*{validadeCnh}" th:errorclass="campo-erro">
-              <p class="mensagem-erro" th:if="${#fields.hasErrors('validadeCnh')}" th:errors="*{validadeCnh}"></p>
-            </div>
-            <div class="form-group col-span-4">
-              <label for="telefone">Telefone</label>
-              <input id="telefone" type="text" th:field="*{telefone}" th:errorclass="campo-erro">
-              <p class="mensagem-erro" th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}"></p>
-            </div>
-            <div class="form-group col-span-4">
-              <label for="email">E-mail</label>
-              <input id="email" type="email" th:field="*{email}" th:errorclass="campo-erro">
-              <p class="mensagem-erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
-            </div>
-            <div class="form-group col-span-4">
-              <label for="status">Status <span class="required-mark">*</span></label>
-              <select id="status" th:field="*{status}" th:errorclass="campo-erro">
-                <option value="Ativo">Ativo</option>
-                <option value="Férias">Férias</option>
-                <option value="Afastado">Afastado</option>
-                <option value="Inativo">Inativo</option>
-              </select>
-              <p class="mensagem-erro" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></p>
-            </div>
+      <main class="page-container" th:if="${motorista}">
+        <nav th:replace="~{fragments/layout :: breadcrumbs('Motoristas', @{/motoristas}, 'Editar')}"></nav>
+
+        <div class="page-header">
+          <div>
+            <p class="eyebrow">Edição cadastral</p>
+            <h1>Editar Motorista</h1>
+            <p class="page-subtitle">Atualize o vínculo de usuário, dados pessoais, CNH e status operacional do motorista.</p>
           </div>
         </div>
-        <div class="form-actions">
-          <a class="button button-secondary" th:href="@{/motoristas}">Cancelar</a>
-          <button class="button button-primary" type="submit">Salvar Alterações</button>
-        </div>
-      </form>
-    </main>
-    <footer class="app-footer">FleetOps · Gestão de Frota e Manutenção · © 2026</footer>
-  </div>
-  <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
-</body>
+
+        <form class="form-card" method="post" th:action="@{/motoristas/editar/{id}(id=${motorista.id})}" th:object="${motorista}" novalidate>
+          <input type="hidden" th:field="*{id}">
+          <div class="form-section" th:if="${usuarioLogado.admin}">
+            <div class="form-section-heading">
+              <h2>Vínculo com Usuário do Sistema</h2>
+              <p>Usuário do sistema associado a este motorista.</p>
+            </div>
+            <div class="form-grid">
+              <div class="form-group col-span-12">
+                <label for="usuario">Usuário do sistema <span class="required-mark">*</span></label>
+                <select id="usuario" th:field="*{usuario}" th:errorclass="campo-erro">
+                  <option value="">Selecione um usuário disponível...</option>
+                  <option th:each="u : ${usuariosDisponiveis}"
+                          th:value="${u.id}"
+                          th:text="${u.nome + ' (@' + u.username + ' · ' + u.email + ')'}">
+                  </option>
+                </select>
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('usuario')}" th:errors="*{usuario}"></p>
+              </div>
+            </div>
+          </div>
+          <input type="hidden" th:if="${!usuarioLogado.admin}" th:field="*{usuario}">
+
+          <div class="form-section">
+            <div class="form-section-heading">
+              <h2>Dados do motorista e Habilitação</h2>
+              <p>Informações de identificação, CNH e contato.</p>
+            </div>
+            <div class="form-grid">
+              <div class="form-group col-span-8">
+                <label for="nome">Nome completo <span class="required-mark">*</span></label>
+                <input id="nome" type="text" th:field="*{nome}" th:errorclass="campo-erro">
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
+              </div>
+              <div class="form-group col-span-4">
+                <label for="cpf">CPF <span class="required-mark">*</span></label>
+                <input id="cpf" type="text" th:field="*{cpf}" th:errorclass="campo-erro">
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('cpf')}" th:errors="*{cpf}"></p>
+              </div>
+              <div class="form-group col-span-4">
+                <label for="numeroCnh">Número da CNH <span class="required-mark">*</span></label>
+                <input id="numeroCnh" type="text" th:field="*{numeroCnh}" th:errorclass="campo-erro">
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('numeroCnh')}" th:errors="*{numeroCnh}"></p>
+              </div>
+              <div class="form-group col-span-4">
+                <label for="categoriaCnh">Categoria CNH <span class="required-mark">*</span></label>
+                <select id="categoriaCnh" th:field="*{categoriaCnh}" th:errorclass="campo-erro">
+                  <option value="">Selecione...</option>
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                  <option value="AB">AB</option>
+                  <option value="C">C</option>
+                  <option value="D">D</option>
+                  <option value="E">E</option>
+                </select>
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('categoriaCnh')}" th:errors="*{categoriaCnh}"></p>
+              </div>
+              <div class="form-group col-span-4">
+                <label for="validadeCnh">Validade da CNH <span class="required-mark">*</span></label>
+                <input id="validadeCnh" type="date" th:field="*{validadeCnh}" th:errorclass="campo-erro">
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('validadeCnh')}" th:errors="*{validadeCnh}"></p>
+              </div>
+              <div class="form-group col-span-4">
+                <label for="telefone">Telefone</label>
+                <input id="telefone" type="text" th:field="*{telefone}" th:errorclass="campo-erro">
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}"></p>
+              </div>
+              <div class="form-group col-span-4">
+                <label for="email">E-mail</label>
+                <input id="email" type="email" th:field="*{email}" th:errorclass="campo-erro">
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+              </div>
+              <div class="form-group col-span-4">
+                <label for="status">Status <span class="required-mark">*</span></label>
+                <select id="status" th:field="*{status}" th:errorclass="campo-erro">
+                  <option value="Ativo">Ativo</option>
+                  <option value="Férias">Férias</option>
+                  <option value="Afastado">Afastado</option>
+                  <option value="Inativo">Inativo</option>
+                </select>
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <a class="button button-secondary" th:href="@{/motoristas}">Cancelar</a>
+            <button class="button button-primary" type="submit">Salvar Alterações</button>
+          </div>
+        </form>
+      </main>
+
+      <footer th:replace="~{fragments/layout :: appFooter}"></footer>
+    </div>
+    <script th:src="@{/js/script.js}" defer></script>
+  </body>
 </html>

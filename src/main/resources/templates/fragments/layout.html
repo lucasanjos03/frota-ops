@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <!-- ======================================================================
+         Fragmentos reutilizáveis do layout FleetOps.
+         Uso: th:replace="~{fragments/layout :: nomeDaFragmento(params)}"
+         Nenhuma regra de negócio aqui: apenas estrutura e apresentação.
+         ====================================================================== -->
+
+    <!-- HEAD: metadados + folha de estilos. Parâmetro: título da página. -->
+    <th:block th:fragment="head(title)">
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title th:text="${title}">FleetOps</title>
+      <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    </th:block>
+
+    <!-- HEADER: marca, rótulo do sistema e navegação principal.
+         Parâmetro: chave da seção ativa (dashboard|veiculos|motoristas|manutencoes|tags|usuarios). -->
+    <header class="app-header" th:fragment="appHeader(active)">
+      <div class="header-inner">
+        <a class="brand" th:href="@{/}">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span><strong>Fleet</strong><b>Ops</b></span>
+        </a>
+
+        <div class="system-label">
+          Gestão de Frota <span>/</span>
+          <span
+            th:text="${usuarioLogado != null ? usuarioLogado.username + ' (' + usuarioLogado.perfil + ')' : 'Operações'}"
+            >Operações</span
+          >
+        </div>
+
+        <nav class="nav-menu" aria-label="Navegação principal">
+          <a class="nav-item" th:classappend="${active == 'dashboard' ? ' active' : ''}" th:href="@{/}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+            Dashboard
+          </a>
+          <a class="nav-item" th:classappend="${active == 'veiculos' ? ' active' : ''}" th:href="@{/veiculos}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13l1.6-4.5A2 2 0 0 1 6.5 7h11a2 2 0 0 1 1.9 1.5L21 13v5a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1H7v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M3 13h18"/><circle cx="7.5" cy="16" r="1"/><circle cx="16.5" cy="16" r="1"/></svg>
+            Veículos
+          </a>
+          <a class="nav-item" th:classappend="${active == 'motoristas' ? ' active' : ''}" th:href="@{/motoristas}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg>
+            Motoristas
+          </a>
+          <a class="nav-item" th:classappend="${active == 'manutencoes' ? ' active' : ''}" th:href="@{/manutencoes}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.2 5.2L4 17v3h3l5.5-5.5a4 4 0 0 0 5.2-5.2l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>
+            Manutenções
+          </a>
+          <a class="nav-item" th:classappend="${active == 'tags' ? ' active' : ''}" th:href="@{/tags}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4L13 21l-9-9V4h8l8.6 8.6a1 1 0 0 1 0 .8z"/><circle cx="8" cy="8" r="1.3"/></svg>
+            Tags
+          </a>
+          <a class="nav-item" th:classappend="${active == 'usuarios' ? ' active' : ''}" th:href="@{/usuarios}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M16 5.5a3 3 0 0 1 0 5.6M17.5 19a5.5 5.5 0 0 0-2-4.2"/></svg>
+            Usuários
+          </a>
+          <a class="nav-item nav-logout" th:href="@{/login}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3"/><path d="M10 8l-4 4 4 4M6 12h9"/></svg>
+            Sair
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- BREADCRUMBS: trilha de navegação.
+         Parâmetros: seção de origem, URL da seção e página atual (null em páginas de nível superior). -->
+    <nav class="breadcrumbs" th:fragment="breadcrumbs(secao, secaoUrl, atual)" aria-label="Trilha de navegação">
+      <ol>
+        <li><a th:href="@{/}">Dashboard</a></li>
+        <li>
+          <a th:if="${atual != null}" th:href="${secaoUrl}" th:text="${secao}"></a>
+          <span th:if="${atual == null}" aria-current="page" th:text="${secao}"></span>
+        </li>
+        <li th:if="${atual != null}">
+          <span aria-current="page" th:text="${atual}"></span>
+        </li>
+      </ol>
+    </nav>
+
+    <!-- FLASH: mensagens de sucesso/erro. -->
+    <th:block th:fragment="flash">
+      <p class="alert alert-sucesso" th:if="${sucesso}" th:text="${sucesso}"></p>
+      <p class="alert alert-erro" th:if="${erro}" th:text="${erro}"></p>
+    </th:block>
+
+    <!-- FOOTER -->
+    <footer class="app-footer" th:fragment="appFooter">
+      FleetOps · Gestão de Frota e Manutenção · © 2026
+    </footer>
+  </body>
+</html>

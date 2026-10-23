@@ -1,52 +1,49 @@
 <!doctype html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Criar conta | FleetOps</title>
-  <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css">
-</head>
-<body>
-  <main class="login-page">
-    <section class="login-card">
-      <div class="login-brand">
-        <a class="brand" th:href="@{/}" href="index.html">
-          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-          <span><strong>Fleet</strong><b>Ops</b></span>
-        </a>
-        <h1>Criar Conta</h1>
-        <p class="page-subtitle">Cadastre um novo usuário no FleetOps</p>
-      </div>
+  <head>
+    <th:block th:replace="~{fragments/layout :: head('Criar conta | FleetOps')}"></th:block>
+  </head>
+  <body>
+    <main class="login-page">
+      <section class="login-card">
+        <div class="login-brand">
+          <a class="brand" th:href="@{/}">
+            <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span><strong>Fleet</strong><b>Ops</b></span>
+          </a>
+          <h1>Criar Conta</h1>
+          <p class="page-subtitle">Cadastre um novo usuário no FleetOps</p>
+        </div>
 
-      <form method="post" th:action="@{/cadastro}" th:object="${usuario}" novalidate>
-        <div class="form-group">
-          <label for="nome">Nome completo <span class="required-mark">*</span></label>
-          <input id="nome" type="text" placeholder="Ex.: João da Silva" th:field="*{nome}" th:errorclass="campo-erro">
-          <p class="mensagem-erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
-        </div>
-        <div class="form-group">
-          <label for="username">Nome de usuário (login) <span class="required-mark">*</span></label>
-          <input id="username" type="text" placeholder="Ex.: joao.silva" th:field="*{username}" th:errorclass="campo-erro">
-          <p class="mensagem-erro" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></p>
-        </div>
-        <div class="form-group">
-          <label for="email">E-mail <span class="required-mark">*</span></label>
-          <input id="email" type="email" placeholder="Ex.: joao.silva@fleetops.com" th:field="*{email}" th:errorclass="campo-erro">
-          <p class="mensagem-erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
-        </div>
-        <div class="form-group">
-          <label for="senha">Senha <span class="required-mark">*</span></label>
-          <input id="senha" type="password" placeholder="Mínimo de 4 caracteres" th:field="*{senha}" th:errorclass="campo-erro">
-          <p class="mensagem-erro" th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}"></p>
-        </div>
-        <button class="button button-primary" type="submit" style="margin-top: 8px;">Criar Conta</button>
-      </form>
-      <p style="margin-top: 16px; text-align: center; font-size: 0.9rem; color: #526170;">
-        Já possui acesso? <a th:href="@{/login}" style="font-weight: 600;">Voltar para o Login</a>
-      </p>
-    </section>
-  </main>
-  <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
-</body>
+        <form method="post" th:action="@{/cadastro}" th:object="${usuario}" novalidate>
+          <div class="form-group">
+            <label for="nome">Nome completo <span class="required-mark">*</span></label>
+            <input id="nome" type="text" placeholder="Ex.: João da Silva" th:field="*{nome}" th:errorclass="campo-erro">
+            <p class="mensagem-erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
+          </div>
+          <div class="form-group">
+            <label for="username">Nome de usuário (login) <span class="required-mark">*</span></label>
+            <input id="username" type="text" placeholder="Ex.: joao.silva" th:field="*{username}" th:errorclass="campo-erro">
+            <p class="mensagem-erro" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></p>
+          </div>
+          <div class="form-group">
+            <label for="email">E-mail <span class="required-mark">*</span></label>
+            <input id="email" type="email" placeholder="Ex.: joao.silva@fleetops.com" th:field="*{email}" th:errorclass="campo-erro">
+            <p class="mensagem-erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+          </div>
+          <div class="form-group">
+            <label for="senha">Senha <span class="required-mark">*</span></label>
+            <input id="senha" type="password" placeholder="Mínimo de 4 caracteres" th:field="*{senha}" th:errorclass="campo-erro">
+            <p class="mensagem-erro" th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}"></p>
+          </div>
+          <button class="button button-primary" type="submit">Criar Conta</button>
+        </form>
+
+        <p class="login-footnote">
+          Já possui acesso? <a th:href="@{/login}">Voltar para o Login</a>
+        </p>
+      </section>
+    </main>
+    <script th:src="@{/js/script.js}" defer></script>
+  </body>
 </html>
-

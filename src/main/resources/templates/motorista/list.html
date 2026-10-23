@@ -1,31 +1,12 @@
 <!doctype html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Motoristas | FleetOps</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css" />
+    <th:block th:replace="~{fragments/layout :: head('Motoristas | FleetOps')}"></th:block>
   </head>
   <body>
     <div class="fleet-app">
-      <header class="app-header">
-        <div class="header-inner">
-          <a class="brand" th:href="@{/}" href="index.html">
-            <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span><strong>Fleet</strong><b>Ops</b></span>
-          </a>
-          <div class="system-label">Gestão de Frota <span>/</span> Operações</div>
-          <nav class="nav-menu" aria-label="Navegação principal">
-            <a class="nav-item" th:href="@{/}">Dashboard</a>
-            <a class="nav-item" th:href="@{/veiculos}">Veículos</a>
-            <a class="nav-item active" th:href="@{/motoristas}">Motoristas</a>
-            <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
-            <a class="nav-item" th:href="@{/tags}">Tags</a>
-            <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
-            <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
-          </nav>
-        </div>
-      </header>
+      <header th:replace="~{fragments/layout :: appHeader('motoristas')}"></header>
+
       <main class="page-container">
         <div class="page-header">
           <div>
@@ -41,8 +22,7 @@
              th:href="@{/motoristas/novo}">+ Novo motorista</a>
         </div>
 
-        <p class="alert alert-sucesso" th:if="${sucesso}" th:text="${sucesso}"></p>
-        <p class="alert alert-erro" th:if="${erro}" th:text="${erro}"></p>
+        <th:block th:replace="~{fragments/layout :: flash}"></th:block>
 
         <section class="content-section">
           <div class="table-wrap">
@@ -62,7 +42,7 @@
               </thead>
               <tbody>
                 <tr th:if="${#lists.isEmpty(motoristas)}">
-                  <td colspan="9" style="text-align: center; padding: 32px; color: #6c7b89">
+                  <td colspan="9" class="empty-state">
                     Nenhum motorista cadastrado.
                   </td>
                 </tr>
@@ -103,8 +83,9 @@
           </div>
         </section>
       </main>
-      <footer class="app-footer">FleetOps · Gestão de Frota e Manutenção · © 2026</footer>
+
+      <footer th:replace="~{fragments/layout :: appFooter}"></footer>
     </div>
-    <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
+    <script th:src="@{/js/script.js}" defer></script>
   </body>
 </html>

@@ -1,94 +1,78 @@
 <!doctype html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Editar manutenção | FleetOps</title>
-  <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css">
-</head>
-<body>
-  <div class="fleet-app">
-    <header class="app-header">
-      <div class="header-inner">
-        <a class="brand" th:href="@{/}" href="index.html">
-          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-          <span><strong>Fleet</strong><b>Ops</b></span>
-        </a>
-        <div class="system-label">Gestão de Frota <span>/</span> Operações</div>
-        <nav class="nav-menu" aria-label="Navegação principal">
-          <a class="nav-item" th:href="@{/}">Dashboard</a>
-          <a class="nav-item" th:href="@{/veiculos}">Veículos</a>
-          <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
-          <a class="nav-item active" th:href="@{/manutencoes}">Manutenções</a>
-          <a class="nav-item" th:href="@{/tags}">Tags</a>
-          <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
-          <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
-        </nav>
-      </div>
-    </header>
-    <main class="page-container" th:if="${manutencao}">
-      <div class="page-header">
-        <div>
-          <p class="eyebrow">Edição de registro</p>
-          <h1>Editar Manutenção</h1>
-          <p class="page-subtitle">Atualize as informações do serviço realizado.</p>
-        </div>
-      </div>
-      <form class="form-card" method="post" th:action="@{/manutencoes/editar/{id}(id=${manutencao.id})}" th:object="${manutencao}" novalidate>
-        <input type="hidden" th:field="*{id}">
-        <div class="form-section">
-          <div class="form-section-heading">
-            <h2>Dados da manutenção</h2>
-            <p>Informações sobre o veículo atendido, quilometragem e serviço executado.</p>
-          </div>
-          <div class="form-grid">
-            <div class="form-group col-span-6">
-              <label for="veiculo">Veículo <span class="required-mark">*</span></label>
-              <select id="veiculo" th:field="*{veiculo}" th:errorclass="campo-erro">
-                <option value="">Selecione o veículo...</option>
-                <option th:each="v : ${veiculos}"
-                        th:value="${v.id}"
-                        th:text="${v.placa + ' · ' + v.modelo}">
-                </option>
-              </select>
-              <p class="mensagem-erro" th:if="${#fields.hasErrors('veiculo')}" th:errors="*{veiculo}"></p>
-            </div>
-            <div class="form-group col-span-3">
-              <label for="data">Data <span class="required-mark">*</span></label>
-              <input id="data" type="date" th:field="*{data}" th:errorclass="campo-erro">
-              <p class="mensagem-erro" th:if="${#fields.hasErrors('data')}" th:errors="*{data}"></p>
-            </div>
-            <div class="form-group col-span-3">
-              <label for="quilometragem">Quilometragem (km) <span class="required-mark">*</span></label>
-              <input id="quilometragem" type="number" min="0" th:field="*{quilometragem}" th:errorclass="campo-erro">
-              <p class="mensagem-erro" th:if="${#fields.hasErrors('quilometragem')}" th:errors="*{quilometragem}"></p>
-            </div>
-            <div class="form-group col-span-6">
-              <label for="servicoRealizado">Serviço realizado <span class="required-mark">*</span></label>
-              <input id="servicoRealizado" type="text" th:field="*{servicoRealizado}" th:errorclass="campo-erro">
-              <p class="mensagem-erro" th:if="${#fields.hasErrors('servicoRealizado')}" th:errors="*{servicoRealizado}"></p>
-            </div>
-            <div class="form-group col-span-6">
-              <label for="responsavel">Responsável / Oficina <span class="required-mark">*</span></label>
-              <input id="responsavel" type="text" th:field="*{responsavel}" th:errorclass="campo-erro">
-              <p class="mensagem-erro" th:if="${#fields.hasErrors('responsavel')}" th:errors="*{responsavel}"></p>
-            </div>
-            <div class="form-group col-span-12">
-              <label for="observacao">Observação</label>
-              <textarea id="observacao" rows="3" th:field="*{observacao}" th:errorclass="campo-erro"></textarea>
-              <p class="mensagem-erro" th:if="${#fields.hasErrors('observacao')}" th:errors="*{observacao}"></p>
-            </div>
-          </div>
-        </div>
-        <div class="form-actions">
-          <a class="button button-secondary" th:href="@{/manutencoes}">Cancelar</a>
-          <button class="button button-primary" type="submit">Salvar Alterações</button>
-        </div>
-      </form>
-    </main>
-    <footer class="app-footer">FleetOps · Gestão de Frota e Manutenção · © 2026</footer>
-  </div>
-  <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
-</body>
-</html>
+  <head>
+    <th:block th:replace="~{fragments/layout :: head('Editar manutenção | FleetOps')}"></th:block>
+  </head>
+  <body>
+    <div class="fleet-app">
+      <header th:replace="~{fragments/layout :: appHeader('manutencoes')}"></header>
 
+      <main class="page-container" th:if="${manutencao}">
+        <nav th:replace="~{fragments/layout :: breadcrumbs('Manutenções', @{/manutencoes}, 'Editar')}"></nav>
+
+        <div class="page-header">
+          <div>
+            <p class="eyebrow">Edição de registro</p>
+            <h1>Editar Manutenção</h1>
+            <p class="page-subtitle">Atualize as informações do serviço realizado.</p>
+          </div>
+        </div>
+
+        <form class="form-card" method="post" th:action="@{/manutencoes/editar/{id}(id=${manutencao.id})}" th:object="${manutencao}" novalidate>
+          <input type="hidden" th:field="*{id}">
+          <div class="form-section">
+            <div class="form-section-heading">
+              <h2>Dados da manutenção</h2>
+              <p>Informações sobre o veículo atendido, quilometragem e serviço executado.</p>
+            </div>
+            <div class="form-grid">
+              <div class="form-group col-span-6">
+                <label for="veiculo">Veículo <span class="required-mark">*</span></label>
+                <select id="veiculo" th:field="*{veiculo}" th:errorclass="campo-erro">
+                  <option value="">Selecione o veículo...</option>
+                  <option th:each="v : ${veiculos}"
+                          th:value="${v.id}"
+                          th:text="${v.placa + ' · ' + v.modelo}">
+                  </option>
+                </select>
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('veiculo')}" th:errors="*{veiculo}"></p>
+              </div>
+              <div class="form-group col-span-3">
+                <label for="data">Data <span class="required-mark">*</span></label>
+                <input id="data" type="date" th:field="*{data}" th:errorclass="campo-erro">
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('data')}" th:errors="*{data}"></p>
+              </div>
+              <div class="form-group col-span-3">
+                <label for="quilometragem">Quilometragem (km) <span class="required-mark">*</span></label>
+                <input id="quilometragem" type="number" min="0" th:field="*{quilometragem}" th:errorclass="campo-erro">
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('quilometragem')}" th:errors="*{quilometragem}"></p>
+              </div>
+              <div class="form-group col-span-6">
+                <label for="servicoRealizado">Serviço realizado <span class="required-mark">*</span></label>
+                <input id="servicoRealizado" type="text" th:field="*{servicoRealizado}" th:errorclass="campo-erro">
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('servicoRealizado')}" th:errors="*{servicoRealizado}"></p>
+              </div>
+              <div class="form-group col-span-6">
+                <label for="responsavel">Responsável / Oficina <span class="required-mark">*</span></label>
+                <input id="responsavel" type="text" th:field="*{responsavel}" th:errorclass="campo-erro">
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('responsavel')}" th:errors="*{responsavel}"></p>
+              </div>
+              <div class="form-group col-span-12">
+                <label for="observacao">Observação</label>
+                <textarea id="observacao" rows="3" th:field="*{observacao}" th:errorclass="campo-erro"></textarea>
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('observacao')}" th:errors="*{observacao}"></p>
+              </div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <a class="button button-secondary" th:href="@{/manutencoes}">Cancelar</a>
+            <button class="button button-primary" type="submit">Salvar Alterações</button>
+          </div>
+        </form>
+      </main>
+
+      <footer th:replace="~{fragments/layout :: appFooter}"></footer>
+    </div>
+    <script th:src="@{/js/script.js}" defer></script>
+  </body>
+</html>
