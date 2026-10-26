@@ -2,10 +2,16 @@ package br.edu.cesmac.frota_ops.veiculo;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import br.edu.cesmac.frota_ops.motorista.Motorista;
@@ -18,6 +24,12 @@ import jakarta.servlet.http.HttpSession;
 
 @Service
 public class VeiculoService {
+
+    /** Janela de antecedência para revisões "próximas" — mesma usada pelo dashboard. */
+    public static final int JANELA_REVISAO_DIAS = 15;
+
+    /** Tamanho da página da listagem de veículos. */
+    public static final int TAMANHO_PAGINA = 10;
 
     private final VeiculoRepository veiculoRepository;
     private final MotoristaService motoristaService;
@@ -64,25 +76,123 @@ public class VeiculoService {
         return veiculoRepository.findAll();
     }
 
-    public List<Veiculo> filtrar(String q, String status) {
-        List<Veiculo> filtrados = veiculoRepository.findAll();
+    /**
+     * Listagem paginada da tela de veículos, já restrita ao escopo do perfil: ADMIN e
+     * OPERADOR enxergam a frota completa; MOTORISTA enxerga apenas os veículos alocados ao
+     * próprio cadastro. A filtragem (busca, status, situação, revisão e vínculo) ocorre no
+     * banco, sobre o mesmo conjunto já escopado.
+     *
+     * @param pagina número da página, começando em 1.
+     */
+    public Page<Veiculo> listar(HttpSession session, VeiculoFiltro filtro, int pagina) {
+        Usuario logado = usuarioService.obterUsuarioLogado(session);
+        Long motoristaId = escopoMotoristaId(logado);
 
-        if (q != null && !q.isBlank()) {
-            String busca = q.toLowerCase();
-            filtrados = filtrados.stream()
-                    .filter(v -> (v.getPlaca() != null && v.getPlaca().toLowerCase().contains(busca))
-                            || (v.getModelo() != null && v.getModelo().toLowerCase().contains(busca))
-                            || (v.getMotorista() != null && v.getMotorista().getNome().toLowerCase().contains(busca)))
-                    .collect(Collectors.toList());
+        // MOTORISTA sem cadastro de motorista vinculado não possui frota para exibir.
+        if (logado.isMotorista() && motoristaId == null) {
+            return Page.empty();
         }
 
-        if (status != null && !status.isBlank()) {
-            filtrados = filtrados.stream()
-                    .filter(v -> status.equalsIgnoreCase(v.getStatus()))
-                    .collect(Collectors.toList());
+        LocalDate hoje = LocalDate.now();
+        Pageable pageable = PageRequest.of(Math.max(pagina - 1, 0), TAMANHO_PAGINA,
+                Sort.by(Sort.Direction.ASC, "id"));
+
+        return veiculoRepository.buscarComFiltros(
+                motoristaId,
+                buscaNormalizada(filtro.q()),
+                textoOuNulo(filtro.status()),
+                textoOuNulo(filtro.situacao()),
+                textoOuNulo(filtro.revisao()),
+                textoOuNulo(filtro.vinculo()),
+                hoje,
+                hoje.plusDays(JANELA_REVISAO_DIAS),
+                pageable);
+    }
+
+    /**
+     * Indicadores da tela e ranking de quilometragem, ambos no escopo do perfil e
+     * independentes dos filtros aplicados à tabela.
+     */
+    public VeiculoPaginaDTO montarResumo(HttpSession session) {
+        Usuario logado = usuarioService.obterUsuarioLogado(session);
+        boolean restrito = logado.isMotorista();
+        Long motoristaId = escopoMotoristaId(logado);
+
+        if (restrito && motoristaId == null) {
+            return new VeiculoPaginaDTO(
+                    "Sem frota vinculada ao seu cadastro", true, JANELA_REVISAO_DIAS,
+                    new VeiculoIndicadoresDTO(0, 0, 0, 0, 0, 0, 0, 0), List.of());
         }
 
-        return filtrados;
+        Map<String, Long> porStatus = contarPorStatus(motoristaId);
+        long total = porStatus.values().stream().mapToLong(Long::longValue).sum();
+
+        LocalDate hoje = LocalDate.now();
+        LocalDate limiteRevisao = hoje.plusDays(JANELA_REVISAO_DIAS);
+        long revisoesVencidas = motoristaId == null
+                ? veiculoRepository.countByProximaRevisaoBefore(hoje)
+                : veiculoRepository.countByMotoristaIdAndProximaRevisaoBefore(motoristaId, hoje);
+        long revisoesProximas = motoristaId == null
+                ? veiculoRepository.countByProximaRevisaoBetween(hoje, limiteRevisao)
+                : veiculoRepository.countByMotoristaIdAndProximaRevisaoBetween(motoristaId, hoje, limiteRevisao);
+        // Sem motorista atribuído só é um indicador relevante na visão de frota completa.
+        long semMotorista = restrito ? 0 : veiculoRepository.countByMotoristaIsNull();
+
+        return new VeiculoPaginaDTO(
+                restrito ? "Sua frota (" + total + " veículo(s))" : "Frota completa",
+                restrito,
+                JANELA_REVISAO_DIAS,
+                new VeiculoIndicadoresDTO(total,
+                        porStatus.getOrDefault("Disponível", 0L),
+                        porStatus.getOrDefault("Em trânsito", 0L),
+                        porStatus.getOrDefault("Em manutenção", 0L),
+                        porStatus.getOrDefault("Indisponível", 0L),
+                        revisoesVencidas,
+                        revisoesProximas,
+                        semMotorista),
+                listarMaioresQuilometragens(motoristaId));
+    }
+
+    private Long escopoMotoristaId(Usuario logado) {
+        if (!logado.isMotorista() || logado.getMotorista() == null) {
+            return null;
+        }
+        return logado.getMotorista().getId();
+    }
+
+    private Map<String, Long> contarPorStatus(Long motoristaId) {
+        List<VeiculoRepository.ContagemPorStatus> contagens = motoristaId == null
+                ? veiculoRepository.contarAgrupadoPorStatus()
+                : veiculoRepository.contarAgrupadoPorStatusDoMotorista(motoristaId);
+
+        Map<String, Long> resultado = new LinkedHashMap<>();
+        for (VeiculoRepository.ContagemPorStatus contagem : contagens) {
+            resultado.merge(contagem.getStatus(), contagem.getTotal(), Long::sum);
+        }
+        return resultado;
+    }
+
+    private List<VeiculoQuilometragemDTO> listarMaioresQuilometragens(Long motoristaId) {
+        List<Veiculo> veiculos = motoristaId == null
+                ? veiculoRepository.findTop5ByOrderByQuilometragemDesc()
+                : veiculoRepository.findTop5ByMotoristaIdOrderByQuilometragemDesc(motoristaId);
+
+        return veiculos.stream()
+                .map(v -> new VeiculoQuilometragemDTO(
+                        v.getId(),
+                        v.getPlaca(),
+                        v.getModelo(),
+                        v.getMotorista() != null ? v.getMotorista().getNome() : null,
+                        v.getQuilometragem() != null ? v.getQuilometragem() : 0L))
+                .collect(Collectors.toList());
+    }
+
+    private String buscaNormalizada(String q) {
+        return q == null || q.isBlank() ? null : "%" + q.trim().toLowerCase() + "%";
+    }
+
+    private String textoOuNulo(String valor) {
+        return valor == null || valor.isBlank() ? null : valor.trim();
     }
 
     public Optional<Veiculo> buscarPorId(Long id) {
@@ -159,12 +269,16 @@ public class VeiculoService {
         veiculoRepository.save(veiculo);
     }
 
+    /**
+     * Situação de manutenção derivada do veículo — mesma regra reproduzida na consulta
+     * filtrada por situação ({@link VeiculoRepository#buscarComFiltros}).
+     */
     private String calcularSituacaoManutencao(Veiculo veiculo) {
         if ("Em manutenção".equalsIgnoreCase(veiculo.getStatus())) {
             return "Em manutenção";
         }
         if (veiculo.getProximaRevisao() != null
-                && !veiculo.getProximaRevisao().isAfter(LocalDate.now().plusDays(15))) {
+                && !veiculo.getProximaRevisao().isAfter(LocalDate.now().plusDays(JANELA_REVISAO_DIAS))) {
             return "Atenção";
         }
         return "Em dia";
@@ -176,9 +290,5 @@ public class VeiculoService {
 
     public List<Tag> listarTags() {
         return tagService.listarTodas();
-    }
-
-    public long contarTotal() {
-        return veiculoRepository.count();
     }
 }

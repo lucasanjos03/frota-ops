@@ -42,17 +42,18 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ---------------------------------------------------------------------------
-   Gráficos do dashboard operacional (Chart.js).
+   Gráficos (Chart.js).
 
-   A fonte de dados é exclusivamente `window.FLEET_DASHBOARD`, um objeto com
-   DTOs agregados já calculados no servidor. Nenhuma entidade JPA trafega para
-   o navegador e nenhum dado é recalculado aqui: o JavaScript apenas desenha.
+   A fonte de dados é exclusivamente um objeto global preparado pelo servidor
+   (`window.FLEET_DASHBOARD` ou `window.FLEET_VEICULOS`) com DTOs agregados já
+   calculados. Nenhuma entidade JPA trafega para o navegador e nenhum dado é
+   recalculado aqui: o JavaScript apenas desenha.
 
-   As listas de legenda (contagem por status, série mensal e contagem por tag)
-   são renderizadas pelo Thymeleaf, portanto continuam disponíveis para
-   leitores de tela mesmo se o Chart.js falhar.
+   As informações também são renderizadas pelo Thymeleaf em listas de legenda,
+   portanto continuam disponíveis para leitores de tela mesmo se o Chart.js
+   falhar.
    --------------------------------------------------------------------------- */
-const DashboardCharts = {
+const ChartKit = {
   canvas(graficoId) {
     return document.getElementById(graficoId);
   },
@@ -78,6 +79,15 @@ const DashboardCharts = {
     return valor && valor.trim() ? valor.trim() : padrao;
   },
 
+  tokens() {
+    return {
+      azul: this.token('--color-blue-600', '#2378a9'),
+      azulClaro: this.token('--color-sky-400', '#6bb4d8'),
+      grade: this.token('--border-soft', '#e9eef2'),
+      rotulo: this.token('--color-ink-soft', '#364858')
+    };
+  },
+
   base() {
     const semAnimacao = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     return {
@@ -85,6 +95,16 @@ const DashboardCharts = {
       maintainAspectRatio: false,
       animation: !semAnimacao
     };
+  },
+
+  bibliotecaAusente(ids) {
+    if (typeof Chart !== 'undefined') {
+      return false;
+    }
+    ids.forEach((id) =>
+      this.definirMensagem(id, 'Gráfico indisponível: biblioteca não carregada.')
+    );
+    return true;
   },
 
   desenhar(graficoId, temDados, config) {
@@ -106,44 +126,40 @@ const DashboardCharts = {
     } catch (erro) {
       this.definirMensagem(graficoId, 'Não foi possível renderizar o gráfico.');
     }
-  },
+  }
+};
 
+const DashboardCharts = {
   iniciar() {
     const dados = window.FLEET_DASHBOARD;
     if (!dados) {
       return;
     }
 
-    if (typeof Chart === 'undefined') {
-      ['chart-distribuicao', 'chart-manutencoes', 'chart-tags'].forEach((id) =>
-        this.definirMensagem(id, 'Gráfico indisponível: biblioteca não carregada.')
-      );
+    if (ChartKit.bibliotecaAusente(['chart-distribuicao', 'chart-manutencoes', 'chart-tags'])) {
       return;
     }
 
-    const azul = this.token('--color-blue-600', '#2378a9');
-    const azulClaro = this.token('--color-sky-400', '#6bb4d8');
-    const grade = this.token('--border-soft', '#e9eef2');
-    const rotulo = this.token('--color-ink-soft', '#364858');
+    const t = ChartKit.tokens();
 
     const status = dados.distribuicaoStatus || [];
     const totalFrota = status.reduce((soma, item) => soma + Number(item.total || 0), 0);
 
-    this.desenhar('chart-distribuicao', totalFrota > 0, {
+    ChartKit.desenhar('chart-distribuicao', totalFrota > 0, {
       type: 'doughnut',
       data: {
         labels: status.map((item) => item.status),
         datasets: [
           {
             data: status.map((item) => item.total),
-            backgroundColor: status.map((item) => item.cor || azulClaro),
+            backgroundColor: status.map((item) => item.cor || t.azulClaro),
             borderColor: '#ffffff',
             borderWidth: 2
           }
         ]
       },
       options: {
-        ...this.base(),
+        ...ChartKit.base(),
         cutout: '58%',
         plugins: {
           legend: { display: false },
@@ -159,7 +175,7 @@ const DashboardCharts = {
     const meses = dados.manutencoesPorMes || [];
     const totalManutencoes = meses.reduce((soma, item) => soma + Number(item.total || 0), 0);
 
-    this.desenhar('chart-manutencoes', totalManutencoes > 0, {
+    ChartKit.desenhar('chart-manutencoes', totalManutencoes > 0, {
       type: 'bar',
       data: {
         labels: meses.map((item) => item.rotulo),
@@ -167,21 +183,21 @@ const DashboardCharts = {
           {
             label: 'Manutenções',
             data: meses.map((item) => item.total),
-            backgroundColor: azul,
+            backgroundColor: t.azul,
             borderRadius: 4,
             maxBarThickness: 40
           }
         ]
       },
       options: {
-        ...this.base(),
+        ...ChartKit.base(),
         plugins: { legend: { display: false } },
         scales: {
-          x: { grid: { display: false }, ticks: { color: rotulo } },
+          x: { grid: { display: false }, ticks: { color: t.rotulo } },
           y: {
             beginAtZero: true,
-            ticks: { precision: 0, color: rotulo },
-            grid: { color: grade }
+            ticks: { precision: 0, color: t.rotulo },
+            grid: { color: t.grade }
           }
         }
       }
@@ -190,7 +206,7 @@ const DashboardCharts = {
     const tags = dados.veiculosPorTag || [];
     const totalTags = tags.reduce((soma, item) => soma + Number(item.total || 0), 0);
 
-    this.desenhar('chart-tags', totalTags > 0, {
+    ChartKit.desenhar('chart-tags', totalTags > 0, {
       type: 'bar',
       data: {
         labels: tags.map((item) => item.tag),
@@ -198,23 +214,86 @@ const DashboardCharts = {
           {
             label: 'Veículos',
             data: tags.map((item) => item.total),
-            backgroundColor: azulClaro,
+            backgroundColor: t.azulClaro,
             borderRadius: 4,
             maxBarThickness: 26
           }
         ]
       },
       options: {
-        ...this.base(),
+        ...ChartKit.base(),
         indexAxis: 'y',
         plugins: { legend: { display: false } },
         scales: {
           x: {
             beginAtZero: true,
-            ticks: { precision: 0, color: rotulo },
-            grid: { color: grade }
+            ticks: { precision: 0, color: t.rotulo },
+            grid: { color: t.grade }
           },
-          y: { grid: { display: false }, ticks: { color: rotulo } }
+          y: { grid: { display: false }, ticks: { color: t.rotulo } }
+        }
+      }
+    });
+  }
+};
+
+/* Gráfico da página de veículos: ranking de quilometragem atual (hodômetro).
+   Não representa consumo, desgaste ou falha mecânica — apenas o valor do
+   cadastro de cada veículo. */
+const VeiculoCharts = {
+  iniciar() {
+    const dados = window.FLEET_VEICULOS;
+    if (!dados) {
+      return;
+    }
+
+    const graficoId = 'chart-quilometragem';
+    if (ChartKit.bibliotecaAusente([graficoId])) {
+      return;
+    }
+
+    const veiculos = dados.maioresQuilometragens || [];
+    const t = ChartKit.tokens();
+
+    ChartKit.desenhar(graficoId, veiculos.length > 0, {
+      type: 'bar',
+      data: {
+        labels: veiculos.map((item) => item.placa),
+        datasets: [
+          {
+            label: 'Quilometragem atual',
+            data: veiculos.map((item) => Number(item.quilometragem || 0)),
+            backgroundColor: t.azul,
+            borderRadius: 4,
+            maxBarThickness: 26
+          }
+        ]
+      },
+      options: {
+        ...ChartKit.base(),
+        indexAxis: 'y',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: (itens) => {
+                const item = veiculos[itens[0].dataIndex];
+                return item ? `${item.placa} · ${item.modelo}` : '';
+              },
+              label: (ctx) => ` ${Number(ctx.parsed.x).toLocaleString('pt-BR')} km`
+            }
+          }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: {
+              color: t.rotulo,
+              callback: (valor) => Number(valor).toLocaleString('pt-BR')
+            },
+            grid: { color: t.grade }
+          },
+          y: { grid: { display: false }, ticks: { color: t.rotulo } }
         }
       }
     });
@@ -223,4 +302,5 @@ const DashboardCharts = {
 
 document.addEventListener('DOMContentLoaded', () => {
   DashboardCharts.iniciar();
+  VeiculoCharts.iniciar();
 });

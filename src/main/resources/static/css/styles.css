@@ -1284,6 +1284,177 @@ td.table-actions > * + * { margin-left: var(--space-3); }
 .revision-days--soon { color: var(--color-warning); }
 
 /* --------------------------------------------------------------------------
+   15.2 PÁGINA DE VEÍCULOS
+   -------------------------------------------------------------------------- */
+/* Cartões de indicador clicáveis: cada um leva à lista já filtrada pelo critério. */
+.kpi-card--link {
+  color: inherit;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.kpi-card--link:hover {
+  border-color: var(--color-blue-600);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.kpi-card--link:focus-visible { border-color: var(--color-blue-600); }
+
+.kpi-value--success { color: var(--color-success); }
+.kpi-value--warning { color: var(--color-warning); }
+.kpi-value--danger { color: var(--color-danger); }
+
+/* Chips dos critérios ativos da tabela */
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  border-bottom: 1px solid var(--border-soft);
+  background-color: var(--bg-subtle);
+}
+
+.filter-chips__label {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  color: var(--color-ink-soft);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Colunas numéricas da tabela */
+.cell-num { text-align: right; }
+.cell-km { color: var(--color-navy-700); font-weight: 700; }
+
+/* A listagem de veículos tem nove colunas: garante largura mínima legível. */
+.data-table--frota { min-width: 900px; }
+
+.revision-date {
+  margin-right: var(--space-2);
+  color: var(--color-ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Gráfico de quilometragem: barras horizontais ocupam mais altura útil */
+.chart-box--km { height: 300px; }
+
+.chart-legend--km {
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.chart-legend--km li {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  font-size: var(--text-sm);
+}
+
+.chart-legend--km strong {
+  color: var(--color-navy-800);
+  letter-spacing: 0.04em;
+}
+
+.chart-legend--km .dot { background-color: var(--color-blue-600); }
+
+/* Paginação server-side */
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--border-soft);
+}
+
+.pagination__info {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+.pagination__info strong {
+  color: var(--color-navy-700);
+  font-variant-numeric: tabular-nums;
+}
+
+.pagination__controls {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pagination__controls a,
+.pagination__controls .is-disabled {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  padding: 6px var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  color: var(--color-navy-700);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.pagination__controls a:hover {
+  border-color: var(--color-blue-600);
+  color: var(--color-blue-600);
+  text-decoration: none;
+}
+
+.pagination__controls .is-current {
+  border-color: var(--color-blue-600);
+  background-color: var(--color-blue-600);
+  color: #ffffff;
+}
+
+.pagination__controls .is-disabled {
+  border-color: var(--border-soft);
+  background-color: var(--bg-subtle);
+  color: var(--color-muted-2);
+  cursor: not-allowed;
+}
+
+/* Utilitário de acessibilidade: conteúdo apenas para leitores de tela. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------------------
    16. RESPONSIVIDADE
    Breakpoints:  desktop > 1024  |  tablet 641–1024  |  mobile <= 640
    -------------------------------------------------------------------------- */
@@ -1386,6 +1557,18 @@ td.table-actions > * + * { margin-left: var(--space-3); }
     align-items: flex-start;
     padding: var(--space-4);
   }
+
+  .filter-chips { padding: var(--space-3) var(--space-4); }
+
+  .pagination {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--space-4);
+  }
+
+  .pagination__controls { justify-content: center; }
+
+  .chart-legend--km li { grid-template-columns: auto auto minmax(0, 1fr) auto; }
 
   .login-card { padding: 28px 22px; }
 

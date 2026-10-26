@@ -13,8 +13,23 @@
             <p class="eyebrow">Cadastro e operação</p>
             <h1>Veículos</h1>
             <p class="page-subtitle">
-              <span th:text="${totalVeiculos}">0</span>
-              veículos cadastrados na sua operação.
+              <span th:text="${resumo.indicadores.total()}">0</span>
+              veículos no escopo atual · cadastro, operação e manutenção.
+            </p>
+            <p class="scope-note">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z" />
+              </svg>
+              Escopo exibido:
+              <span th:text="${resumo.escopoDescricao()}">Frota completa</span>
             </p>
           </div>
           <a
@@ -27,7 +42,158 @@
 
         <th:block th:replace="~{fragments/layout :: flash}"></th:block>
 
-        <section class="content-section">
+        <!-- ========================= INDICADORES DA FROTA ========================= -->
+        <!-- Escopo: perfil do usuário. NÃO são afetados pelos filtros da tabela. -->
+        <div class="kpi-grid">
+          <a class="kpi-card kpi-card--link" th:href="@{/veiculos}">
+            <span class="kpi-label">Total da frota</span>
+            <span class="kpi-value" th:text="${resumo.indicadores.total()}">0</span>
+            <span class="kpi-hint">Veículos no escopo exibido</span>
+          </a>
+
+          <a
+            class="kpi-card kpi-card--link"
+            th:href="@{/veiculos(status='Disponível')}"
+          >
+            <span class="kpi-label">Disponíveis</span>
+            <span class="kpi-value kpi-value--success" th:text="${resumo.indicadores.disponiveis()}">0</span>
+            <span class="kpi-hint">Prontos para alocação</span>
+          </a>
+
+          <a
+            class="kpi-card kpi-card--link"
+            th:href="@{/veiculos(status='Em trânsito')}"
+          >
+            <span class="kpi-label">Em trânsito</span>
+            <span class="kpi-value" th:text="${resumo.indicadores.emTransito()}">0</span>
+            <span class="kpi-hint">Em deslocamento no momento</span>
+          </a>
+
+          <a
+            class="kpi-card kpi-card--link"
+            th:href="@{/veiculos(status='Em manutenção')}"
+          >
+            <span class="kpi-label">Em manutenção</span>
+            <span class="kpi-value kpi-value--warning" th:text="${resumo.indicadores.emManutencao()}">0</span>
+            <span class="kpi-hint">Indisponíveis por serviço</span>
+          </a>
+
+          <a
+            class="kpi-card kpi-card--link"
+            th:href="@{/veiculos(status='Indisponível')}"
+          >
+            <span class="kpi-label">Indisponíveis</span>
+            <span class="kpi-value kpi-value--danger" th:text="${resumo.indicadores.indisponiveis()}">0</span>
+            <span class="kpi-hint">Fora de operação</span>
+          </a>
+
+          <a class="kpi-card kpi-card--link" th:href="@{/veiculos(revisao='vencida')}">
+            <span class="kpi-label">Revisões vencidas</span>
+            <span class="kpi-value kpi-value--danger" th:text="${resumo.indicadores.revisoesVencidas()}">0</span>
+            <span
+              class="kpi-hint"
+              th:text="|Data prevista anterior a ${#temporals.format(hoje, 'dd/MM/yyyy')}|"
+            >Data prevista anterior a hoje</span>
+          </a>
+
+          <a class="kpi-card kpi-card--link" th:href="@{/veiculos(revisao='proxima')}">
+            <span class="kpi-label">Revisões próximas</span>
+            <span class="kpi-value kpi-value--warning" th:text="${resumo.indicadores.revisoesProximas()}">0</span>
+            <span
+              class="kpi-hint"
+              th:text="|Vencem em até ${resumo.janelaRevisaoDias()} dias|"
+            >Vencem em até 15 dias</span>
+          </a>
+
+          <a
+            class="kpi-card kpi-card--link"
+            th:if="${!resumo.escopoRestrito()}"
+            th:href="@{/veiculos(vinculo='sem')}"
+          >
+            <span class="kpi-label">Sem motorista</span>
+            <span class="kpi-value" th:text="${resumo.indicadores.semMotorista()}">0</span>
+            <span class="kpi-hint">Sem condutor atribuído</span>
+          </a>
+        </div>
+
+        <!-- ===================== MAIORES QUILOMETRAGENS (TOP 5) ===================== -->
+        <section class="content-section chart-card" aria-labelledby="titulo-chart-quilometragem">
+          <div class="section-heading">
+            <div>
+              <h2 id="titulo-chart-quilometragem">Maiores quilometragens</h2>
+              <p>Os cinco veículos com maior hodômetro registrado no cadastro.</p>
+            </div>
+          </div>
+          <div class="chart-card__body">
+            <div
+              class="chart-box chart-box--km"
+              th:if="${!#lists.isEmpty(resumo.maioresQuilometragens())}"
+            >
+              <canvas
+                id="chart-quilometragem"
+                width="300"
+                height="300"
+                role="img"
+                aria-label="Gráfico de barras horizontais com os cinco veículos de maior quilometragem atual"
+              ></canvas>
+              <p class="chart-state">Carregando gráfico…</p>
+            </div>
+
+            <div
+              class="empty-state"
+              th:if="${#lists.isEmpty(resumo.maioresQuilometragens())}"
+            >
+              <strong>Sem dados de quilometragem</strong>
+              Nenhum veículo no escopo atual para montar o ranking de hodômetro.
+            </div>
+
+            <!-- Lista acessível: mantém a informação visível se o gráfico não renderizar. -->
+            <ul
+              class="chart-legend chart-legend--km"
+              th:if="${!#lists.isEmpty(resumo.maioresQuilometragens())}"
+            >
+              <li th:each="km : ${resumo.maioresQuilometragens()}">
+                <span class="dot" aria-hidden="true"></span>
+                <strong th:text="${km.placa()}">PLACA</strong>
+                <span class="text-muted" th:text="${km.modelo()}">Modelo</span>
+                <span
+                  class="qtd"
+                  th:text="${#numbers.formatDecimal(km.quilometragem(), 1, 0, 'POINT')} + ' km'"
+                >0 km</span>
+              </li>
+            </ul>
+
+            <p class="scope-note">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8h.01M11 12h1v4h1" />
+              </svg>
+              Hodômetro atual do cadastro. Não há histórico periódico de quilometragem,
+              e quilometragem elevada indica apenas uso acumulado — não é falha mecânica.
+            </p>
+          </div>
+        </section>
+
+        <!-- =========================== LISTA E FILTROS =========================== -->
+        <section class="content-section mt-5" aria-labelledby="titulo-lista-veiculos">
+          <div class="section-heading">
+            <div>
+              <h2 id="titulo-lista-veiculos">Lista de veículos</h2>
+              <p>
+                Os filtros abaixo afetam apenas a tabela — os indicadores e o gráfico
+                permanecem no escopo do perfil.
+              </p>
+            </div>
+          </div>
+
           <form class="filters" method="get" th:action="@{/veiculos}">
             <label for="search">Buscar por placa, modelo ou motorista</label>
             <input
@@ -35,79 +201,172 @@
               name="q"
               type="search"
               placeholder="Ex.: ABC1D23"
-              th:value="${filtroQ}"
+              th:value="${filtro.q()}"
             />
+
             <label for="status">Status</label>
             <select id="status" name="status">
-              <option value="" th:selected="${#strings.isEmpty(filtroStatus)}">
+              <option value="" th:selected="${#strings.isEmpty(filtro.status())}">
                 Todos os status
               </option>
-              <option
-                value="Disponível"
-                th:selected="${filtroStatus == 'Disponível'}"
-              >
+              <option value="Disponível" th:selected="${filtro.status() == 'Disponível'}">
                 Disponível
               </option>
-              <option
-                value="Em trânsito"
-                th:selected="${filtroStatus == 'Em trânsito'}"
-              >
+              <option value="Em trânsito" th:selected="${filtro.status() == 'Em trânsito'}">
                 Em trânsito
               </option>
-              <option
-                value="Em manutenção"
-                th:selected="${filtroStatus == 'Em manutenção'}"
-              >
+              <option value="Em manutenção" th:selected="${filtro.status() == 'Em manutenção'}">
                 Em manutenção
               </option>
-              <option
-                value="Indisponível"
-                th:selected="${filtroStatus == 'Indisponível'}"
-              >
+              <option value="Indisponível" th:selected="${filtro.status() == 'Indisponível'}">
                 Indisponível
               </option>
             </select>
-            <button class="button button-secondary" type="submit">
-              Filtrar
-            </button>
+
+            <label for="situacao">Manutenção</label>
+            <select id="situacao" name="situacao">
+              <option value="" th:selected="${#strings.isEmpty(filtro.situacao())}">
+                Todas as situações
+              </option>
+              <option value="Em manutenção" th:selected="${filtro.situacao() == 'Em manutenção'}">
+                Em manutenção
+              </option>
+              <option value="Atenção" th:selected="${filtro.situacao() == 'Atenção'}">
+                Atenção (revisão próxima)
+              </option>
+              <option value="Em dia" th:selected="${filtro.situacao() == 'Em dia'}">
+                Em dia
+              </option>
+            </select>
+
+            <label for="revisao">Revisão</label>
+            <select id="revisao" name="revisao">
+              <option value="" th:selected="${#strings.isEmpty(filtro.revisao())}">
+                Todas as revisões
+              </option>
+              <option value="vencida" th:selected="${filtro.revisao() == 'vencida'}">
+                Vencidas
+              </option>
+              <option value="proxima" th:selected="${filtro.revisao() == 'proxima'}">
+                Próximas
+              </option>
+            </select>
+
+            <label for="vinculo">Motorista</label>
+            <select id="vinculo" name="vinculo">
+              <option value="" th:selected="${#strings.isEmpty(filtro.vinculo())}">
+                Todos os vínculos
+              </option>
+              <option value="com" th:selected="${filtro.vinculo() == 'com'}">
+                Com motorista
+              </option>
+              <option value="sem" th:selected="${filtro.vinculo() == 'sem'}">
+                Sem motorista
+              </option>
+            </select>
+
+            <button class="button button-secondary" type="submit">Filtrar</button>
             <a class="link-button" th:href="@{/veiculos}">Limpar filtros</a>
           </form>
-          <div class="table-wrap">
-            <table class="data-table">
+
+          <div class="filter-chips" th:if="${filtro.temFiltro()}">
+            <span class="filter-chips__label">Filtros aplicados</span>
+            <span
+              class="filter-chip"
+              th:if="${!#strings.isEmpty(filtro.q())}"
+              th:text="|Busca: ${filtro.q()}|"
+            ></span>
+            <span
+              class="filter-chip"
+              th:if="${!#strings.isEmpty(filtro.status())}"
+              th:text="|Status: ${filtro.status()}|"
+            ></span>
+            <span
+              class="filter-chip"
+              th:if="${!#strings.isEmpty(filtro.situacao())}"
+              th:text="|Manutenção: ${filtro.situacao()}|"
+            ></span>
+            <span
+              class="filter-chip"
+              th:if="${!#strings.isEmpty(filtro.revisao())}"
+              th:text="|Revisão: ${filtro.revisao() == 'vencida' ? 'vencida' : 'próxima'}|"
+            ></span>
+            <span
+              class="filter-chip"
+              th:if="${!#strings.isEmpty(filtro.vinculo())}"
+              th:text="|Motorista: ${filtro.vinculo() == 'sem' ? 'sem atribuição' : 'atribuído'}|"
+            ></span>
+            <a class="link-button" th:href="@{/veiculos}">Limpar</a>
+          </div>
+
+          <div class="table-wrap" th:if="${!#lists.isEmpty(veiculos)}">
+            <table class="data-table data-table--frota">
+              <caption class="visually-hidden">Lista de veículos da frota</caption>
               <thead>
                 <tr>
-                  <th>Placa</th>
-                  <th>Modelo</th>
-                  <th>Motorista</th>
-                  <th>Tags</th>
-                  <th>Ano</th>
-                  <th>Quilometragem</th>
-                  <th>Status</th>
-                  <th>Ações</th>
+                  <th scope="col">Placa</th>
+                  <th scope="col">Modelo</th>
+                  <th scope="col">Motorista</th>
+                  <th scope="col">Tags</th>
+                  <th scope="col">Ano</th>
+                  <th scope="col" class="cell-num">Quilometragem</th>
+                  <th scope="col">Próxima revisão</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                <tr th:if="${#lists.isEmpty(veiculos)}">
-                  <td colspan="8" class="empty-state">
-                    Nenhum veículo encontrado com os filtros atuais.
-                  </td>
-                </tr>
                 <tr th:each="veiculo : ${veiculos}">
                   <td>
                     <strong class="plate" th:text="${veiculo.placa}"></strong>
                   </td>
                   <td th:text="${veiculo.modelo}"></td>
-                  <td th:text="${veiculo.motorista != null ? veiculo.motorista.nome : '-'}"></td>
+                  <td>
+                    <span
+                      th:if="${veiculo.motorista != null}"
+                      th:text="${veiculo.motorista.nome}"
+                    ></span>
+                    <span th:if="${veiculo.motorista == null}" class="text-muted"
+                      >Sem motorista</span
+                    >
+                  </td>
                   <td>
                     <span th:if="${#lists.isEmpty(veiculo.tags)}" class="text-muted">-</span>
                     <div class="tags-list" th:if="${!#lists.isEmpty(veiculo.tags)}">
-                      <span class="tag-badge" th:each="tag : ${veiculo.tags}" th:text="${tag.nome}"></span>
+                      <span
+                        class="tag-badge"
+                        th:each="tag : ${veiculo.tags}"
+                        th:text="${tag.nome}"
+                      ></span>
                     </div>
                   </td>
                   <td th:text="${veiculo.ano}"></td>
                   <td
-                    th:text="${#numbers.formatDecimal(veiculo.quilometragem, 1, 0, 'POINT')} + ' km'"
+                    class="cell-num cell-km"
+                    th:text="${#numbers.formatInteger(veiculo.quilometragem, 1, 'POINT')} + ' km'"
                   ></td>
+                  <td>
+                    <span th:if="${veiculo.proximaRevisao == null}" class="text-muted"
+                      >Não agendada</span
+                    >
+                    <th:block th:if="${veiculo.proximaRevisao != null}">
+                      <span
+                        class="revision-date"
+                        th:text="${#temporals.format(veiculo.proximaRevisao, 'dd/MM/yyyy')}"
+                      ></span>
+                      <span
+                        class="status-badge status-danger"
+                        th:if="${veiculo.proximaRevisao.isBefore(hoje)}"
+                        >Vencida</span
+                      >
+                      <span
+                        class="status-badge status-warning"
+                        th:if="${!veiculo.proximaRevisao.isBefore(hoje)
+                                  and !veiculo.proximaRevisao.isAfter(hoje.plusDays(resumo.janelaRevisaoDias()))}"
+                        >Próxima</span
+                      >
+                    </th:block>
+                  </td>
                   <td>
                     <span
                       class="status-badge"
@@ -119,10 +378,7 @@
                   </td>
                   <td class="cell-actions">
                     <div class="table-actions">
-                      <a
-                        th:href="@{/veiculos/detalhes/{id}(id=${veiculo.id})}"
-                        >Detalhes</a
-                      >
+                      <a th:href="@{/veiculos/detalhes/{id}(id=${veiculo.id})}">Detalhes</a>
                       <a
                         th:if="${usuarioLogado.podeEditarVeiculo(veiculo.motorista != null ? veiculo.motorista.id : null)}"
                         th:href="@{/veiculos/editar/{id}(id=${veiculo.id})}"
@@ -134,9 +390,7 @@
                         method="post"
                         onsubmit="return confirm('Tem certeza que deseja remover este veículo da frota?');"
                       >
-                        <button type="submit" class="btn-action-delete">
-                          Excluir
-                        </button>
+                        <button type="submit" class="btn-action-delete">Excluir</button>
                       </form>
                     </div>
                   </td>
@@ -144,11 +398,66 @@
               </tbody>
             </table>
           </div>
+
+          <div class="empty-state" th:if="${#lists.isEmpty(veiculos)}">
+            <strong>Nenhum veículo encontrado</strong>
+            <span th:if="${filtro.temFiltro()}">
+              Nenhum veículo corresponde aos filtros atuais.
+              <a class="link-button" th:href="@{/veiculos}">Limpar filtros</a>
+            </span>
+            <span th:if="${!filtro.temFiltro()}">
+              Não há veículos no escopo exibido.
+            </span>
+          </div>
+
+          <nav
+            class="pagination"
+            th:if="${paginacao.totalPages > 1}"
+            aria-label="Paginação da lista de veículos"
+          >
+            <p class="pagination__info">
+              Página <strong th:text="${paginaAtual}">1</strong> de
+              <strong th:text="${paginacao.totalPages}">1</strong> ·
+              <span th:text="${paginacao.totalElements}">0</span> veículo(s)
+            </p>
+            <div class="pagination__controls">
+              <a
+                th:if="${paginacao.hasPrevious()}"
+                th:href="@{/veiculos(pagina=${paginaAtual - 1}, q=${filtro.q()}, status=${filtro.status()}, situacao=${filtro.situacao()}, revisao=${filtro.revisao()}, vinculo=${filtro.vinculo()})}"
+                >Anterior</a
+              >
+              <span th:unless="${paginacao.hasPrevious()}" class="is-disabled">Anterior</span>
+
+              <th:block th:if="${paginacao.totalPages <= 7}">
+                <a
+                  th:each="p : ${#numbers.sequence(1, paginacao.totalPages)}"
+                  th:href="@{/veiculos(pagina=${p}, q=${filtro.q()}, status=${filtro.status()}, situacao=${filtro.situacao()}, revisao=${filtro.revisao()}, vinculo=${filtro.vinculo()})}"
+                  th:text="${p}"
+                  th:classappend="${p == paginaAtual} ? ' is-current' : ''"
+                  th:attr="aria-current=${p == paginaAtual ? 'page' : null}"
+                >1</a>
+              </th:block>
+
+              <a
+                th:if="${paginacao.hasNext()}"
+                th:href="@{/veiculos(pagina=${paginaAtual + 1}, q=${filtro.q()}, status=${filtro.status()}, situacao=${filtro.situacao()}, revisao=${filtro.revisao()}, vinculo=${filtro.vinculo()})}"
+                >Próxima</a
+              >
+              <span th:unless="${paginacao.hasNext()}" class="is-disabled">Próxima</span>
+            </div>
+          </nav>
         </section>
       </main>
 
       <footer th:replace="~{fragments/layout :: appFooter}"></footer>
     </div>
+
+    <script th:inline="javascript">
+      window.FLEET_VEICULOS = {
+        maioresQuilometragens: /*[[${resumo.maioresQuilometragens()}]]*/ []
+      };
+    </script>
+    <script th:src="@{/js/vendor/chart.umd.min.js}" defer></script>
     <script th:src="@{/js/script.js}" defer></script>
   </body>
 </html>
