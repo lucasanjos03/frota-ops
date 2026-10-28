@@ -13,79 +13,450 @@
             <p class="eyebrow">Equipe operacional</p>
             <h1>Motoristas</h1>
             <p class="page-subtitle">
-              <span th:text="${totalMotoristas}">0</span>
+              <span th:text="${resumo.indicadores.total()}">0</span>
               motoristas cadastrados e vinculados a usuários do sistema.
             </p>
+            <p class="scope-note">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z" />
+              </svg>
+              Dados pessoais protegidos: o CPF é exibido apenas parcialmente.
+            </p>
           </div>
-          <a class="button button-primary"
-             th:if="${usuarioLogado.admin}"
-             th:href="@{/motoristas/novo}">+ Novo motorista</a>
+          <a
+            class="button button-primary"
+            th:if="${usuarioLogado.admin}"
+            th:href="@{/motoristas/novo}"
+            >+ Novo motorista</a
+          >
         </div>
 
         <th:block th:replace="~{fragments/layout :: flash}"></th:block>
 
-        <section class="content-section">
-          <div class="table-wrap">
-            <table class="data-table">
+        <!-- ======================= INDICADORES DA EQUIPE ======================= -->
+        <!-- Escopo: equipe completa. NÃO são afetados pelos filtros da tabela. -->
+        <div class="kpi-grid">
+          <a class="kpi-card kpi-card--link" th:href="@{/motoristas}">
+            <span class="kpi-label">Total de motoristas</span>
+            <span class="kpi-value" th:text="${resumo.indicadores.total()}">0</span>
+            <span class="kpi-hint">Equipe cadastrada</span>
+          </a>
+
+          <a class="kpi-card kpi-card--link" th:href="@{/motoristas(status='Ativo')}">
+            <span class="kpi-label">Ativos</span>
+            <span
+              class="kpi-value kpi-value--success"
+              th:text="${resumo.indicadores.ativos()}"
+            >0</span>
+            <span class="kpi-hint">Cadastro em situação ativa</span>
+          </a>
+
+          <a class="kpi-card kpi-card--link" th:href="@{/motoristas(status='Inativo')}">
+            <span class="kpi-label">Inativos</span>
+            <span
+              class="kpi-value kpi-value--muted"
+              th:text="${resumo.indicadores.inativos()}"
+            >0</span>
+            <span class="kpi-hint">Cadastro fora de operação</span>
+          </a>
+
+          <a class="kpi-card kpi-card--link" th:href="@{/motoristas(cnh='vencida')}">
+            <span class="kpi-label">CNHs vencidas</span>
+            <span
+              class="kpi-value kpi-value--danger"
+              th:text="${resumo.indicadores.cnhVencidas()}"
+            >0</span>
+            <span
+              class="kpi-hint"
+              th:text="|Validade anterior a ${#temporals.format(resumo.referencia(), 'dd/MM/yyyy')}|"
+            >Validade anterior à data de referência</span>
+          </a>
+
+          <a class="kpi-card kpi-card--link" th:href="@{/motoristas(cnh='proxima')}">
+            <span class="kpi-label">CNHs a vencer</span>
+            <span
+              class="kpi-value kpi-value--warning"
+              th:text="${resumo.indicadores.cnhProximas()}"
+            >0</span>
+            <span class="kpi-hint" th:text="|Vencem em até ${resumo.janelaCnhDias()} dias|"
+              >Vencem em até 30 dias</span
+            >
+          </a>
+
+          <a class="kpi-card kpi-card--link" th:href="@{/motoristas(vinculo='sem')}">
+            <span class="kpi-label">Sem veículo atribuído</span>
+            <span
+              class="kpi-value kpi-value--muted"
+              th:text="${resumo.indicadores.semVeiculo()}"
+            >0</span>
+            <span class="kpi-hint">Nenhum veículo vinculado ao cadastro</span>
+          </a>
+        </div>
+
+        <!-- ==================== MOTORISTAS POR CATEGORIA DE CNH ==================== -->
+        <section class="content-section chart-card" aria-labelledby="titulo-chart-categoria">
+          <div class="section-heading">
+            <div>
+              <h2 id="titulo-chart-categoria">Motoristas por categoria de CNH</h2>
+              <p>Distribuição da equipe pelas categorias registradas no cadastro.</p>
+            </div>
+          </div>
+          <div class="chart-card__body">
+            <div
+              class="chart-box chart-box--categoria"
+              th:if="${!#lists.isEmpty(resumo.porCategoria())}"
+            >
+              <canvas
+                id="chart-categoria"
+                width="300"
+                height="300"
+                role="img"
+                aria-label="Gráfico de barras com a quantidade de motoristas por categoria de CNH"
+              ></canvas>
+              <p class="chart-state">Carregando gráfico…</p>
+            </div>
+
+            <div class="empty-state" th:if="${#lists.isEmpty(resumo.porCategoria())}">
+              <strong>Sem categorias registradas</strong>
+              Não há motoristas no cadastro para agrupar por categoria de CNH.
+            </div>
+
+            <!-- Lista acessível: mantém a informação visível se o gráfico não renderizar. -->
+            <ul class="chart-legend" th:if="${!#lists.isEmpty(resumo.porCategoria())}">
+              <li th:each="categoria : ${resumo.porCategoria()}">
+                <span class="dot" aria-hidden="true"></span>
+                <span th:text="|Categoria ${categoria.categoria()}|">Categoria</span>
+                <span class="qtd" th:text="${categoria.total()}">0</span>
+              </li>
+            </ul>
+
+            <p class="scope-note">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8h.01M11 12h1v4h1" />
+              </svg>
+              Não existe tabela de referência de categorias: o gráfico reflete apenas as
+              categorias presentes no cadastro.
+            </p>
+          </div>
+        </section>
+
+        <!-- ===================== DOCUMENTOS QUE EXIGEM ATENÇÃO ===================== -->
+        <section class="content-section" aria-labelledby="titulo-documentos">
+          <div class="section-heading">
+            <div>
+              <h2 id="titulo-documentos">Documentos que exigem atenção</h2>
+              <p>
+                CNHs vencidas e CNHs com vencimento nos próximos
+                <span th:text="${resumo.janelaCnhDias()}">30</span> dias · data de referência
+                <span th:text="${#temporals.format(resumo.referencia(), 'dd/MM/yyyy')}"
+                  >hoje</span
+                >.
+              </p>
+            </div>
+            <a class="link-button" th:href="@{/motoristas}">Ver todos</a>
+          </div>
+
+          <div class="alert-panel" th:if="${!#lists.isEmpty(resumo.documentosAtencao())}">
+            <div
+              class="alert-item"
+              th:each="documento : ${resumo.documentosAtencao()}"
+              th:classappend="${documento.diasRestantes() < 0 ? 'alert-item--alta' : 'alert-item--media'}"
+            >
+              <svg
+                class="alert-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+                <path d="M12 9v4M12 17h.01" />
+              </svg>
+              <div class="alert-body">
+                <strong class="alert-title" th:text="${documento.nome()}">Motorista</strong>
+                <p class="alert-desc">
+                  <span
+                    th:if="${documento.diasRestantes() < 0}"
+                    th:text="|CNH ${documento.numeroCnh()} vencida há ${-documento.diasRestantes()} dia(s) · vencimento ${#temporals.format(documento.validade(), 'dd/MM/yyyy')}|"
+                  ></span>
+                  <span th:if="${documento.diasRestantes() == 0}" th:text="|CNH ${documento.numeroCnh()} vence hoje|"></span>
+                  <span
+                    th:if="${documento.diasRestantes() > 0}"
+                    th:text="|CNH ${documento.numeroCnh()} vence em ${documento.diasRestantes()} dia(s) · vencimento ${#temporals.format(documento.validade(), 'dd/MM/yyyy')}|"
+                  ></span>
+                </p>
+              </div>
+              <a
+                class="alert-action"
+                th:href="@{/motoristas/detalhes/{id}(id=${documento.motoristaId()})}"
+                >Abrir ficha</a
+              >
+            </div>
+          </div>
+
+          <div class="empty-state" th:if="${#lists.isEmpty(resumo.documentosAtencao())}">
+            <strong>Nenhuma CNH exige atenção</strong>
+            Não há CNHs vencidas nem com vencimento nos próximos
+            <span th:text="${resumo.janelaCnhDias()}">30</span> dias.
+          </div>
+
+          <div class="section-body">
+            <p class="scope-note">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8h.01M11 12h1v4h1" />
+              </svg>
+              Documento dentro da validade não garante aptidão operacional: status do
+              cadastro, vínculo com veículo e demais condições são avaliados em separado.
+            </p>
+          </div>
+        </section>
+
+        <!-- =========================== LISTA E FILTROS =========================== -->
+        <section class="content-section mt-5" aria-labelledby="titulo-lista-motoristas">
+          <div class="section-heading">
+            <div>
+              <h2 id="titulo-lista-motoristas">Lista de motoristas</h2>
+              <p>
+                Os filtros abaixo afetam apenas a tabela — os indicadores, o gráfico e o
+                painel de documentos permanecem no escopo da equipe completa.
+              </p>
+            </div>
+          </div>
+
+          <form class="filters" method="get" th:action="@{/motoristas}">
+            <label for="motorista-busca">Buscar por nome, CPF, CNH ou usuário</label>
+            <input
+              id="motorista-busca"
+              name="q"
+              type="search"
+              placeholder="Ex.: Carlos ou 12345678901"
+              th:value="${filtro.q()}"
+            />
+
+            <label for="status">Status</label>
+            <select id="status" name="status">
+              <option value="" th:selected="${#strings.isEmpty(filtro.status())}">
+                Todos os status
+              </option>
+              <option value="Ativo" th:selected="${filtro.status() == 'Ativo'}">Ativo</option>
+              <option value="Inativo" th:selected="${filtro.status() == 'Inativo'}">
+                Inativo
+              </option>
+            </select>
+
+            <label for="categoria">Categoria da CNH</label>
+            <select id="categoria" name="categoria">
+              <option value="" th:selected="${#strings.isEmpty(filtro.categoria())}">
+                Todas as categorias
+              </option>
+              <option
+                th:each="c : ${categorias}"
+                th:value="${c}"
+                th:selected="${filtro.categoria() == c}"
+                th:text="${c}"
+              ></option>
+            </select>
+
+            <label for="cnh">Situação da CNH</label>
+            <select id="cnh" name="cnh">
+              <option value="" th:selected="${#strings.isEmpty(filtro.cnh())}">
+                Todas as situações
+              </option>
+              <option value="vencida" th:selected="${filtro.cnh() == 'vencida'}">Vencida</option>
+              <option value="proxima" th:selected="${filtro.cnh() == 'proxima'}">
+                A vencer
+              </option>
+              <option value="valida" th:selected="${filtro.cnh() == 'valida'}">Válida</option>
+            </select>
+
+            <label for="vinculo">Veículo</label>
+            <select id="vinculo" name="vinculo">
+              <option value="" th:selected="${#strings.isEmpty(filtro.vinculo())}">
+                Todos os vínculos
+              </option>
+              <option value="com" th:selected="${filtro.vinculo() == 'com'}">
+                Com veículo
+              </option>
+              <option value="sem" th:selected="${filtro.vinculo() == 'sem'}">
+                Sem veículo
+              </option>
+            </select>
+
+            <button class="button button-secondary" type="submit">Filtrar</button>
+            <a class="link-button" th:href="@{/motoristas}">Limpar filtros</a>
+          </form>
+
+          <div class="filter-chips" th:if="${filtro.temFiltro()}">
+            <span class="filter-chips__label">Filtros aplicados</span>
+            <span
+              class="filter-chip"
+              th:if="${!#strings.isEmpty(filtro.q())}"
+              th:text="|Busca: ${filtro.q()}|"
+            ></span>
+            <span
+              class="filter-chip"
+              th:if="${!#strings.isEmpty(filtro.status())}"
+              th:text="|Status: ${filtro.status()}|"
+            ></span>
+            <span
+              class="filter-chip"
+              th:if="${!#strings.isEmpty(filtro.categoria())}"
+              th:text="|Categoria: ${filtro.categoria()}|"
+            ></span>
+            <span
+              class="filter-chip"
+              th:if="${!#strings.isEmpty(filtro.cnh())}"
+              th:text="|CNH: ${filtro.cnh() == 'vencida' ? 'vencida' : (filtro.cnh() == 'proxima' ? 'a vencer' : 'válida')}|"
+            ></span>
+            <span
+              class="filter-chip"
+              th:if="${!#strings.isEmpty(filtro.vinculo())}"
+              th:text="|Veículo: ${filtro.vinculo() == 'sem' ? 'sem atribuição' : 'atribuído'}|"
+            ></span>
+            <a class="link-button" th:href="@{/motoristas}">Limpar</a>
+          </div>
+
+          <div class="table-wrap" th:if="${!#lists.isEmpty(motoristas)}">
+            <table class="data-table data-table--equipe">
+              <caption class="visually-hidden">Lista de motoristas da equipe</caption>
               <thead>
                 <tr>
-                  <th>Nome</th>
-                  <th>Usuário Vinculado</th>
-                  <th>CPF</th>
-                  <th>CNH</th>
-                  <th>Categoria</th>
-                  <th>Validade CNH</th>
-                  <th>Telefone</th>
-                  <th>Status</th>
-                  <th>Ações</th>
+                  <th scope="col">Nome</th>
+                  <th scope="col">Usuário vinculado</th>
+                  <th scope="col">CPF</th>
+                  <th scope="col">CNH</th>
+                  <th scope="col">Categoria</th>
+                  <th scope="col">Validade da CNH</th>
+                  <th scope="col">Telefone</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                <tr th:if="${#lists.isEmpty(motoristas)}">
-                  <td colspan="9" class="empty-state">
-                    Nenhum motorista cadastrado.
-                  </td>
-                </tr>
                 <tr th:each="motorista : ${motoristas}">
-                  <td><strong th:text="${motorista.nome}"></strong></td>
                   <td>
-                    <span class="tag-badge"
-                          th:if="${motorista.usuario != null}"
-                          th:text="${'@' + motorista.usuario.username}"></span>
+                    <strong th:text="${motorista.nome}"></strong>
                   </td>
-                  <td th:text="${motorista.cpf}"></td>
-                  <td th:text="${motorista.numeroCnh}"></td>
+                  <td>
+                    <span
+                      class="tag-badge"
+                      th:if="${motorista.usuario != null}"
+                      th:text="${'@' + motorista.usuario.username}"
+                    ></span>
+                    <span th:if="${motorista.usuario == null}" class="text-muted"
+                      >Sem usuário</span
+                    >
+                  </td>
+                  <td
+                    class="cell-cpf"
+                    th:text="${#strings.length(motorista.cpf) >= 3
+                              ? #strings.substring(motorista.cpf, 0, 3) + '.***.***-**'
+                              : motorista.cpf}"
+                  ></td>
+                  <td class="cell-cnh" th:text="${motorista.numeroCnh}"></td>
                   <td th:text="${motorista.categoriaCnh}"></td>
-                  <td th:text="${motorista.validadeCnh != null ? #temporals.format(motorista.validadeCnh, 'dd/MM/yyyy') : '-'}"></td>
+                  <td>
+                    <span
+                      class="revision-date"
+                      th:text="${#temporals.format(motorista.validadeCnh, 'dd/MM/yyyy')}"
+                    ></span>
+                    <span
+                      class="status-badge status-danger"
+                      th:if="${motorista.validadeCnh.isBefore(hoje)}"
+                      >Vencida</span
+                    >
+                    <span
+                      class="status-badge status-warning"
+                      th:if="${!motorista.validadeCnh.isBefore(hoje)
+                                and !motorista.validadeCnh.isAfter(hoje.plusDays(resumo.janelaCnhDias()))}"
+                      >A vencer</span
+                    >
+                  </td>
                   <td th:text="${!#strings.isEmpty(motorista.telefone) ? motorista.telefone : '-'}"></td>
                   <td>
-                    <span class="status-badge"
-                          th:classappend="${motorista.status == 'Ativo' ? 'status-success' : 'status-warning'}"
-                          th:text="${motorista.status}"></span>
+                    <span
+                      class="status-badge"
+                      th:classappend="${motorista.status == 'Ativo' ? 'status-success' : 'status-warning'}"
+                      th:text="${motorista.status}"
+                    ></span>
                   </td>
                   <td class="cell-actions">
                     <div class="table-actions">
-                      <a th:if="${usuarioLogado.podeEditarMotorista(motorista.id)}"
-                         th:href="@{/motoristas/editar/{id}(id=${motorista.id})}">Editar</a>
-                      <form th:if="${usuarioLogado.admin}"
-                            th:action="@{/motoristas/excluir/{id}(id=${motorista.id})}"
-                            method="post"
-                            onsubmit="return confirm('Tem certeza que deseja excluir este motorista?');">
+                      <a th:href="@{/motoristas/detalhes/{id}(id=${motorista.id})}">Detalhes</a>
+                      <a
+                        th:if="${usuarioLogado.podeEditarMotorista(motorista.id)}"
+                        th:href="@{/motoristas/editar/{id}(id=${motorista.id})}"
+                        >Editar</a
+                      >
+                      <form
+                        th:if="${usuarioLogado.admin}"
+                        th:action="@{/motoristas/excluir/{id}(id=${motorista.id})}"
+                        method="post"
+                        onsubmit="return confirm('Tem certeza que deseja excluir este motorista?');"
+                      >
                         <button type="submit" class="btn-action-delete">Excluir</button>
                       </form>
-                      <span class="text-muted"
-                            th:if="${!usuarioLogado.podeEditarMotorista(motorista.id) and !usuarioLogado.admin}">Somente leitura</span>
+                      <span
+                        class="text-muted"
+                        th:if="${!usuarioLogado.podeEditarMotorista(motorista.id) and !usuarioLogado.admin}"
+                        >Somente leitura</span
+                      >
                     </div>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
+
+          <div class="empty-state" th:if="${#lists.isEmpty(motoristas)}">
+            <strong>Nenhum motorista encontrado</strong>
+            <span th:if="${filtro.temFiltro()}">
+              Nenhum motorista corresponde aos filtros atuais.
+              <a class="link-button" th:href="@{/motoristas}">Limpar filtros</a>
+            </span>
+            <span th:if="${!filtro.temFiltro()}"> Não há motoristas cadastrados. </span>
+          </div>
         </section>
       </main>
 
       <footer th:replace="~{fragments/layout :: appFooter}"></footer>
     </div>
+
+    <script th:inline="javascript">
+      window.FLEET_MOTORISTAS = {
+        porCategoria: /*[[${resumo.porCategoria()}]]*/ []
+      };
+    </script>
+    <script th:src="@{/js/vendor/chart.umd.min.js}" defer></script>
     <script th:src="@{/js/script.js}" defer></script>
   </body>
 </html>

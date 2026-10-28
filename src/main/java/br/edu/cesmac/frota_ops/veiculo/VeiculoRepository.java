@@ -36,6 +36,9 @@ public interface VeiculoRepository extends JpaRepository<Veiculo, Long> {
 
     long countByMotoristaId(Long motoristaId);
 
+    /** Veículos atribuídos a um motorista. A cardinalidade é 1:N (um motorista, N veículos). */
+    List<Veiculo> findByMotoristaIdOrderByPlacaAsc(Long motoristaId);
+
     /** Revisões vencidas: proxima_revisao anterior a hoje. */
     long countByProximaRevisaoBefore(LocalDate data);
 

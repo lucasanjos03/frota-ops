@@ -1455,6 +1455,34 @@ td.table-actions > * + * { margin-left: var(--space-3); }
 }
 
 /* --------------------------------------------------------------------------
+   15.3 PÁGINA DE MOTORISTAS
+   -------------------------------------------------------------------------- */
+/* Valor neutro: contagens informativas que não representam risco operacional. */
+.kpi-value--muted { color: var(--color-muted); }
+
+/* A listagem de motoristas tem nove colunas: garante largura mínima legível. */
+.data-table--equipe { min-width: 960px; }
+
+/* CPF mascarado: leitura monoespaçada e discreta, sem competir com o nome. */
+.cell-cpf {
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.cell-cnh {
+  color: var(--color-navy-700);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Gráfico de categorias: poucas barras, altura um pouco maior que o padrão. */
+.chart-box--categoria { height: 280px; }
+
+.chart-box--categoria + .chart-legend .dot,
+.chart-legend .dot--categoria { background-color: var(--color-sky-400); }
+
+/* --------------------------------------------------------------------------
    16. RESPONSIVIDADE
    Breakpoints:  desktop > 1024  |  tablet 641–1024  |  mobile <= 640
    -------------------------------------------------------------------------- */

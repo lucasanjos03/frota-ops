@@ -300,7 +300,64 @@ const VeiculoCharts = {
   }
 };
 
+/* Gráfico da página de motoristas: distribuição da equipe pelas categorias de CNH
+   cadastradas. Não existe tabela de referência de categorias — o gráfico mostra
+   exatamente o que está no cadastro. */
+const MotoristaCharts = {
+  iniciar() {
+    const dados = window.FLEET_MOTORISTAS;
+    if (!dados) {
+      return;
+    }
+
+    const graficoId = 'chart-categoria';
+    if (ChartKit.bibliotecaAusente([graficoId])) {
+      return;
+    }
+
+    const categorias = dados.porCategoria || [];
+    const total = categorias.reduce((soma, item) => soma + Number(item.total || 0), 0);
+    const t = ChartKit.tokens();
+
+    ChartKit.desenhar(graficoId, total > 0, {
+      type: 'bar',
+      data: {
+        labels: categorias.map((item) => `Categoria ${item.categoria}`),
+        datasets: [
+          {
+            label: 'Motoristas',
+            data: categorias.map((item) => Number(item.total || 0)),
+            backgroundColor: t.azulClaro,
+            borderRadius: 4,
+            maxBarThickness: 48
+          }
+        ]
+      },
+      options: {
+        ...ChartKit.base(),
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ` ${ctx.parsed.y} motorista(s)`
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: t.rotulo } },
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0, color: t.rotulo },
+            grid: { color: t.grade }
+          }
+        }
+      }
+    });
+  }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   DashboardCharts.iniciar();
   VeiculoCharts.iniciar();
+  MotoristaCharts.iniciar();
 });

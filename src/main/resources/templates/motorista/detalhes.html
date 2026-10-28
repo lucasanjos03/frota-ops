@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <th:block th:replace="~{fragments/layout :: head('Detalhes do motorista | FleetOps')}"></th:block>
+  </head>
+  <body>
+    <div class="fleet-app">
+      <header th:replace="~{fragments/layout :: appHeader('motoristas')}"></header>
+
+      <main class="page-container" th:if="${motorista}">
+        <nav th:replace="~{fragments/layout :: breadcrumbs('Motoristas', @{/motoristas}, 'Detalhes')}"></nav>
+
+        <div class="page-header">
+          <div>
+            <p class="eyebrow">Ficha do motorista</p>
+            <h1 th:text="${motorista.nome}">Motorista</h1>
+            <p class="page-subtitle">
+              Dados cadastrais, situação da habilitação e veículos atribuídos.
+            </p>
+            <p class="scope-note">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z" />
+              </svg>
+              Dados pessoais protegidos: o CPF é exibido apenas parcialmente.
+            </p>
+          </div>
+          <a
+            class="button button-primary"
+            th:if="${usuarioLogado.podeEditarMotorista(motorista.id)}"
+            th:href="@{/motoristas/editar/{id}(id=${motorista.id})}"
+            >Editar motorista</a
+          >
+        </div>
+
+        <th:block th:replace="~{fragments/layout :: flash}"></th:block>
+
+        <section class="content-section" aria-labelledby="titulo-identificacao">
+          <div class="section-heading">
+            <div>
+              <h2 id="titulo-identificacao">Identificação e habilitação</h2>
+              <p>Dados atuais do cadastro e status do documento de habilitação.</p>
+            </div>
+          </div>
+          <dl class="detail-grid">
+            <div class="detail-item">
+              <dt>Nome</dt>
+              <dd th:text="${motorista.nome}"></dd>
+            </div>
+            <div class="detail-item">
+              <dt>Usuário vinculado</dt>
+              <dd
+                th:text="${motorista.usuario != null ? '@' + motorista.usuario.username : 'Sem usuário'}"
+              ></dd>
+            </div>
+            <div class="detail-item">
+              <dt>CPF</dt>
+              <dd
+                class="cell-cpf"
+                th:text="${#strings.length(motorista.cpf) >= 3
+                          ? #strings.substring(motorista.cpf, 0, 3) + '.***.***-**'
+                          : motorista.cpf}"
+              ></dd>
+            </div>
+            <div class="detail-item">
+              <dt>Número da CNH</dt>
+              <dd th:text="${motorista.numeroCnh}"></dd>
+            </div>
+            <div class="detail-item">
+              <dt>Categoria da CNH</dt>
+              <dd th:text="${motorista.categoriaCnh}"></dd>
+            </div>
+            <div class="detail-item">
+              <dt>Validade da CNH</dt>
+              <dd th:text="${#temporals.format(motorista.validadeCnh, 'dd/MM/yyyy')}"></dd>
+            </div>
+            <div class="detail-item">
+              <dt>Situação da CNH</dt>
+              <dd>
+                <span
+                  class="status-badge status-danger"
+                  th:if="${motorista.validadeCnh.isBefore(hoje)}"
+                  >Vencida</span
+                >
+                <span
+                  class="status-badge status-warning"
+                  th:if="${!motorista.validadeCnh.isBefore(hoje)
+                            and !motorista.validadeCnh.isAfter(hoje.plusDays(janelaCnhDias))}"
+                  >A vencer</span
+                >
+                <span
+                  class="status-badge status-success"
+                  th:if="${motorista.validadeCnh.isAfter(hoje.plusDays(janelaCnhDias))}"
+                  >Válida</span
+                >
+              </dd>
+            </div>
+            <div class="detail-item">
+              <dt>Telefone</dt>
+              <dd th:text="${!#strings.isEmpty(motorista.telefone) ? motorista.telefone : '-'}"></dd>
+            </div>
+            <div class="detail-item">
+              <dt>E-mail</dt>
+              <dd th:text="${!#strings.isEmpty(motorista.email) ? motorista.email : '-'}"></dd>
+            </div>
+            <div class="detail-item">
+              <dt>Status do cadastro</dt>
+              <dd>
+                <span
+                  class="status-badge"
+                  th:classappend="${motorista.status == 'Ativo' ? 'status-success' : 'status-warning'}"
+                  th:text="${motorista.status}"
+                ></span>
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="content-section" aria-labelledby="titulo-veiculos">
+          <div class="section-heading">
+            <div>
+              <h2 id="titulo-veiculos">Veículos atribuídos</h2>
+              <p>
+                Um motorista pode responder por mais de um veículo (relação 1:N entre
+                motorista e veículo).
+              </p>
+            </div>
+          </div>
+
+          <div class="table-wrap" th:if="${!#lists.isEmpty(veiculos)}">
+            <table class="data-table">
+              <caption class="visually-hidden">Veículos atribuídos a este motorista</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Placa</th>
+                  <th scope="col">Modelo</th>
+                  <th scope="col">Ano</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="veiculo : ${veiculos}">
+                  <td><strong class="plate" th:text="${veiculo.placa}"></strong></td>
+                  <td th:text="${veiculo.modelo}"></td>
+                  <td th:text="${veiculo.ano}"></td>
+                  <td>
+                    <span
+                      class="status-badge"
+                      th:classappend="${veiculo.status == 'Disponível' ? 'status-success' :
+                                     (veiculo.status == 'Em trânsito' ? 'status-info' :
+                                     (veiculo.status == 'Em manutenção' ? 'status-warning' : 'status-danger'))}"
+                      th:text="${veiculo.status}"
+                    ></span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="empty-state" th:if="${#lists.isEmpty(veiculos)}">
+            <strong>Nenhum veículo atribuído</strong>
+            Este motorista não responde por nenhum veículo no momento. Documentos válidos não
+            implicam aptidão operacional.
+          </div>
+        </section>
+
+        <p class="mt-5">
+          <a class="button button-secondary" th:href="@{/motoristas}">← Voltar para Motoristas</a>
+        </p>
+      </main>
+
+      <footer th:replace="~{fragments/layout :: appFooter}"></footer>
+    </div>
+    <script th:src="@{/js/script.js}" defer></script>
+  </body>
+</html>
