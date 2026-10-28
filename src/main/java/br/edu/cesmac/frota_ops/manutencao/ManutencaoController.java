@@ -1,7 +1,8 @@
 package br.edu.cesmac.frota_ops.manutencao;
 
-import java.util.List;
+import java.time.LocalDate;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -26,16 +27,28 @@ public class ManutencaoController {
         this.manutencaoService = manutencaoService;
     }
 
+    /**
+     * Histórico de manutenções com filtros de veículo, serviço e período. A data corrente é
+     * calculada uma única vez e repassada ao serviço, de modo que indicadores, gráfico,
+     * painel de revisões e a classificação do período usem a mesma referência.
+     */
     @GetMapping
-    public String listar(@RequestParam(required = false) Long veiculoId, Model model) {
-        List<Manutencao> manutencoes = (veiculoId != null)
-                ? manutencaoService.buscarPorVeiculo(veiculoId)
-                : manutencaoService.listarTodas();
+    public String listar(@RequestParam(required = false) Long veiculoId,
+                         @RequestParam(required = false) String servico,
+                         @RequestParam(required = false)
+                         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate de,
+                         @RequestParam(required = false)
+                         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ate,
+                         HttpSession session,
+                         Model model) {
+        ManutencaoFiltro filtro = new ManutencaoFiltro(veiculoId, servico, de, ate);
+        LocalDate hoje = LocalDate.now();
 
-        model.addAttribute("manutencoes", manutencoes);
-        model.addAttribute("totalManutencoes", manutencaoService.contarTotal());
-        model.addAttribute("veiculos", manutencaoService.listarVeiculos());
-        model.addAttribute("filtroVeiculoId", veiculoId);
+        model.addAttribute("manutencoes", manutencaoService.listar(session, filtro));
+        model.addAttribute("resumo", manutencaoService.montarResumo(session, hoje));
+        model.addAttribute("filtro", filtro);
+        model.addAttribute("hoje", hoje);
+        model.addAttribute("veiculos", manutencaoService.listarVeiculosNoEscopo(session));
         return "manutencao/list";
     }
 

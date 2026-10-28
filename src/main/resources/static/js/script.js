@@ -45,9 +45,10 @@ document.addEventListener('DOMContentLoaded', () => {
    Gráficos (Chart.js).
 
    A fonte de dados é exclusivamente um objeto global preparado pelo servidor
-   (`window.FLEET_DASHBOARD` ou `window.FLEET_VEICULOS`) com DTOs agregados já
-   calculados. Nenhuma entidade JPA trafega para o navegador e nenhum dado é
-   recalculado aqui: o JavaScript apenas desenha.
+   (`window.FLEET_DASHBOARD`, `window.FLEET_VEICULOS`, `window.FLEET_MOTORISTAS`
+   ou `window.FLEET_MANUTENCOES`) com DTOs agregados já calculados. Nenhuma
+   entidade JPA trafega para o navegador e nenhum dado é recalculado aqui: o
+   JavaScript apenas desenha.
 
    As informações também são renderizadas pelo Thymeleaf em listas de legenda,
    portanto continuam disponíveis para leitores de tela mesmo se o Chart.js
@@ -356,8 +357,66 @@ const MotoristaCharts = {
   }
 };
 
+/* Gráfico da página de manutenções: quantidade de manutenções REALIZADAS em cada
+   um dos últimos doze meses, pela data do serviço. Meses sem registro aparecem
+   com zero — o eixo temporal é contínuo. A série é de histórico: as revisões
+   previstas do cadastro não entram neste gráfico. */
+const ManutencaoCharts = {
+  iniciar() {
+    const dados = window.FLEET_MANUTENCOES;
+    if (!dados) {
+      return;
+    }
+
+    const graficoId = 'chart-manutencoes-mes';
+    if (ChartKit.bibliotecaAusente([graficoId])) {
+      return;
+    }
+
+    const meses = dados.manutencoesPorMes || [];
+    const total = meses.reduce((soma, item) => soma + Number(item.total || 0), 0);
+    const t = ChartKit.tokens();
+
+    ChartKit.desenhar(graficoId, total > 0, {
+      type: 'bar',
+      data: {
+        labels: meses.map((item) => item.rotulo),
+        datasets: [
+          {
+            label: 'Manutenções realizadas',
+            data: meses.map((item) => Number(item.total || 0)),
+            backgroundColor: t.azul,
+            borderRadius: 4,
+            maxBarThickness: 40
+          }
+        ]
+      },
+      options: {
+        ...ChartKit.base(),
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ` ${ctx.parsed.y} registro(s)`
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: t.rotulo } },
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0, color: t.rotulo },
+            grid: { color: t.grade }
+          }
+        }
+      }
+    });
+  }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   DashboardCharts.iniciar();
   VeiculoCharts.iniciar();
   MotoristaCharts.iniciar();
+  ManutencaoCharts.iniciar();
 });

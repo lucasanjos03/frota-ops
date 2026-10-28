@@ -10,88 +10,584 @@
       <main class="page-container">
         <div class="page-header">
           <div>
-            <p class="eyebrow">Controle de oficina</p>
+            <p class="eyebrow">Oficina e histórico</p>
             <h1>Manutenções</h1>
             <p class="page-subtitle">
-              <span th:text="${totalManutencoes}">0</span>
-              registros de manutenção na frota.
+              <span th:text="${resumo.indicadores.totalRegistros()}">0</span>
+              manutenções realizadas no escopo atual · histórico, ranking e previsão de
+              revisões.
+            </p>
+            <p class="scope-note">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z" />
+              </svg>
+              Escopo exibido:
+              <span th:text="${resumo.escopoDescricao()}">Frota completa</span>
             </p>
           </div>
-          <a class="button button-primary"
-             th:if="${usuarioLogado.podeGerenciarManutencoes()}"
-             th:href="@{/manutencoes/novo}">+ Nova manutenção</a>
+          <a
+            class="button button-primary"
+            th:if="${usuarioLogado.podeGerenciarManutencoes()}"
+            th:href="@{/manutencoes/novo}"
+            >+ Nova manutenção</a
+          >
         </div>
 
         <th:block th:replace="~{fragments/layout :: flash}"></th:block>
 
-        <section class="content-section">
-          <form class="filters" method="get" th:action="@{/manutencoes}">
-            <label for="veiculoId">Filtrar por veículo</label>
-            <select id="veiculoId" name="veiculoId">
-              <option value="">Todos os veículos</option>
-              <option th:each="v : ${veiculos}"
-                      th:value="${v.id}"
-                      th:selected="${filtroVeiculoId != null and filtroVeiculoId == v.id}"
-                      th:text="${v.placa + ' · ' + v.modelo}">
-              </option>
-            </select>
-            <button class="button button-secondary" type="submit">Filtrar</button>
-            <a class="link-button" th:href="@{/manutencoes}">Limpar filtro</a>
-          </form>
+        <!-- ===================== INDICADORES DO HISTÓRICO ===================== -->
+        <!-- Escopo: perfil do usuário. NÃO são afetados pelos filtros da tabela.
+             Histórico (realizadas) e previsão (revisões) ficam em cartões distintos. -->
+        <div class="kpi-grid">
+          <a class="kpi-card kpi-card--link" th:href="@{/manutencoes}">
+            <span class="kpi-label">Registros no histórico</span>
+            <span class="kpi-value" th:text="${resumo.indicadores.totalRegistros()}">0</span>
+            <span class="kpi-hint">Manutenções já realizadas no escopo</span>
+          </a>
 
-          <div class="table-wrap">
-            <table class="data-table">
+          <a
+            class="kpi-card kpi-card--link"
+            th:href="@{/manutencoes(de=${resumo.inicioMes()}, ate=${resumo.referencia()})}"
+          >
+            <span class="kpi-label">Realizadas no mês</span>
+            <span
+              class="kpi-value"
+              th:text="${resumo.indicadores.registrosNoMes()}"
+            >0</span>
+            <span
+              class="kpi-hint"
+              th:text="|De ${#temporals.format(resumo.inicioMes(), 'dd/MM')} a ${#temporals.format(resumo.referencia(), 'dd/MM/yyyy')}|"
+            >No mês corrente</span>
+          </a>
+
+          <a class="kpi-card kpi-card--link" th:href="@{/veiculos(revisao='vencida')}">
+            <span class="kpi-label">Revisões atrasadas</span>
+            <span
+              class="kpi-value kpi-value--danger"
+              th:text="${resumo.indicadores.revisoesAtrasadas()}"
+            >0</span>
+            <span class="kpi-hint">Data prevista anterior a hoje · previsão do cadastro</span>
+          </a>
+
+          <a class="kpi-card kpi-card--link" th:href="@{/veiculos(revisao='proxima')}">
+            <span class="kpi-label">Revisões previstas</span>
+            <span
+              class="kpi-value kpi-value--warning"
+              th:text="${resumo.indicadores.revisoesPrevistas()}"
+            >0</span>
+            <span
+              class="kpi-hint"
+              th:text="|Vencem em até ${resumo.janelaRevisoesDias()} dias · previsão do cadastro|"
+            >Vencem em até 15 dias</span>
+          </a>
+        </div>
+
+        <!-- ================== MANUTENÇÕES REALIZADAS POR MÊS ================== -->
+        <section class="content-section chart-card" aria-labelledby="titulo-chart-meses">
+          <div class="section-heading">
+            <div>
+              <h2 id="titulo-chart-meses">Manutenções realizadas por mês</h2>
+              <p>
+                Últimos <span th:text="${resumo.mesesGrafico()}">12</span> meses de
+                histórico, até
+                <span th:text="${#temporals.format(resumo.referencia(), 'MM/yyyy')}"
+                  >agora</span
+                >. Meses sem registro aparecem com zero — o eixo é contínuo.
+              </p>
+            </div>
+          </div>
+          <div class="chart-card__body">
+            <div class="chart-box chart-box--meses" th:if="${resumo.exibirGraficoMensal()}">
+              <canvas
+                id="chart-manutencoes-mes"
+                width="300"
+                height="300"
+                role="img"
+                aria-label="Gráfico de barras com a quantidade de manutenções realizadas em cada um dos últimos doze meses"
+              ></canvas>
+              <p class="chart-state">Carregando gráfico…</p>
+            </div>
+
+            <div class="empty-state" th:unless="${resumo.exibirGraficoMensal()}">
+              <strong>Sem manutenções nos últimos meses</strong>
+              Nenhum registro de manutenção realizada no período dos últimos
+              <span th:text="${resumo.mesesGrafico()}">12</span> meses.
+            </div>
+
+            <!-- Lista acessível: cada mês leva exatamente aos registros que compõem o ponto. -->
+            <ul class="chart-legend chart-legend--meses" th:if="${resumo.exibirGraficoMensal()}">
+              <li
+                th:each="mes : ${resumo.manutencoesPorMes()}"
+                th:classappend="${mes.total() == 0} ? 'is-empty' : ''"
+              >
+                <a
+                  th:if="${mes.total() > 0}"
+                  th:href="@{/manutencoes(de=${mes.inicio()}, ate=${mes.fim()})}"
+                  th:title="|Ver os ${mes.total()} registro(s) de ${mes.rotulo()}|"
+                >
+                  <span class="dot" aria-hidden="true"></span>
+                  <span th:text="${mes.rotulo()}">Out/26</span>
+                  <span class="qtd" th:text="${mes.total()}">0</span>
+                </a>
+                <span th:unless="${mes.total() > 0}">
+                  <span class="dot" aria-hidden="true"></span>
+                  <span th:text="${mes.rotulo()}">Out/26</span>
+                  <span class="qtd" th:text="${mes.total()}">0</span>
+                </span>
+              </li>
+            </ul>
+
+            <p class="scope-note">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8h.01M11 12h1v4h1" />
+              </svg>
+              A competência é a data da manutenção, não a data de lançamento do registro. O
+              modelo não tem custo por serviço.
+            </p>
+          </div>
+        </section>
+
+        <!-- ============== RANKING DE VEÍCULOS POR REGISTROS ============== -->
+        <section class="content-section mt-5" aria-labelledby="titulo-ranking">
+          <div class="section-heading">
+            <div>
+              <h2 id="titulo-ranking">Veículos com mais registros de manutenção</h2>
+              <p>
+                Os cinco veículos com maior número de registros no histórico do escopo.
+                Empate é desfeito pela placa.
+              </p>
+            </div>
+          </div>
+
+          <div class="table-wrap" th:if="${!#lists.isEmpty(resumo.rankingVeiculos())}">
+            <table class="data-table data-table--ranking">
+              <caption class="visually-hidden">
+                Ranking de veículos por quantidade de registros de manutenção
+              </caption>
               <thead>
                 <tr>
-                  <th>Data</th>
-                  <th>Veículo</th>
-                  <th>Quilometragem</th>
-                  <th>Serviço realizado</th>
-                  <th>Responsável / Oficina</th>
-                  <th>Observação</th>
-                  <th>Ações</th>
+                  <th scope="col">#</th>
+                  <th scope="col">Veículo</th>
+                  <th scope="col">Motorista</th>
+                  <th scope="col" class="cell-num">Registros</th>
+                  <th scope="col">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                <tr th:if="${#lists.isEmpty(manutencoes)}">
-                  <td colspan="7" class="empty-state">
-                    Nenhuma manutenção encontrada.
-                  </td>
-                </tr>
-                <tr th:each="m : ${manutencoes}">
-                  <td th:text="${#temporals.format(m.data, 'dd/MM/yyyy')}"></td>
+                <tr th:each="item, posicao : ${resumo.rankingVeiculos()}">
+                  <td class="cell-rank" th:text="${posicao.count}">1</td>
                   <td>
-                    <a th:if="${m.veiculo != null}"
-                       th:href="@{/veiculos/detalhes/{id}(id=${m.veiculo.id})}"
-                       th:text="${m.veiculo.placa + ' · ' + m.veiculo.modelo}"></a>
+                    <strong class="plate" th:text="${item.placa()}">PLACA</strong>
+                    <span class="text-muted" th:text="| · ${item.modelo()}|">Modelo</span>
                   </td>
-                  <td th:text="${#numbers.formatDecimal(m.quilometragem, 1, 0, 'POINT')} + ' km'"></td>
-                  <td th:text="${m.servicoRealizado}"></td>
-                  <td th:text="${m.responsavel}"></td>
-                  <td th:text="${!#strings.isEmpty(m.observacao) ? m.observacao : '-'}"></td>
+                  <td>
+                    <span th:if="${item.motorista() != null}" th:text="${item.motorista()}"></span>
+                    <span th:if="${item.motorista() == null}" class="text-muted"
+                      >Sem motorista</span
+                    >
+                  </td>
+                  <td class="cell-num cell-km" th:text="${item.total()}">0</td>
                   <td class="cell-actions">
                     <div class="table-actions">
-                      <a th:if="${m.veiculo != null and usuarioLogado.podeEditarVeiculo(m.veiculo.motorista != null ? m.veiculo.motorista.id : null)}"
-                         th:href="@{/manutencoes/editar/{id}(id=${m.id})}">Editar</a>
-                      <form th:if="${usuarioLogado.admin or (m.veiculo != null and usuarioLogado.podeEditarVeiculo(m.veiculo.motorista != null ? m.veiculo.motorista.id : null))}"
-                            th:action="@{/manutencoes/excluir/{id}(id=${m.id})}"
-                            method="post"
-                            onsubmit="return confirm('Tem certeza que deseja excluir esta manutenção?');">
-                        <button type="submit" class="btn-action-delete">Excluir</button>
-                      </form>
-                      <span class="text-muted"
-                            th:if="${!usuarioLogado.admin and !(m.veiculo != null and usuarioLogado.podeEditarVeiculo(m.veiculo.motorista != null ? m.veiculo.motorista.id : null))}">Somente leitura</span>
+                      <a th:href="@{/manutencoes(veiculoId=${item.veiculoId()})}"
+                        >Ver registros</a
+                      >
+                      <a th:href="@{/veiculos/detalhes/{id}(id=${item.veiculoId()})}"
+                        >Veículo</a
+                      >
                     </div>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
+
+          <div class="empty-state" th:if="${#lists.isEmpty(resumo.rankingVeiculos())}">
+            <strong>Sem registros para ranquear</strong>
+            Nenhuma manutenção registrada no escopo atual.
+          </div>
+
+          <div class="section-body">
+            <p class="scope-note">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8h.01M11 12h1v4h1" />
+              </svg>
+              A contagem é de registros de manutenção, não de falhas: um volume alto pode
+              significar apenas mais serviços preventivos.
+            </p>
+          </div>
+        </section>
+
+        <!-- ================== REVISÕES ATRASADAS E PREVISTAS ================== -->
+        <!-- Série de PREVISÃO, vinda de veiculo.proxima_revisao. Não entra em nenhum
+             indicador de histórico e nunca é somada a ele. -->
+        <section class="content-section mt-5" aria-labelledby="titulo-revisoes">
+          <div class="section-heading">
+            <div>
+              <h2 id="titulo-revisoes">Revisões previstas no cadastro</h2>
+              <p>
+                Previsão calculada a partir da próxima revisão de cada veículo · data de
+                referência
+                <span th:text="${#temporals.format(resumo.referencia(), 'dd/MM/yyyy')}"
+                  >hoje</span
+                >. Atrasadas: data prevista anterior à referência. Previstas: da referência
+                até <span th:text="${resumo.janelaRevisoesDias()}">15</span> dias.
+              </p>
+            </div>
+          </div>
+
+          <div class="revision-grid">
+            <div class="revision-block revision-block--overdue">
+              <h3 class="revision-block__title">
+                Atrasadas
+                <span class="count-badge" th:text="${resumo.indicadores.revisoesAtrasadas()}"
+                  >0</span
+                >
+              </h3>
+
+              <div class="alert-panel" th:if="${!#lists.isEmpty(resumo.revisoesAtrasadas())}">
+                <div
+                  class="alert-item alert-item--alta"
+                  th:each="revisao : ${resumo.revisoesAtrasadas()}"
+                >
+                  <svg
+                    class="alert-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+                    <path d="M12 9v4M12 17h.01" />
+                  </svg>
+                  <div class="alert-body">
+                    <strong class="alert-title">
+                      <span class="plate" th:text="${revisao.placa()}">PLACA</span>
+                      <span th:text="| · ${revisao.modelo()}|">Modelo</span>
+                    </strong>
+                    <p class="alert-desc">
+                      <span
+                        th:text="|Revisão prevista para ${#temporals.format(revisao.proximaRevisao(), 'dd/MM/yyyy')} · atrasada há ${-revisao.diasRestantes()} dia(s)|"
+                      ></span>
+                      <span
+                        th:if="${revisao.motorista() != null}"
+                        th:text="| · ${revisao.motorista()}|"
+                      ></span>
+                    </p>
+                  </div>
+                  <a
+                    class="alert-action"
+                    th:href="@{/veiculos/detalhes/{id}(id=${revisao.veiculoId()})}"
+                    >Ver veículo</a
+                  >
+                </div>
+              </div>
+
+              <div class="empty-state" th:if="${#lists.isEmpty(resumo.revisoesAtrasadas())}">
+                <strong>Nenhuma revisão atrasada</strong>
+                Todos os veículos com revisão agendada estão dentro do prazo.
+              </div>
+            </div>
+
+            <div class="revision-block revision-block--soon">
+              <h3 class="revision-block__title">
+                Previstas para os próximos
+                <span th:text="${resumo.janelaRevisoesDias()}">15</span> dias
+                <span class="count-badge" th:text="${resumo.indicadores.revisoesPrevistas()}"
+                  >0</span
+                >
+              </h3>
+
+              <div class="alert-panel" th:if="${!#lists.isEmpty(resumo.revisoesPrevistas())}">
+                <div
+                  class="alert-item alert-item--media"
+                  th:each="revisao : ${resumo.revisoesPrevistas()}"
+                >
+                  <svg
+                    class="alert-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7v5l3 2" />
+                  </svg>
+                  <div class="alert-body">
+                    <strong class="alert-title">
+                      <span class="plate" th:text="${revisao.placa()}">PLACA</span>
+                      <span th:text="| · ${revisao.modelo()}|">Modelo</span>
+                    </strong>
+                    <p class="alert-desc">
+                      <span
+                        th:if="${revisao.diasRestantes() == 0}"
+                        th:text="|Revisão prevista para hoje (${#temporals.format(revisao.proximaRevisao(), 'dd/MM/yyyy')})|"
+                      ></span>
+                      <span
+                        th:if="${revisao.diasRestantes() > 0}"
+                        th:text="|Revisão prevista para ${#temporals.format(revisao.proximaRevisao(), 'dd/MM/yyyy')} · em ${revisao.diasRestantes()} dia(s)|"
+                      ></span>
+                      <span
+                        th:if="${revisao.motorista() != null}"
+                        th:text="| · ${revisao.motorista()}|"
+                      ></span>
+                    </p>
+                  </div>
+                  <a
+                    class="alert-action"
+                    th:href="@{/veiculos/detalhes/{id}(id=${revisao.veiculoId()})}"
+                    >Ver veículo</a
+                  >
+                </div>
+              </div>
+
+              <div class="empty-state" th:if="${#lists.isEmpty(resumo.revisoesPrevistas())}">
+                <strong>Nenhuma revisão na janela</strong>
+                Não há revisões previstas para os próximos
+                <span th:text="${resumo.janelaRevisoesDias()}">15</span> dias.
+              </div>
+            </div>
+          </div>
+
+          <div class="section-body">
+            <p class="scope-note">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8h.01M11 12h1v4h1" />
+              </svg>
+              Previsão baseada na data agendada no cadastro do veículo: é uma série distinta
+              do histórico de manutenções realizadas e não é somada a ele.
+            </p>
+          </div>
+        </section>
+
+        <!-- =========================== HISTÓRICO E FILTROS =========================== -->
+        <section class="content-section mt-5" aria-labelledby="titulo-historico">
+          <div class="section-heading">
+            <div>
+              <h2 id="titulo-historico">Histórico de manutenções realizadas</h2>
+              <p>
+                Os filtros abaixo afetam apenas a tabela — os indicadores, o gráfico e o
+                painel de revisões permanecem no escopo do perfil.
+              </p>
+            </div>
+            <span class="results-count">
+              <span th:text="${#lists.size(manutencoes)}">0</span> registro(s)
+            </span>
+          </div>
+
+          <form class="filters" method="get" th:action="@{/manutencoes}">
+            <label for="veiculoId">Veículo</label>
+            <select id="veiculoId" name="veiculoId">
+              <option value="" th:selected="${filtro.veiculoId() == null}">
+                Todos os veículos
+              </option>
+              <option
+                th:each="v : ${veiculos}"
+                th:value="${v.id}"
+                th:selected="${filtro.veiculoId() != null and filtro.veiculoId() == v.id}"
+                th:text="${v.placa + ' · ' + v.modelo}"
+              ></option>
+            </select>
+
+            <label for="servico">Serviço</label>
+            <input
+              id="servico"
+              name="servico"
+              type="search"
+              placeholder="Ex.: freios"
+              th:value="${filtro.servico()}"
+            />
+
+            <label for="de">De</label>
+            <input
+              id="de"
+              name="de"
+              type="date"
+              th:value="${filtro.de() != null ? #temporals.format(filtro.de(), 'yyyy-MM-dd') : ''}"
+            />
+
+            <label for="ate">Até</label>
+            <input
+              id="ate"
+              name="ate"
+              type="date"
+              th:value="${filtro.ate() != null ? #temporals.format(filtro.ate(), 'yyyy-MM-dd') : ''}"
+            />
+
+            <button class="button button-secondary" type="submit">Filtrar</button>
+            <a class="link-button" th:href="@{/manutencoes}">Limpar filtros</a>
+          </form>
+
+          <div class="filter-chips" th:if="${filtro.temFiltro()}">
+            <span class="filter-chips__label">Filtros aplicados</span>
+            <span
+              class="filter-chip"
+              th:if="${filtro.veiculoId() != null}"
+              th:text="|Veículo #${filtro.veiculoId()}|"
+            ></span>
+            <span
+              class="filter-chip"
+              th:if="${!#strings.isEmpty(filtro.servico())}"
+              th:text="|Serviço: ${filtro.servico()}|"
+            ></span>
+            <span
+              class="filter-chip"
+              th:if="${filtro.de() != null}"
+              th:text="|De: ${#temporals.format(filtro.de(), 'dd/MM/yyyy')}|"
+            ></span>
+            <span
+              class="filter-chip"
+              th:if="${filtro.ate() != null}"
+              th:text="|Até: ${#temporals.format(filtro.ate(), 'dd/MM/yyyy')}|"
+            ></span>
+            <a class="link-button" th:href="@{/manutencoes}">Limpar</a>
+          </div>
+
+          <div class="table-wrap" th:if="${!#lists.isEmpty(manutencoes)}">
+            <table class="data-table data-table--historico">
+              <caption class="visually-hidden">
+                Histórico de manutenções realizadas, da mais recente para a mais antiga
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Data</th>
+                  <th scope="col">Veículo</th>
+                  <th scope="col" class="cell-num">Quilometragem</th>
+                  <th scope="col">Serviço realizado</th>
+                  <th scope="col">Responsável / Oficina</th>
+                  <th scope="col">Observação</th>
+                  <th scope="col">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="m : ${manutencoes}">
+                  <td>
+                    <span class="revision-date" th:text="${#temporals.format(m.data, 'dd/MM/yyyy')}"
+                      >-</span
+                    >
+                  </td>
+                  <td>
+                    <a
+                      th:if="${m.veiculo != null}"
+                      th:href="@{/veiculos/detalhes/{id}(id=${m.veiculo.id})}"
+                      ><span class="plate" th:text="${m.veiculo.placa}"></span>
+                      <span class="text-muted" th:text="| · ${m.veiculo.modelo}|"></span
+                    ></a>
+                  </td>
+                  <td class="cell-num cell-km" th:text="${#numbers.formatInteger(m.quilometragem, 1, 'POINT')} + ' km'"></td>
+                  <td th:text="${m.servicoRealizado}"></td>
+                  <td th:text="${!#strings.isEmpty(m.responsavel) ? m.responsavel : '-'}"></td>
+                  <td th:text="${!#strings.isEmpty(m.observacao) ? m.observacao : '-'}"></td>
+                  <td class="cell-actions">
+                    <div class="table-actions">
+                      <a
+                        th:if="${m.veiculo != null and usuarioLogado.podeEditarVeiculo(m.veiculo.motorista != null ? m.veiculo.motorista.id : null)}"
+                        th:href="@{/manutencoes/editar/{id}(id=${m.id})}"
+                        >Editar</a
+                      >
+                      <form
+                        th:if="${usuarioLogado.admin or (m.veiculo != null and usuarioLogado.podeEditarVeiculo(m.veiculo.motorista != null ? m.veiculo.motorista.id : null))}"
+                        th:action="@{/manutencoes/excluir/{id}(id=${m.id})}"
+                        method="post"
+                        onsubmit="return confirm('Tem certeza que deseja excluir esta manutenção?');"
+                      >
+                        <button type="submit" class="btn-action-delete">Excluir</button>
+                      </form>
+                      <span
+                        class="text-muted"
+                        th:if="${!usuarioLogado.admin and !(m.veiculo != null and usuarioLogado.podeEditarVeiculo(m.veiculo.motorista != null ? m.veiculo.motorista.id : null))}"
+                        >Somente leitura</span
+                      >
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="empty-state" th:if="${#lists.isEmpty(manutencoes)}">
+            <strong>Nenhuma manutenção encontrada</strong>
+            <span th:if="${filtro.temFiltro()}">
+              Nenhum registro corresponde aos filtros atuais.
+              <a class="link-button" th:href="@{/manutencoes}">Limpar filtros</a>
+            </span>
+            <span th:if="${!filtro.temFiltro()}">
+              Não há manutenções registradas no escopo exibido.
+            </span>
+          </div>
+
+          <div class="section-body">
+            <p class="scope-note">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8h.01M11 12h1v4h1" />
+              </svg>
+              A busca por serviço compara trechos do texto registrado: não existe taxonomia
+              de serviços no modelo, portanto nomes diferentes para o mesmo serviço não são
+              agrupados.
+            </p>
+          </div>
         </section>
       </main>
 
       <footer th:replace="~{fragments/layout :: appFooter}"></footer>
     </div>
+
+    <script th:inline="javascript">
+      window.FLEET_MANUTENCOES = {
+        manutencoesPorMes: /*[[${resumo.manutencoesPorMes()}]]*/ []
+      };
+    </script>
+    <script th:src="@{/js/vendor/chart.umd.min.js}" defer></script>
     <script th:src="@{/js/script.js}" defer></script>
   </body>
 </html>
