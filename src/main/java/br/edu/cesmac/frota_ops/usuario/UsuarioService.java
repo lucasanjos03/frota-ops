@@ -139,4 +139,31 @@ public class UsuarioService {
     public long contarTotal() {
         return usuarioRepository.countByAtivoTrue();
     }
+
+    /**
+     * Resumo de usuários ativos por perfil. Destinado à visão ADMIN; a contagem considera
+     * toda a base ativa, independentemente do recorte de visibilidade da listagem.
+     */
+    public UsuarioPaginaDTO montarResumo() {
+        long total = 0;
+        long administradores = 0;
+        long operadores = 0;
+        long motoristas = 0;
+
+        for (UsuarioRepository.ContagemPorPerfil contagem : usuarioRepository.contarAtivosPorPerfil()) {
+            long quantidade = contagem.getTotal();
+            total += quantidade;
+            String perfil = contagem.getPerfil() == null ? "" : contagem.getPerfil().trim().toUpperCase();
+            switch (perfil) {
+                case "ADMIN" -> administradores = quantidade;
+                case "OPERADOR" -> operadores = quantidade;
+                case "MOTORISTA" -> motoristas = quantidade;
+                default -> {
+                    // Perfis não mapeados entram apenas no total.
+                }
+            }
+        }
+
+        return new UsuarioPaginaDTO(total, administradores, operadores, motoristas);
+    }
 }

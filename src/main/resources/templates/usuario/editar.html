@@ -43,7 +43,7 @@
               </div>
               <div class="form-group col-span-3">
                 <label for="senha">Senha <span class="required-mark">*</span></label>
-                <input id="senha" type="text" th:field="*{senha}" th:errorclass="campo-erro">
+                <input id="senha" type="password" autocomplete="new-password" th:field="*{senha}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}"></p>
               </div>
               <div class="form-group col-span-4" th:if="${usuarioLogado.admin}">

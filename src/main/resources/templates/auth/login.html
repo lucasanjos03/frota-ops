@@ -33,7 +33,6 @@
             <input type="checkbox" name="remember"
                    th:checked="${param.remember != null}"> Lembrar acesso
           </label>
-          <p class="field-error" aria-live="polite" th:if="${param.error}">Usuário ou senha inválidos.</p>
           <button class="button button-primary" type="submit">Entrar no Sistema</button>
         </form>
 

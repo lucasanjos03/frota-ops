@@ -86,6 +86,15 @@
       <p class="alert alert-erro" th:if="${erro}" th:text="${erro}"></p>
     </th:block>
 
+    <!-- ESTADO VAZIO: bloco padronizado para listas/séries sem dados.
+         Parâmetros: título em destaque e mensagem de apoio. -->
+    <th:block th:fragment="emptyState(titulo, mensagem)">
+      <div class="empty-state">
+        <strong th:text="${titulo}">Sem registros</strong>
+        <span th:text="${mensagem}">Nenhum registro disponível.</span>
+      </div>
+    </th:block>
+
     <!-- FOOTER -->
     <footer class="app-footer" th:fragment="appFooter">
       FleetOps · Gestão de Frota e Manutenção · © 2026

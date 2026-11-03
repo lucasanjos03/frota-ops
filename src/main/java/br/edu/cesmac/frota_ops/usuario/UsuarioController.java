@@ -32,6 +32,9 @@ public class UsuarioController {
 
         model.addAttribute("usuarios", visiveis);
         model.addAttribute("totalUsuarios", visiveis.size());
+        if (logado.isAdmin()) {
+            model.addAttribute("resumo", usuarioService.montarResumo());
+        }
         return "usuario/list";
     }
 

@@ -14,7 +14,21 @@
             <h1 th:text="${usuarioLogado.admin ? 'Usuários do Sistema' : 'Meu Perfil de Usuário'}">Usuários do Sistema</h1>
             <p class="page-subtitle">
               <span th:text="${totalUsuarios}">0</span>
-              usuário(s) ativo(s) disponível(is) para o seu nível de permissão (<strong th:text="${usuarioLogado.perfil}"></strong>).
+              usuário(s) ativo(s) visível(is) para o seu nível de permissão (<strong th:text="${usuarioLogado.perfil}"></strong>).
+            </p>
+            <p class="scope-note" th:if="${!usuarioLogado.admin}">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z" />
+              </svg>
+              Você visualiza apenas a sua própria conta. Senhas nunca são exibidas.
             </p>
           </div>
           <a class="button button-primary"
@@ -24,26 +38,57 @@
 
         <th:block th:replace="~{fragments/layout :: flash}"></th:block>
 
-        <section class="content-section">
-          <div class="table-wrap">
-            <table class="data-table">
+        <!-- ====================== INDICADORES POR PERFIL (ADMIN) ====================== -->
+        <!-- "Se permitido": apenas o ADMIN enxerga a base inteira de contas. -->
+        <div class="kpi-grid" th:if="${resumo != null}">
+          <div class="kpi-card">
+            <span class="kpi-label">Usuários ativos</span>
+            <span class="kpi-value" th:text="${resumo.total()}">0</span>
+            <span class="kpi-hint">Contas habilitadas no sistema</span>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">Administradores</span>
+            <span class="kpi-value kpi-value--danger" th:text="${resumo.administradores()}">0</span>
+            <span class="kpi-hint">Acesso total, inclusive exclusões</span>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">Operadores</span>
+            <span class="kpi-value kpi-value--warning" th:text="${resumo.operadores()}">0</span>
+            <span class="kpi-hint">Perfil de visualização</span>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">Motoristas</span>
+            <span class="kpi-value kpi-value--success" th:text="${resumo.motoristas()}">0</span>
+            <span class="kpi-hint">Editam os próprios dados</span>
+          </div>
+        </div>
+
+        <section class="content-section" aria-labelledby="titulo-lista-usuarios">
+          <div class="section-heading">
+            <div>
+              <h2 id="titulo-lista-usuarios">Contas de acesso</h2>
+              <p>Perfil de permissão e vínculo com o cadastro de motorista de cada usuário.</p>
+            </div>
+          </div>
+
+          <div class="table-wrap" th:if="${!#lists.isEmpty(usuarios)}">
+            <table class="data-table data-table--usuarios">
+              <caption class="visually-hidden">Lista de usuários ativos</caption>
               <thead>
                 <tr>
-                  <th>Username</th>
-                  <th>Nome</th>
-                  <th>E-mail</th>
-                  <th>Perfil</th>
-                  <th>Vínculo Motorista</th>
-                  <th>Última Modificação</th>
-                  <th>Ações</th>
+                  <th scope="col">Username</th>
+                  <th scope="col">Nome</th>
+                  <th scope="col">E-mail</th>
+                  <th scope="col">Perfil</th>
+                  <th scope="col">Vínculo motorista</th>
+                  <th scope="col">Última modificação</th>
+                  <th scope="col">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                <tr th:if="${#lists.isEmpty(usuarios)}">
-                  <td colspan="7" class="empty-state">
-                    Nenhum usuário ativo encontrado.
-                  </td>
-                </tr>
                 <tr th:each="u : ${usuarios}">
                   <td><strong th:text="${u.username}"></strong></td>
                   <td th:text="${u.nome}"></td>
@@ -79,6 +124,12 @@
               </tbody>
             </table>
           </div>
+
+          <th:block th:if="${#lists.isEmpty(usuarios)}">
+            <th:block
+              th:replace="~{fragments/layout :: emptyState('Nenhum usuário ativo encontrado', 'Não há contas ativas visíveis para o seu nível de permissão.')}"
+            ></th:block>
+          </th:block>
         </section>
       </main>
 

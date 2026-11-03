@@ -147,7 +147,7 @@
                 <tr th:each="m : ${manutencoes}">
                   <td th:text="${#temporals.format(m.data, 'dd/MM/yyyy')}"></td>
                   <td
-                    th:text="${#numbers.formatDecimal(m.quilometragem, 1, 0, 'POINT')} + ' km'"
+                    th:text="${#numbers.formatInteger(m.quilometragem, 1, 'POINT')} + ' km'"
                   ></td>
                   <td th:text="${m.servicoRealizado}"></td>
                   <td th:text="${m.responsavel}"></td>

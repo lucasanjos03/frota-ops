@@ -158,7 +158,7 @@
                 <span class="text-muted" th:text="${km.modelo()}">Modelo</span>
                 <span
                   class="qtd"
-                  th:text="${#numbers.formatDecimal(km.quilometragem(), 1, 0, 'POINT')} + ' km'"
+                  th:text="${#numbers.formatInteger(km.quilometragem(), 1, 'POINT')} + ' km'"
                 >0 km</span>
               </li>
             </ul>

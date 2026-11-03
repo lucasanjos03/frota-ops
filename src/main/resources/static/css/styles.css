@@ -1585,6 +1585,15 @@ td.table-actions > * + * { margin-left: var(--space-3); }
 }
 
 /* --------------------------------------------------------------------------
+   15.5 PÁGINAS ADMINISTRATIVAS (TAGS E USUÁRIOS)
+   -------------------------------------------------------------------------- */
+/* A listagem de usuários tem sete colunas: garante largura mínima legível. */
+.data-table--usuarios { min-width: 980px; }
+
+/* Indicadores compactos de Tags: apenas três cartões, sem coluna vazia. */
+.kpi-grid--tres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* --------------------------------------------------------------------------
    16. RESPONSIVIDADE
    Breakpoints:  desktop > 1024  |  tablet 641–1024  |  mobile <= 640
    -------------------------------------------------------------------------- */
