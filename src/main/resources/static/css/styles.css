@@ -37,14 +37,14 @@
   /* -- Cores: neutros -- */
   --color-ink: #1d2b3a;
   --color-ink-soft: #364858;
-  --color-muted: #6c7b89;
-  --color-muted-2: #8595a3;
+  --color-muted: #5f6f7d;
+  --color-muted-2: #66757f;
   --color-line-ink: #a9bfce;
 
   /* -- Cores: semânticas -- */
   --color-success: #247a58;
   --color-success-strong: #1e6346;
-  --color-warning: #a66b15;
+  --color-warning: #8f5c11;
   --color-danger: #b44040;
   --color-danger-strong: #9e3232;
   --color-info: #266b98;
@@ -166,20 +166,13 @@ h3 {
 /* --------------------------------------------------------------------------
    3. UTILITÁRIOS
    -------------------------------------------------------------------------- */
-.text-navy { color: var(--color-navy-700); }
-.text-navy-deep { color: var(--color-navy-800); }
 .text-blue { color: var(--color-blue-600); }
 .text-muted { color: var(--color-muted); }
 .text-success { color: var(--color-success); }
 .text-warning { color: var(--color-warning); }
 .text-danger { color: var(--color-danger); }
 
-.bg-surface { background-color: var(--bg-surface); }
-.bg-body { background-color: var(--bg-body); }
-
-.mt-3 { margin-top: var(--space-3); }
 .mt-5 { margin-top: var(--space-5); }
-.mt-6 { margin-top: var(--space-6); }
 
 /* --------------------------------------------------------------------------
    4. SHELL DA APLICAÇÃO
@@ -311,6 +304,27 @@ h3 {
   padding: var(--space-9) 0 var(--space-10);
 }
 
+/* Link de salto para navegação por teclado (visível apenas ao receber foco). */
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: var(--space-4);
+  z-index: 10000;
+  padding: 10px var(--space-5);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface);
+  color: var(--color-navy-800);
+  font-size: var(--text-md);
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: var(--shadow-lg);
+  transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+  top: var(--space-4);
+}
+
 .app-footer {
   padding: 0 0 var(--space-7);
   color: var(--color-muted);
@@ -433,48 +447,12 @@ h3 {
   border-color: var(--border-strong);
 }
 
-.button-ghost {
-  background-color: transparent;
-  color: var(--color-navy-700);
-}
-
-.button-ghost:hover { background-color: var(--bg-muted); }
-
 .button:disabled,
 .button[disabled],
 .button.is-disabled {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
-}
-
-/* Estado de carregamento (design system) */
-.button.is-loading,
-.button[aria-busy="true"] {
-  color: transparent;
-  pointer-events: none;
-}
-
-.button.is-loading::after,
-.button[aria-busy="true"]::after {
-  content: "";
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.45);
-  border-top-color: #ffffff;
-  border-radius: 50%;
-  animation: fleet-spin 0.6s linear infinite;
-}
-
-.button-secondary.is-loading::after,
-.button-ghost.is-loading::after {
-  border-color: rgba(18, 59, 89, 0.3);
-  border-top-color: var(--color-navy-700);
-}
-
-@keyframes fleet-spin {
-  to { transform: rotate(360deg); }
 }
 
 .text-button,
@@ -579,8 +557,7 @@ h3 {
   white-space: nowrap;
 }
 
-.table-actions,
-.table-actions-group {
+.table-actions {
   display: inline-flex;
   align-items: center;
   gap: var(--space-3);
@@ -607,7 +584,6 @@ td.table-actions > * + * { margin-left: var(--space-3); }
   padding: 0;
 }
 
-.table-actions .btn-delete,
 .table-actions .btn-action-delete {
   padding: 0;
   border: none;
@@ -622,7 +598,6 @@ td.table-actions > * + * { margin-left: var(--space-3); }
   transition: opacity var(--transition-fast), color var(--transition-fast);
 }
 
-.table-actions .btn-delete:hover,
 .table-actions .btn-action-delete:hover {
   color: var(--color-danger-strong);
   text-decoration: underline;
@@ -716,8 +691,7 @@ td.table-actions > * + * { margin-left: var(--space-3); }
   width: 100%;
 }
 
-.col-span-12,
-.form-group-full { grid-column: span 12; }
+.col-span-12 { grid-column: span 12; }
 .col-span-8 { grid-column: span 8; }
 .col-span-6 { grid-column: span 6; }
 .col-span-5 { grid-column: span 5; }
@@ -960,38 +934,6 @@ td.table-actions > * + * { margin-left: var(--space-3); }
   background-color: var(--bg-danger-soft);
   border-color: #f0c2c2;
 }
-
-.field-error {
-  margin: -10px 0 15px;
-  color: var(--color-danger);
-  font-size: var(--text-sm);
-}
-
-.fleet-toast {
-  position: fixed;
-  right: var(--space-6);
-  bottom: var(--space-6);
-  z-index: 9999;
-  padding: 14px var(--space-5);
-  border-radius: var(--radius-lg);
-  color: #ffffff;
-  font-size: var(--text-base);
-  font-weight: 700;
-  box-shadow: var(--shadow-lg);
-  opacity: 0;
-  transform: translateY(12px);
-  pointer-events: none;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.fleet-toast.show {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
-}
-
-.fleet-toast-success { background-color: var(--color-success); }
-.fleet-toast-error { background-color: var(--color-danger); }
 
 /* --------------------------------------------------------------------------
    15. AUTENTICAÇÃO (LOGIN / CADASTRO)
@@ -1301,7 +1243,12 @@ td.table-actions > * + * { margin-left: var(--space-3); }
   text-decoration: none;
 }
 
-.kpi-card--link:focus-visible { border-color: var(--color-blue-600); }
+.kpi-card--link:focus-visible {
+  border-color: var(--color-blue-600);
+  outline: 2px solid var(--color-blue-600);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-focus);
+}
 
 .kpi-value--success { color: var(--color-success); }
 .kpi-value--warning { color: var(--color-warning); }
@@ -1479,8 +1426,7 @@ td.table-actions > * + * { margin-left: var(--space-3); }
 /* Gráfico de categorias: poucas barras, altura um pouco maior que o padrão. */
 .chart-box--categoria { height: 280px; }
 
-.chart-box--categoria + .chart-legend .dot,
-.chart-legend .dot--categoria { background-color: var(--color-sky-400); }
+.chart-box--categoria + .chart-legend .dot { background-color: var(--color-sky-400); }
 
 /* --------------------------------------------------------------------------
    15.4 PÁGINA DE MANUTENÇÕES
@@ -1660,8 +1606,7 @@ td.table-actions > * + * { margin-left: var(--space-3); }
   .col-span-6,
   .col-span-5,
   .col-span-4,
-  .col-span-3,
-  .form-group-full { grid-column: span 1 !important; }
+  .col-span-3 { grid-column: span 1 !important; }
 
   .form-section { padding: var(--space-5) var(--space-4); }
 
@@ -1711,10 +1656,4 @@ td.table-actions > * + * { margin-left: var(--space-3); }
   .chart-legend--km li { grid-template-columns: auto auto minmax(0, 1fr) auto; }
 
   .login-card { padding: 28px 22px; }
-
-  .fleet-toast {
-    left: var(--space-4);
-    right: var(--space-4);
-    bottom: var(--space-4);
-  }
 }

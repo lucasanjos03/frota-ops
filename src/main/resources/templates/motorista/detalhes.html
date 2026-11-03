@@ -7,7 +7,7 @@
     <div class="fleet-app">
       <header th:replace="~{fragments/layout :: appHeader('motoristas')}"></header>
 
-      <main class="page-container" th:if="${motorista}">
+      <main id="conteudo" class="page-container" th:if="${motorista}">
         <nav th:replace="~{fragments/layout :: breadcrumbs('Motoristas', @{/motoristas}, 'Detalhes')}"></nav>
 
         <div class="page-header">

@@ -18,6 +18,7 @@
     <!-- HEADER: marca, rótulo do sistema e navegação principal.
          Parâmetro: chave da seção ativa (dashboard|veiculos|motoristas|manutencoes|tags|usuarios). -->
     <header class="app-header" th:fragment="appHeader(active)">
+      <a class="skip-link" href="#conteudo">Pular para o conteúdo principal</a>
       <div class="header-inner">
         <a class="brand" th:href="@{/}">
           <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -80,10 +81,12 @@
       </ol>
     </nav>
 
-    <!-- FLASH: mensagens de sucesso/erro. -->
+    <!-- FLASH: mensagens de sucesso/erro anunciadas por leitores de tela. -->
     <th:block th:fragment="flash">
-      <p class="alert alert-sucesso" th:if="${sucesso}" th:text="${sucesso}"></p>
-      <p class="alert alert-erro" th:if="${erro}" th:text="${erro}"></p>
+      <div aria-live="polite" aria-atomic="true">
+        <p class="alert alert-sucesso" th:if="${sucesso}" th:text="${sucesso}"></p>
+        <p class="alert alert-erro" th:if="${erro}" th:text="${erro}"></p>
+      </div>
     </th:block>
 
     <!-- ESTADO VAZIO: bloco padronizado para listas/séries sem dados.

@@ -7,7 +7,7 @@
     <div class="fleet-app">
       <header th:replace="~{fragments/layout :: appHeader('tags')}"></header>
 
-      <main class="page-container" th:if="${tag}">
+      <main id="conteudo" class="page-container" th:if="${tag}">
         <nav th:replace="~{fragments/layout :: breadcrumbs('Tags', @{/tags}, 'Editar')}"></nav>
 
         <div class="page-header">

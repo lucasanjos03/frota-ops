@@ -7,7 +7,7 @@
     <div class="fleet-app">
       <header th:replace="~{fragments/layout :: appHeader('usuarios')}"></header>
 
-      <main class="page-container" th:if="${usuario}">
+      <main id="conteudo" class="page-container" th:if="${usuario}">
         <nav th:replace="~{fragments/layout :: breadcrumbs('Usuários', @{/usuarios}, 'Editar')}"></nav>
 
         <div class="page-header">
