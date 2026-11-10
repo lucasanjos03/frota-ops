@@ -23,6 +23,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+
 import br.edu.cesmac.frota_ops.manutencao.ManutencaoRepository;
 import br.edu.cesmac.frota_ops.usuario.Usuario;
 import br.edu.cesmac.frota_ops.usuario.UsuarioService;
@@ -63,6 +65,9 @@ class MotoristaPaginaTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private EntityManager entityManager;
 
     // ------------------------------------------------------------------
     // Indicadores e painel de documentos
@@ -217,7 +222,8 @@ class MotoristaPaginaTests {
                 .extracting(Veiculo::getPlaca)
                 .containsExactly("CARD001", "CARD002");
 
-        mockMvc.perform(get("/motoristas/detalhes/" + motorista.getMotorista().getId()))
+        mockMvc.perform(get("/motoristas/detalhes/" + motorista.getMotorista().getId())
+                        .sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("motorista/detalhes"))
                 .andExpect(content().string(containsString("CARD001")))
@@ -230,7 +236,7 @@ class MotoristaPaginaTests {
                 .map(Motorista::getId)
                 .findFirst()
                 .orElseThrow();
-        mockMvc.perform(get("/motoristas/detalhes/" + semVeiculoId))
+        mockMvc.perform(get("/motoristas/detalhes/" + semVeiculoId).sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Nenhum veículo atribuído")))
                 .andExpect(content().string(containsString("implicam aptidão operacional")));
@@ -248,7 +254,7 @@ class MotoristaPaginaTests {
                 "10000000001", "B", LocalDate.now().minusDays(5), "Ativo");
         criarVeiculo("REND001", motorista.getMotorista());
 
-        mockMvc.perform(get("/motoristas"))
+        mockMvc.perform(get("/motoristas").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("motorista/list"))
                 // Cards da equipe
@@ -292,7 +298,7 @@ class MotoristaPaginaTests {
         Long validaId = criarMotorista("detalhe.valida", "Bravo Detalhe", "222.222.222-22",
                 "10000000002", "B", hoje.plusDays(60), "Ativo").getMotorista().getId();
 
-        mockMvc.perform(get("/motoristas/detalhes/" + vencidaId))
+        mockMvc.perform(get("/motoristas/detalhes/" + vencidaId).sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("motorista/detalhes"))
                 .andExpect(content().string(containsString("Alfa Detalhe")))
@@ -300,7 +306,7 @@ class MotoristaPaginaTests {
                 .andExpect(content().string(containsString("status-danger")))
                 .andExpect(content().string(containsString(">Vencida<")));
 
-        mockMvc.perform(get("/motoristas/detalhes/" + validaId))
+        mockMvc.perform(get("/motoristas/detalhes/" + validaId).sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("status-success")))
                 .andExpect(content().string(containsString(">Válida<")));
@@ -311,7 +317,7 @@ class MotoristaPaginaTests {
         limpar();
 
         // Equipe vazia: sem tabela, sem canvas e sem itens no painel.
-        mockMvc.perform(get("/motoristas"))
+        mockMvc.perform(get("/motoristas").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Nenhum motorista encontrado")))
                 .andExpect(content().string(containsString("Não há motoristas cadastrados.")))
@@ -323,7 +329,7 @@ class MotoristaPaginaTests {
                 LocalDate.now().plusYears(3), "Ativo");
 
         // Filtro sem correspondência: mensagem específica, chip do filtro e atalho para limpar.
-        mockMvc.perform(get("/motoristas").param("q", "ZZZZZZ"))
+        mockMvc.perform(get("/motoristas").param("q", "ZZZZZZ").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Nenhum motorista corresponde aos filtros atuais.")))
                 .andExpect(content().string(containsString("Filtros aplicados")))
@@ -333,7 +339,7 @@ class MotoristaPaginaTests {
 
     @Test
     void deveRedirecionarComErroQuandoMotoristaInexistente() throws Exception {
-        mockMvc.perform(get("/motoristas/detalhes/99999"))
+        mockMvc.perform(get("/motoristas/detalhes/99999").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/motoristas"))
                 .andExpect(flash().attribute("erro", "Motorista não encontrado."));
@@ -351,7 +357,7 @@ class MotoristaPaginaTests {
         Long id = criarMotorista("crud.admin", "Alfa Crud", "111.111.111-11", "10000000001", "B",
                 LocalDate.now().plusYears(3), "Ativo").getMotorista().getId();
 
-        mockMvc.perform(get("/motoristas/detalhes/" + id))
+        mockMvc.perform(get("/motoristas/detalhes/" + id).sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("motorista/detalhes"))
                 .andExpect(content().string(containsString("Alfa Crud")));
@@ -364,6 +370,29 @@ class MotoristaPaginaTests {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/motoristas"))
                 .andExpect(flash().attribute("sucesso", "Motorista excluído com sucesso!"));
+
+        assertThat(motoristaRepository.findById(id)).isEmpty();
+    }
+
+    /**
+     * Regressão do HTTP 500 na exclusão de motorista: o vínculo bidirecional
+     * {@code Motorista.usuario}/{@code Usuario.motorista} fazia o Hibernate cascatear em flush
+     * até o lado inverso e lançar {@code TransientObjectException}. Em produção o flush ocorre
+     * no commit do repositório; em teste transacional é preciso forçá-lo explicitamente.
+     */
+    @Test
+    void deveExcluirMotoristaSemErroDeFlushNoVinculoBidirecional() throws Exception {
+        limpar();
+
+        Long id = criarMotorista("excl.flush", "Alfa Excluir", "555.555.555-55", "10000000005", "B",
+                LocalDate.now().plusYears(3), "Ativo").getMotorista().getId();
+
+        mockMvc.perform(post("/motoristas/excluir/" + id).sessionAttr("usuarioLogado", admin()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/motoristas"))
+                .andExpect(flash().attribute("sucesso", "Motorista excluído com sucesso!"));
+
+        entityManager.flush();
 
         assertThat(motoristaRepository.findById(id)).isEmpty();
     }
@@ -412,8 +441,7 @@ class MotoristaPaginaTests {
     // ------------------------------------------------------------------
 
     private Usuario admin() {
-        return new Usuario(null, "admin.pagina", "Administrador Pagina", "admin.pagina@fleetops.com",
-                "123456", "ADMIN", true);
+        return usuarioService.autenticar("admin", "admin123").orElseThrow();
     }
 
     private MotoristaFiltro filtro(String q, String status, String categoria, String cnh, String vinculo) {

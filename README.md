@@ -17,6 +17,9 @@ O projeto utiliza **Java 21** com **Spring Boot**, renderização dinâmica no s
 - **Persistência com Spring Data JPA**, substituindo o armazenamento em memória por repositórios JPA.
 - **Validação Backend com Jakarta Bean Validation** (`@NotBlank`, `@Size`, `@NotNull`, `@Min`, `@Valid` e `BindingResult`) integrada visualmente aos formulários Thymeleaf (`th:errors` e `th:errorclass`).
 - **Feedback de Operações** com mensagens temporárias (*Flash Attributes* via `RedirectAttributes`) e tratamento de registros inexistentes.
+- **Autenticação e Controle de Acesso**: `HandlerInterceptor` próprio (`AuthInterceptor` + `WebConfig`, sem Spring Security), que exige usuário autenticado em todas as rotas — exceto as públicas (`/login`, recursos estáticos e `/error`). O login grava o usuário na sessão; o logout (`POST /logout`) invalida a sessão.
+- **Senhas com Hash BCrypt**: as senhas são armazenadas como hash BCrypt (`spring-security-crypto`). Contas legadas em texto plano são convertidas automaticamente para hash no primeiro login bem-sucedido (*upgrade transparente*).
+- **DTOs de Leitura (*records*)**: as views e o JavaScript recebem apenas dados já agregados; nenhuma entidade JPA trafega para a camada de apresentação.
 - **Relacionamentos JPA**:
   - **`@OneToOne` (1:1)**: Vínculo entre **Motorista** e **Usuário** do sistema (`usuario_id`), garantindo que todo motorista possua conta vinculada.
   - **`@ManyToOne` (1:N)**: Associação de veículos a um **Motorista** responsável (`<select>` nos formulários) e vínculo do histórico de **Manutenção** ao **Veículo**.
@@ -37,6 +40,7 @@ O projeto utiliza **Java 21** com **Spring Boot**, renderização dinâmica no s
 - **Flyway** (Migração e versionamento automático do schema e dados iniciais)
 - **Hibernate / Jakarta Persistence (JPA)** (Mapeamento Objeto-Relacional — ORM)
 - **Jakarta Bean Validation** (Validação de dados no backend)
+- **Spring Security Crypto / BCrypt** (Hash de senhas — dependência isolada, sem a cadeia de filtros do Spring Security)
 - **Thymeleaf** (Template Engine com renderização no servidor)
 - **HTML5**, **CSS3** & **JavaScript** (Layout responsivo, máscaras e interações de UI)
 - **Maven** (Gerenciador de dependências e build)
@@ -92,7 +96,7 @@ O projeto utiliza **Java 21** com **Spring Boot**, renderização dinâmica no s
 | Método | Rota                         | Descrição                                                                                                                               |
 | ------ | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `GET`  | `/`                          | **Dashboard / Visão Geral**: Indicadores operacionais (KPIs) da frota e tabela de alertas de manutenções próximas do prazo.             |
-| `GET`  | `/veiculos`                  | **Listagem de Veículos**: Tabela com busca por placa, modelo ou motorista, filtro por status e exibição de tags e feedbacks flash.      |
+| `GET`  | `/veiculos`                  | **Listagem de Veículos**: Tabela **paginada** (10 por página) com busca por placa, modelo ou motorista, filtros por status, situação, revisão e vínculo, e exibição de tags e feedbacks flash. |
 | `GET`  | `/veiculos/novo`             | **Formulário de Veículo**: Tela para inclusão de novos veículos com seleção de motorista (`@ManyToOne`) e tags (`@ManyToMany`).         |
 | `POST` | `/veiculos/novo`             | **Cadastro de Veículo**: Valida os dados (`@Valid` + `BindingResult`), aplica regras no `VeiculoService` e persiste no banco.           |
 | `GET`  | `/veiculos/detalhes/{id}`    | **Detalhes do Veículo**: Ficha completa do veículo, motorista alocado, tags operacionais e histórico de manutenções.                    |
@@ -105,7 +109,7 @@ O projeto utiliza **Java 21** com **Spring Boot**, renderização dinâmica no s
 | `GET`  | `/motoristas/editar/{id}`    | **Edição de Motorista**: Carrega os dados do motorista para edição.                                                                     |
 | `POST` | `/motoristas/editar/{id}`    | **Atualização de Motorista**: Atualiza o motorista via `MotoristaService`.                                                              |
 | `POST` | `/motoristas/excluir/{id}`   | **Exclusão de Motorista**: Exclui o motorista do banco de dados.                                                                        |
-| `GET`  | `/manutencoes`               | **Listagem de Manutenções**: Exibe o histórico de manutenções da frota com filtro por veículo (`ManutencaoController`).                 |
+| `GET`  | `/manutencoes`               | **Histórico de Manutenções**: Tabela **paginada** (10 por página) com filtros por veículo, serviço (texto) e período, além dos indicadores e do painel de revisões do escopo (`ManutencaoController`). |
 | `GET`  | `/manutencoes/novo`          | **Formulário de Manutenção**: Tela de registro de manutenção vinculada a um veículo.                                                    |
 | `POST` | `/manutencoes/novo`          | **Cadastro de Manutenção**: Valida e registra a manutenção via `ManutencaoService`.                                                     |
 | `GET`  | `/manutencoes/editar/{id}`   | **Edição de Manutenção**: Carrega os dados da manutenção para alteração.                                                                |
@@ -123,10 +127,11 @@ O projeto utiliza **Java 21** com **Spring Boot**, renderização dinâmica no s
 | `GET`  | `/usuarios/editar/{id}`      | **Edição de Usuário**: Carrega os dados do usuário para edição.                                                                         |
 | `POST` | `/usuarios/editar/{id}`      | **Atualização de Usuário**: Atualiza o usuário via `UsuarioService`.                                                                    |
 | `POST` | `/usuarios/excluir/{id}`     | **Exclusão Lógica de Usuário**: Realiza *Soft Delete* (`ativo = false` e atualiza `data_modificacao`), ocultando o usuário do sistema.  |
-| `GET`  | `/login`                     | **Tela de Login**: Interface de autenticação validando contra a tabela `usuario`.                                                       |
-| `POST` | `/login`                     | **Acesso ao Sistema**: Autentica `username`/`email` e `senha` no banco via `UsuarioService`.                                            |
-| `GET`  | `/cadastro`                  | **Criar Conta**: Tela de autocadastro de usuário acessível a partir do login.                                                           |
-| `POST` | `/cadastro`                  | **Processar Autocadastro**: Cria a conta na tabela `usuario` e redireciona para o login.                                                |
+| `GET`  | `/login`                     | **Tela de Login**: Interface de autenticação (rota pública).                                                                            |
+| `POST` | `/login`                     | **Acesso ao Sistema**: Autentica `username`/`email` e `senha` via `UsuarioService`, conferindo o hash **BCrypt** e gravando o usuário na sessão. |
+| `POST` | `/logout`                    | **Sair**: Invalida a sessão (`session.invalidate()`) e redireciona para o login.                                                        |
+| `GET`  | `/cadastro`                  | **Criar Usuário**: Formulário de criação de usuário **restrito a ADMIN** (o autocadastro público foi desativado).                       |
+| `POST` | `/cadastro`                  | **Cadastrar Usuário**: Cria a conta na tabela `usuario` (**restrito a ADMIN**) e redireciona para `/usuarios`.                          |
 
 ---
 
@@ -138,38 +143,65 @@ src/
 │   ├── java/br/edu/cesmac/frota_ops/
 │   │   ├── FrotaOpsApplication.java            # Classe principal de inicialização
 │   │   ├── auth/
-│   │   │   ├── AuthController.java             # Controlador de login, logout e autocadastro
-│   │   │   └── SessionControllerAdvice.java    # Atributos globais de sessão e controle de perfis nas views
+│   │   │   ├── AuthController.java             # Controlador de login, logout e cadastro (restrito a ADMIN)
+│   │   │   ├── AuthInterceptor.java            # Interceptor que exige usuário autenticado nas rotas protegidas
+│   │   │   ├── WebConfig.java                  # Registro do interceptor e definição das rotas públicas
+│   │   │   └── SessionControllerAdvice.java    # Expõe o usuário logado e o perfil às views
 │   │   ├── home/
-│   │   │   └── HomeController.java             # Controlador do Dashboard e visão geral
+│   │   │   ├── HomeController.java             # Controlador do Dashboard e visão geral
+│   │   │   └── dashboard/
+│   │   │       ├── DashboardService.java       # Agregações do dashboard (KPIs, séries, alertas)
+│   │   │       ├── DashboardDTO.java           # Agregado completo do dashboard
+│   │   │       ├── IndicadoresDTO.java         # Indicadores numéricos (cartões)
+│   │   │       ├── DistribuicaoStatusDTO.java  # Distribuição da frota por status (gráfico de rosca)
+│   │   │       ├── SerieMensalDTO.java         # Série mensal de manutenções
+│   │   │       ├── VeiculoPorTagDTO.java       # Contagem de veículos por tag
+│   │   │       ├── RevisaoVeiculoDTO.java      # Linha de próxima revisão (reuso nos módulos)
+│   │   │       ├── CnhAlertaDTO.java           # Motorista com CNH vencida/a vencer
+│   │   │       └── AlertaDTO.java              # Alerta operacional priorizado
 │   │   ├── veiculo/
 │   │   │   ├── Veiculo.java                    # Entidade JPA Veiculo
-│   │   │   ├── VeiculoRepository.java          # Repositório Spring Data JPA de Veiculo
-│   │   │   ├── VeiculoService.java             # Regras de negócio e persistência de Veiculo
-│   │   │   └── VeiculoController.java          # Controlador CRUD de veículos (injeta apenas VeiculoService)
+│   │   │   ├── VeiculoRepository.java          # Repositório Spring Data JPA (agregações + busca paginada)
+│   │   │   ├── VeiculoService.java             # Regras de negócio, escopo por perfil e indicadores
+│   │   │   ├── VeiculoController.java          # Controlador CRUD de veículos (listagem paginada)
+│   │   │   ├── VeiculoFiltro.java              # Critérios de filtro da listagem (record)
+│   │   │   ├── VeiculoPaginaDTO.java           # Resumo analítico da tela
+│   │   │   ├── VeiculoIndicadoresDTO.java      # Indicadores (cartões)
+│   │   │   └── VeiculoQuilometragemDTO.java    # Ranking de quilometragem
 │   │   ├── manutencao/
 │   │   │   ├── Manutencao.java                 # Entidade JPA Manutencao
-│   │   │   ├── ManutencaoRepository.java       # Repositório Spring Data JPA de Manutencao
-│   │   │   ├── ManutencaoService.java          # Regras de negócio e persistência de Manutencao
-│   │   │   └── ManutencaoController.java       # Controlador CRUD de manutenções (injeta apenas ManutencaoService)
+│   │   │   ├── ManutencaoRepository.java       # Repositório Spring Data JPA (agregações + histórico paginado)
+│   │   │   ├── ManutencaoService.java          # Regras de negócio, resumo analítico e histórico paginado
+│   │   │   ├── ManutencaoController.java       # Controlador CRUD de manutenções (histórico paginado, 10/pág.)
+│   │   │   ├── ManutencaoFiltro.java           # Critérios de filtro do histórico (record)
+│   │   │   ├── ManutencaoPaginaDTO.java        # Resumo analítico da tela
+│   │   │   ├── ManutencaoIndicadoresDTO.java   # Indicadores (histórico realizado x previsão de revisão)
+│   │   │   ├── ManutencaoMesDTO.java           # Mês da série mensal (com intervalo exato)
+│   │   │   └── ManutencaoRankingVeiculoDTO.java # Ranking de veículos por nº de registros
 │   │   ├── motorista/
-│   │   │   ├── Motorista.java                  # Entidade JPA Motorista
-│   │   │   ├── MotoristaRepository.java        # Repositório Spring Data JPA de Motorista
-│   │   │   ├── MotoristaService.java           # Regras de negócio e persistência de Motorista
-│   │   │   └── MotoristaController.java        # Controlador CRUD de motoristas (injeta apenas MotoristaService)
+│   │   │   ├── Motorista.java                  # Entidade JPA Motorista (1:1 com Usuario)
+│   │   │   ├── MotoristaRepository.java        # Repositório Spring Data JPA (agregações + busca filtrada)
+│   │   │   ├── MotoristaService.java           # Regras de negócio, resumo e sincronização com Usuario
+│   │   │   ├── MotoristaController.java        # Controlador CRUD de motoristas
+│   │   │   ├── MotoristaFiltro.java            # Critérios de filtro da listagem (record)
+│   │   │   ├── MotoristaPaginaDTO.java         # Resumo analítico da tela
+│   │   │   ├── MotoristaIndicadoresDTO.java    # Indicadores (cartões)
+│   │   │   ├── MotoristaCategoriaDTO.java      # Distribuição por categoria de CNH
+│   │   │   └── MotoristaDocumentoDTO.java      # CNHs vencidas / a vencer
 │   │   ├── tag/
 │   │   │   ├── Tag.java                        # Entidade JPA Tag
-│   │   │   ├── TagRepository.java              # Repositório Spring Data JPA de Tag
-│   │   │   ├── TagService.java                 # Regras de negócio e persistência de Tag
-│   │   │   └── TagController.java              # Controlador CRUD de tags (injeta apenas TagService)
+│   │   │   ├── TagRepository.java              # Repositório Spring Data JPA (contagem de veículos por tag)
+│   │   │   ├── TagService.java                 # Regras de negócio e contagem por tag no escopo do perfil
+│   │   │   ├── TagController.java              # Controlador CRUD de tags
+│   │   │   └── TagPaginaDTO.java               # Resumo da tela de tags
 │   │   └── usuario/
 │   │       ├── Usuario.java                    # Entidade JPA Usuario (1:1 com Motorista, perfil e Soft Delete)
 │   │       ├── UsuarioRepository.java          # Repositório Spring Data JPA de Usuario
-│   │       ├── UsuarioService.java             # Regras de negócio, autenticação e persistência de Usuario
-│   │       └── UsuarioController.java          # Controlador CRUD de usuários (injeta apenas UsuarioService)
+│   │       ├── UsuarioService.java             # Autenticação (BCrypt), regras de negócio e persistência
+│   │       ├── UsuarioController.java          # Controlador CRUD de usuários
+│   │       └── UsuarioPaginaDTO.java           # Resumo de usuários ativos por perfil
 │   └── resources/
 │       ├── application.properties              # Configurações de porta (8081), PostgreSQL, JPA (validate) e Flyway
-│       ├── application-dev.properties          # Configurações de ambiente de desenvolvimento
 │       ├── db/migration/
 │       │   ├── V1__create_initial_tables.sql            # Migration inicial (tabelas veiculo, manutencao, usuario e seed)
 │       │   ├── V2__add_motoristas_and_tags.sql          # Migration de relacionamentos (motorista, tags, veiculo_tags e seed)
@@ -177,17 +209,29 @@ src/
 │       │   ├── V4__add_perfil_to_usuario.sql            # Migration de perfis de acesso (ADMIN, OPERADOR, MOTORISTA)
 │       │   └── V5__add_data_modificacao_to_usuario.sql  # Migration de data_modificacao e Soft Delete em usuario
 │       ├── static/
-│       │   ├── css/styles.css                  # Folha de estilos principal
-│       │   └── js/script.js                    # Scripts auxiliares de UI
+│       │   ├── css/styles.css                  # Folha de estilos principal (design system)
+│       │   └── js/
+│       │       ├── script.js                   # Scripts auxiliares de UI (gráficos, interações)
+│       │       └── vendor/chart.umd.min.js     # Chart.js 4.4.7 (biblioteca local)
 │       └── templates/
-│           ├── auth/                           # Telas de login e autocadastro de conta (login, cadastro)
-│           ├── home/index.html                 # Dashboard com KPIs e alertas operacionais
+│           ├── fragments/layout.html           # Fragmentos reutilizáveis (head, header, breadcrumbs, flash, empty state)
+│           ├── auth/                           # Telas de login e cadastro de usuário (login, cadastro)
+│           ├── home/index.html                 # Dashboard com KPIs, gráficos e alertas operacionais
 │           ├── veiculo/                        # Telas do componente Veículo (list, novo, editar, detalhes)
-│           ├── motorista/                      # Telas do componente Motorista (list, novo, editar)
+│           ├── motorista/                      # Telas do componente Motorista (list, novo, editar, detalhes)
 │           ├── manutencao/                     # Telas do componente Manutenção (list, novo, editar)
 │           ├── tag/                            # Telas do componente Tag (list, novo, editar)
 │           └── usuario/                        # Telas do componente Usuário (list, novo, editar)
 └── test/
     └── java/br/edu/cesmac/frota_ops/
-        └── FrotaOpsApplicationTests.java       # Testes de integração de todos os componentes
+        ├── FrotaOpsApplicationTests.java                  # Testes de integração gerais
+        ├── auth/AuthPaginaTests.java                      # Login, logout e cadastro
+        ├── home/dashboard/DashboardServiceTests.java      # Agregações do dashboard
+        ├── veiculo/VeiculoPaginaTests.java                # Tela de veículos
+        ├── motorista/MotoristaPaginaTests.java            # Tela de motoristas
+        ├── manutencao/ManutencaoPaginaTests.java          # Tela de manutenções (paginação e filtros)
+        ├── tag/TagPaginaTests.java                        # Tela de tags
+        └── usuario/
+            ├── UsuarioPaginaTests.java                    # Tela de usuários
+            └── UsuarioSenhaTests.java                     # Hash BCrypt e upgrade de senha no login
 ```

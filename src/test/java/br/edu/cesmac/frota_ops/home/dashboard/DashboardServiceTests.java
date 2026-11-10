@@ -357,7 +357,7 @@ class DashboardServiceTests {
         limparFrota();
         motoristaRepository.deleteAllInBatch();
 
-        mockMvc.perform(get("/"))
+        mockMvc.perform(get("/").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Nenhum alerta operacional")))
                 .andExpect(content().string(containsString("Sem veículos cadastrados")))
@@ -399,8 +399,7 @@ class DashboardServiceTests {
     // ------------------------------------------------------------------
 
     private Usuario admin() {
-        return new Usuario(null, "admin.teste", "Administrador Teste", "admin.teste@fleetops.com",
-                "123456", "ADMIN", true);
+        return usuarioService.autenticar("admin", "admin123").orElseThrow();
     }
 
     private AlertaDTO alertaPorTitulo(DashboardDTO dashboard, String titulo) {

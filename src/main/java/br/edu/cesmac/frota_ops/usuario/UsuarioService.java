@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import jakarta.servlet.http.HttpSession;
@@ -15,18 +16,32 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
 
+    /**
+     * Codificador de senhas (BCrypt). Senhas novas são gravadas como hash; senhas legadas em
+     * texto plano são reconhecidas no login e convertidas para hash no primeiro acesso.
+     */
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     public UsuarioService(UsuarioRepository usuarioRepository) {
         this.usuarioRepository = usuarioRepository;
     }
 
+    /**
+     * Usuário autenticado da sessão, ou {@code null} quando não há login ativo.
+     *
+     * <p>Não existe fallback para um usuário padrão: o acesso às rotas protegidas é
+     * garantido pelo {@link br.edu.cesmac.frota_ops.auth.AuthInterceptor}, que redireciona
+     * visitantes não autenticados para o login antes que qualquer controller seja executado.</p>
+     */
     public Usuario obterUsuarioLogado(HttpSession session) {
-        if (session != null) {
-            Object attr = session.getAttribute("usuarioLogado");
-            if (attr instanceof Usuario u && u.getId() != null) {
-                return usuarioRepository.findByIdAndAtivoTrue(u.getId()).orElse(u);
-            }
+        if (session == null) {
+            return null;
         }
-        return new Usuario(null, "admin", "Administrador", "admin@fleetops.com", "", "ADMIN", true);
+        Object attr = session.getAttribute("usuarioLogado");
+        if (attr instanceof Usuario u && u.getId() != null) {
+            return usuarioRepository.findByIdAndAtivoTrue(u.getId()).orElse(u);
+        }
+        return null;
     }
 
     public List<Usuario> listarVisiveisPara(Usuario logado) {
@@ -61,9 +76,50 @@ public class UsuarioService {
             return Optional.empty();
         }
         String identificador = login.trim();
-        return usuarioRepository
+        Optional<Usuario> encontrado = usuarioRepository
                 .findByUsernameIgnoreCaseOrEmailIgnoreCase(identificador, identificador)
-                .filter(u -> Boolean.TRUE.equals(u.getAtivo()) && senha.equals(u.getSenha()));
+                .filter(u -> Boolean.TRUE.equals(u.getAtivo()));
+        if (encontrado.isEmpty() || !senhaConfere(senha, encontrado.get())) {
+            return Optional.empty();
+        }
+
+        Usuario usuario = encontrado.get();
+        converterSenhaLegadaParaHash(usuario, senha);
+        return Optional.of(usuario);
+    }
+
+    /**
+     * Confere a senha informada contra a armazenada. Valores no formato BCrypt ({@code $2...})
+     * são verificados pelo codificador; valores em texto plano (base legada) são comparados
+     * diretamente.
+     */
+    private boolean senhaConfere(String senhaInformada, Usuario usuario) {
+        String armazenada = usuario.getSenha();
+        if (armazenada == null) {
+            return false;
+        }
+        return ehHashBcrypt(armazenada)
+                ? passwordEncoder.matches(senhaInformada, armazenada)
+                : senhaInformada.equals(armazenada);
+    }
+
+    /**
+     * Upgrade transparente: quando a senha armazenada ainda está em texto plano e o login
+     * confere, o valor é regravado como hash BCrypt. Assim as bases legadas migram sozinhas,
+     * a cada primeiro acesso, sem migração de dados dedicada.
+     */
+    private void converterSenhaLegadaParaHash(Usuario usuario, String senhaInformada) {
+        String armazenada = usuario.getSenha();
+        if (armazenada != null && !ehHashBcrypt(armazenada)) {
+            usuario.setSenha(passwordEncoder.encode(senhaInformada));
+            usuario.setDataModificacao(OffsetDateTime.now());
+            usuarioRepository.save(usuario);
+        }
+    }
+
+    /** Reconhece o formato de hash BCrypt ({@code $2a$}, {@code $2b$} ou {@code $2y$}). */
+    private boolean ehHashBcrypt(String valor) {
+        return valor.startsWith("$2a$") || valor.startsWith("$2b$") || valor.startsWith("$2y$");
     }
 
     public void salvar(Usuario usuario) {
@@ -77,6 +133,9 @@ public class UsuarioService {
             usuario.setPerfil("OPERADOR");
         } else {
             usuario.setPerfil(usuario.getPerfil().trim().toUpperCase());
+        }
+        if (usuario.getSenha() != null && !usuario.getSenha().isBlank()) {
+            usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
         }
         usuario.setAtivo(true);
         usuario.setDataModificacao(OffsetDateTime.now());
@@ -97,7 +156,7 @@ public class UsuarioService {
             usuario.setEmail(dadosAtualizados.getEmail().trim().toLowerCase());
         }
         if (dadosAtualizados.getSenha() != null && !dadosAtualizados.getSenha().isBlank()) {
-            usuario.setSenha(dadosAtualizados.getSenha());
+            usuario.setSenha(passwordEncoder.encode(dadosAtualizados.getSenha()));
         }
         if (logado != null && logado.isAdmin()) {
             if (dadosAtualizados.getPerfil() != null && !dadosAtualizados.getPerfil().isBlank()) {

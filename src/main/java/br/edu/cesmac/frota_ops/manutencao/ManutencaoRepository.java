@@ -3,7 +3,9 @@ package br.edu.cesmac.frota_ops.manutencao;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -101,11 +103,12 @@ public interface ManutencaoRepository extends JpaRepository<Manutencao, Long> {
                                                       Pageable pageable);
 
     /**
-     * Histórico de manutenções com os filtros da tela.
+     * Histórico de manutenções com os filtros da tela, paginado.
      *
      * <p>Todos os critérios são opcionais: {@code null} desativa o critério correspondente.
-     * A ordenação é cronológica decrescente (a mais recente primeiro); o {@code id} entra
-     * como critério de desempate para registros da mesma data.</p>
+     * A ordenação (data decrescente, id como desempate) é aplicada pelo {@code Pageable},
+     * não pela consulta — assim o Spring deriva automaticamente o {@code count} da
+     * paginação sem precisar de um {@code countQuery} explícito.</p>
      *
      * <ul>
      *   <li>{@code veiculoId}: restringe a um veículo específico.</li>
@@ -114,6 +117,11 @@ public interface ManutencaoRepository extends JpaRepository<Manutencao, Long> {
      *   <li>{@code de}/{@code ate}: intervalo sobre {@code data_manutencao}, ambos inclusivos.</li>
      * </ul>
      *
+     * <p>O {@code left join} explícito com {@code motorista} é obrigatório: um veículo sem
+     * motorista atribuído continua tendo registros e não pode sumir do histórico (o join
+     * implícito de {@code v.motorista.id} o descartaria). O carregamento de {@code veiculo} e
+     * {@code motorista} é feito pelo {@link EntityGraph}, evitando o N+1 na tabela.</p>
+     *
      * <p>O intervalo usa {@code m.data >= coalesce(:de, m.data)} em vez de
      * {@code (:de is null or m.data >= :de)}: a comparação direta fornece o tipo do parâmetro
      * ao banco. Sem esse contexto, o PostgreSQL não consegue inferir o tipo do parâmetro
@@ -121,18 +129,19 @@ public interface ManutencaoRepository extends JpaRepository<Manutencao, Long> {
      */
     @Query("""
             select m from Manutencao m
-            join fetch m.veiculo v
-            left join fetch v.motorista
-            where (:motoristaId is null or v.motorista.id = :motoristaId)
+            join m.veiculo v
+            left join v.motorista mtor
+            where (:motoristaId is null or mtor.id = :motoristaId)
               and (:veiculoId is null or v.id = :veiculoId)
               and (:servico is null or lower(m.servicoRealizado) like :servico)
               and m.data >= coalesce(:de, m.data)
               and m.data <= coalesce(:ate, m.data)
-            order by m.data desc, m.id desc
             """)
-    List<Manutencao> buscarComFiltros(@Param("motoristaId") Long motoristaId,
+    @EntityGraph(attributePaths = {"veiculo", "veiculo.motorista"})
+    Page<Manutencao> buscarComFiltros(@Param("motoristaId") Long motoristaId,
                                       @Param("veiculoId") Long veiculoId,
                                       @Param("servico") String servico,
                                       @Param("de") LocalDate de,
-                                      @Param("ate") LocalDate ate);
+                                      @Param("ate") LocalDate ate,
+                                      Pageable pageable);
 }

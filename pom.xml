@@ -36,6 +36,16 @@
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
+		<!--
+			Hash de senhas (BCrypt). Dependência isolada do Spring Security: fornece apenas
+			os codificadores de senha, sem habilitar a cadeia de filtros de segurança —
+			o controle de acesso permanece no AuthInterceptor.
+		-->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-crypto</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>

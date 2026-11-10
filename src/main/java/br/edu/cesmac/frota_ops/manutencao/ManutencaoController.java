@@ -2,6 +2,7 @@ package br.edu.cesmac.frota_ops.manutencao;
 
 import java.time.LocalDate;
 
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,6 +32,10 @@ public class ManutencaoController {
      * Histórico de manutenções com filtros de veículo, serviço e período. A data corrente é
      * calculada uma única vez e repassada ao serviço, de modo que indicadores, gráfico,
      * painel de revisões e a classificação do período usem a mesma referência.
+     *
+     * <p>A tabela de histórico é paginada no servidor ({@code pagina}, base 1). Os indicadores,
+     * o gráfico e o painel de revisões <strong>não</strong> são afetados pela paginação nem
+     * pelos filtros da tabela: descrevem o escopo completo do perfil.</p>
      */
     @GetMapping
     public String listar(@RequestParam(required = false) Long veiculoId,
@@ -39,12 +44,16 @@ public class ManutencaoController {
                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate de,
                          @RequestParam(required = false)
                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ate,
+                         @RequestParam(required = false, defaultValue = "1") int pagina,
                          HttpSession session,
                          Model model) {
         ManutencaoFiltro filtro = new ManutencaoFiltro(veiculoId, servico, de, ate);
         LocalDate hoje = LocalDate.now();
 
-        model.addAttribute("manutencoes", manutencaoService.listar(session, filtro));
+        Page<Manutencao> resultado = manutencaoService.listar(session, filtro, pagina);
+        model.addAttribute("manutencoes", resultado.getContent());
+        model.addAttribute("paginacao", resultado);
+        model.addAttribute("paginaAtual", resultado.getNumber() + 1);
         model.addAttribute("resumo", manutencaoService.montarResumo(session, hoje));
         model.addAttribute("filtro", filtro);
         model.addAttribute("hoje", hoje);

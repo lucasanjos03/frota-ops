@@ -127,7 +127,7 @@ class TagPaginaTests {
         Tag urgente = criarTag("Urgente");
         criarVeiculo("TAGR001", null, urgente);
 
-        mockMvc.perform(get("/tags"))
+        mockMvc.perform(get("/tags").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("tag/list"))
                 // Indicadores compactos (três cartões, sem coluna vazia)
@@ -147,7 +147,7 @@ class TagPaginaTests {
     void deveExibirEstadoVazioQuandoNaoHaTags() throws Exception {
         limparDados();
 
-        mockMvc.perform(get("/tags"))
+        mockMvc.perform(get("/tags").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("tag/list"))
                 .andExpect(content().string(containsString("empty-state")))
@@ -159,6 +159,10 @@ class TagPaginaTests {
     // ------------------------------------------------------------------
     // Apoio
     // ------------------------------------------------------------------
+
+    private Usuario admin() {
+        return usuarioService.autenticar("admin", "admin123").orElseThrow();
+    }
 
     private MockHttpSession sessaoDe(Usuario usuario) {
         MockHttpSession session = new MockHttpSession();

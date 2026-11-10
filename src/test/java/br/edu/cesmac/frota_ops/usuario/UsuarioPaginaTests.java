@@ -77,7 +77,7 @@ class UsuarioPaginaTests {
     void deveRenderizarIndicadoresPorPerfilApenasParaAdmin() throws Exception {
         criarUsuario("render.admin", "ADMIN");
 
-        mockMvc.perform(get("/usuarios"))
+        mockMvc.perform(get("/usuarios").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("usuario/list"))
                 .andExpect(content().string(containsString("Usuários do Sistema")))
@@ -111,10 +111,11 @@ class UsuarioPaginaTests {
 
     @Test
     void deveExibirEstadoVazioQuandoNaoHaUsuariosAtivos() throws Exception {
+        Usuario logado = admin();
         usuarioRepository.findAll().forEach(u -> u.setAtivo(false));
         usuarioRepository.flush();
 
-        mockMvc.perform(get("/usuarios"))
+        mockMvc.perform(get("/usuarios").sessionAttr("usuarioLogado", logado))
                 .andExpect(status().isOk())
                 .andExpect(view().name("usuario/list"))
                 .andExpect(content().string(containsString("empty-state")))
@@ -131,7 +132,7 @@ class UsuarioPaginaTests {
     void deveMascararOCampoDeSenhaNoFormularioDeEdicao() throws Exception {
         Usuario alvo = criarUsuario("edicao.usuario", "OPERADOR");
 
-        mockMvc.perform(get("/usuarios/editar/" + alvo.getId()))
+        mockMvc.perform(get("/usuarios/editar/" + alvo.getId()).sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("usuario/editar"))
                 .andExpect(content().string(containsString("id=\"senha\"")))
@@ -141,6 +142,10 @@ class UsuarioPaginaTests {
     // ------------------------------------------------------------------
     // Apoio
     // ------------------------------------------------------------------
+
+    private Usuario admin() {
+        return usuarioService.autenticar("admin", "admin123").orElseThrow();
+    }
 
     private Usuario criarUsuario(String username, String perfil) {
         Usuario usuario = new Usuario(null, username, "Usuário " + username, username + "@fleetops.com",

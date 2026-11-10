@@ -557,6 +557,44 @@
             </span>
           </div>
 
+          <!-- Paginação server-side do histórico. Os filtros são preservados nos links. -->
+          <nav
+            class="pagination"
+            th:if="${paginacao.totalPages > 1}"
+            aria-label="Paginação do histórico de manutenções"
+          >
+            <p class="pagination__info">
+              Página <strong th:text="${paginaAtual}">1</strong> de
+              <strong th:text="${paginacao.totalPages}">1</strong> ·
+              <span th:text="${paginacao.totalElements}">0</span> manutenção(ões)
+            </p>
+            <div class="pagination__controls">
+              <a
+                th:if="${paginacao.hasPrevious()}"
+                th:href="@{/manutencoes(pagina=${paginaAtual - 1}, veiculoId=${filtro.veiculoId()}, servico=${filtro.servico()}, de=${filtro.de()}, ate=${filtro.ate()})}"
+                >Anterior</a
+              >
+              <span th:unless="${paginacao.hasPrevious()}" class="is-disabled">Anterior</span>
+
+              <th:block th:if="${paginacao.totalPages <= 7}">
+                <a
+                  th:each="p : ${#numbers.sequence(1, paginacao.totalPages)}"
+                  th:href="@{/manutencoes(pagina=${p}, veiculoId=${filtro.veiculoId()}, servico=${filtro.servico()}, de=${filtro.de()}, ate=${filtro.ate()})}"
+                  th:text="${p}"
+                  th:classappend="${p == paginaAtual} ? ' is-current' : ''"
+                  th:attr="aria-current=${p == paginaAtual ? 'page' : null}"
+                >1</a>
+              </th:block>
+
+              <a
+                th:if="${paginacao.hasNext()}"
+                th:href="@{/manutencoes(pagina=${paginaAtual + 1}, veiculoId=${filtro.veiculoId()}, servico=${filtro.servico()}, de=${filtro.de()}, ate=${filtro.ate()})}"
+                >Próxima</a
+              >
+              <span th:unless="${paginacao.hasNext()}" class="is-disabled">Próxima</span>
+            </div>
+          </nav>
+
           <div class="section-body">
             <p class="scope-note">
               <svg
