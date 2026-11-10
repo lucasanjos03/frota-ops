@@ -23,6 +23,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+
 import br.edu.cesmac.frota_ops.manutencao.ManutencaoRepository;
 import br.edu.cesmac.frota_ops.usuario.Usuario;
 import br.edu.cesmac.frota_ops.usuario.UsuarioService;
@@ -63,6 +65,9 @@ class MotoristaPaginaTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private EntityManager entityManager;
 
     // ------------------------------------------------------------------
     // Indicadores e painel de documentos
@@ -365,6 +370,29 @@ class MotoristaPaginaTests {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/motoristas"))
                 .andExpect(flash().attribute("sucesso", "Motorista excluído com sucesso!"));
+
+        assertThat(motoristaRepository.findById(id)).isEmpty();
+    }
+
+    /**
+     * Regressão do HTTP 500 na exclusão de motorista: o vínculo bidirecional
+     * {@code Motorista.usuario}/{@code Usuario.motorista} fazia o Hibernate cascatear em flush
+     * até o lado inverso e lançar {@code TransientObjectException}. Em produção o flush ocorre
+     * no commit do repositório; em teste transacional é preciso forçá-lo explicitamente.
+     */
+    @Test
+    void deveExcluirMotoristaSemErroDeFlushNoVinculoBidirecional() throws Exception {
+        limpar();
+
+        Long id = criarMotorista("excl.flush", "Alfa Excluir", "555.555.555-55", "10000000005", "B",
+                LocalDate.now().plusYears(3), "Ativo").getMotorista().getId();
+
+        mockMvc.perform(post("/motoristas/excluir/" + id).sessionAttr("usuarioLogado", admin()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/motoristas"))
+                .andExpect(flash().attribute("sucesso", "Motorista excluído com sucesso!"));
+
+        entityManager.flush();
 
         assertThat(motoristaRepository.findById(id)).isEmpty();
     }

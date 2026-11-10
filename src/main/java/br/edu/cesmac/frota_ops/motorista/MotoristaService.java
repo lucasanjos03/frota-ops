@@ -198,11 +198,23 @@ public class MotoristaService {
         }
     }
 
+    /**
+     * Exclui o motorista. Rompe antes o vínculo inverso {@link Usuario#getMotorista()} em
+     * memória: como a associação {@code Usuario.motorista} é {@code @OneToOne(mappedBy)} e
+     * carregada em modo EAGER, o Hibernate cascateia em flush até ela e encontra o motorista
+     * já marcado para remoção, lançando {@code TransientObjectException} (HTTP 500). As
+     * chaves estrangeiras no banco ({@code veiculo.id_motorista}, {@code motorista.usuario_id})
+     * usam {@code ON DELETE SET NULL} e tratam o desvínculo persistente.
+     */
     public boolean excluir(Long id) {
-        if (!motoristaRepository.existsById(id)) {
+        Motorista motorista = motoristaRepository.findById(id).orElse(null);
+        if (motorista == null) {
             return false;
         }
-        motoristaRepository.deleteById(id);
+        if (motorista.getUsuario() != null) {
+            motorista.getUsuario().setMotorista(null);
+        }
+        motoristaRepository.delete(motorista);
         return true;
     }
 
