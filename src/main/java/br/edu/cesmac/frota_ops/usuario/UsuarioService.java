@@ -19,14 +19,22 @@ public class UsuarioService {
         this.usuarioRepository = usuarioRepository;
     }
 
+    /**
+     * Usuário autenticado da sessão, ou {@code null} quando não há login ativo.
+     *
+     * <p>Não existe fallback para um usuário padrão: o acesso às rotas protegidas é
+     * garantido pelo {@link br.edu.cesmac.frota_ops.auth.AuthInterceptor}, que redireciona
+     * visitantes não autenticados para o login antes que qualquer controller seja executado.</p>
+     */
     public Usuario obterUsuarioLogado(HttpSession session) {
-        if (session != null) {
-            Object attr = session.getAttribute("usuarioLogado");
-            if (attr instanceof Usuario u && u.getId() != null) {
-                return usuarioRepository.findByIdAndAtivoTrue(u.getId()).orElse(u);
-            }
+        if (session == null) {
+            return null;
         }
-        return new Usuario(null, "admin", "Administrador", "admin@fleetops.com", "", "ADMIN", true);
+        Object attr = session.getAttribute("usuarioLogado");
+        if (attr instanceof Usuario u && u.getId() != null) {
+            return usuarioRepository.findByIdAndAtivoTrue(u.getId()).orElse(u);
+        }
+        return null;
     }
 
     public List<Usuario> listarVisiveisPara(Usuario logado) {

@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -82,7 +83,7 @@ class VeiculoPaginaTests {
         criarVeiculo("KPI0003", "Em manutenção", null, null);
         criarVeiculo("KPI0004", "Indisponível", hoje.plusDays(60), null);
 
-        VeiculoPaginaDTO resumo = veiculoService.montarResumo(null);
+        VeiculoPaginaDTO resumo = veiculoService.montarResumo(sessaoAdmin());
         VeiculoIndicadoresDTO indicadores = resumo.indicadores();
 
         assertThat(indicadores.total()).isEqualTo(veiculoRepository.count()).isEqualTo(4);
@@ -130,8 +131,8 @@ class VeiculoPaginaTests {
                 .containsExactly("SIT0001", "SIT0004");
 
         // O indicador de situação é coerente com o filtro derivado do dashboard.
-        assertThat(veiculoService.montarResumo(null).indicadores().revisoesProximas()).isEqualTo(1);
-        assertThat(veiculoService.montarResumo(null).indicadores().revisoesVencidas()).isEqualTo(1);
+        assertThat(veiculoService.montarResumo(sessaoAdmin()).indicadores().revisoesProximas()).isEqualTo(1);
+        assertThat(veiculoService.montarResumo(sessaoAdmin()).indicadores().revisoesVencidas()).isEqualTo(1);
     }
 
     @Test
@@ -143,7 +144,7 @@ class VeiculoPaginaTests {
             criarVeiculo("KMT000" + i, "Modelo KM" + i, i * 1000L, "Disponível", null, null);
         }
 
-        List<VeiculoQuilometragemDTO> ranking = veiculoService.montarResumo(null).maioresQuilometragens();
+        List<VeiculoQuilometragemDTO> ranking = veiculoService.montarResumo(sessaoAdmin()).maioresQuilometragens();
 
         assertThat(ranking).hasSize(5);
         assertThat(ranking).extracting(VeiculoQuilometragemDTO::placa)
@@ -212,7 +213,7 @@ class VeiculoPaginaTests {
 
         VeiculoFiltro filtro = filtro(null, "Disponível", null, null, null);
 
-        Page<Veiculo> primeira = veiculoService.listar(null, filtro, 1);
+        Page<Veiculo> primeira = veiculoService.listar(sessaoAdmin(), filtro, 1);
         assertThat(VeiculoService.TAMANHO_PAGINA).isEqualTo(10);
         assertThat(primeira.getTotalElements()).isEqualTo(12);
         assertThat(primeira.getTotalPages()).isEqualTo(2);
@@ -220,7 +221,7 @@ class VeiculoPaginaTests {
         assertThat(primeira.hasNext()).isTrue();
         assertThat(primeira.hasPrevious()).isFalse();
 
-        Page<Veiculo> segunda = veiculoService.listar(null, filtro, 2);
+        Page<Veiculo> segunda = veiculoService.listar(sessaoAdmin(), filtro, 2);
         assertThat(segunda.getContent()).hasSize(2);
         assertThat(segunda.hasPrevious()).isTrue();
         assertThat(segunda.hasNext()).isFalse();
@@ -244,7 +245,7 @@ class VeiculoPaginaTests {
 
         criarVeiculo("REND001", "Ford Cargo", 1000L, "Disponível", LocalDate.now().minusDays(3), null);
 
-        mockMvc.perform(get("/veiculos"))
+        mockMvc.perform(get("/veiculos").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("veiculo/list"))
                 // Cards de indicadores
@@ -283,7 +284,7 @@ class VeiculoPaginaTests {
             criarVeiculo("PAG" + String.format("%04d", i), "Disponível", null, null);
         }
 
-        mockMvc.perform(get("/veiculos").param("vinculo", "sem"))
+        mockMvc.perform(get("/veiculos").param("vinculo", "sem").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Página")))
                 .andExpect(content().string(containsString("Próxima")))
@@ -292,7 +293,8 @@ class VeiculoPaginaTests {
                 .andExpect(content().string(containsString("class=\"plate\">PAG0001")))
                 .andExpect(content().string(not(containsString("class=\"plate\">PAG0011"))));
 
-        mockMvc.perform(get("/veiculos").param("vinculo", "sem").param("pagina", "2"))
+        mockMvc.perform(get("/veiculos").param("vinculo", "sem").param("pagina", "2")
+                        .sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("class=\"plate\">PAG0011")))
                 .andExpect(content().string(not(containsString("class=\"plate\">PAG0001"))));
@@ -304,7 +306,7 @@ class VeiculoPaginaTests {
         motoristaRepository.deleteAllInBatch();
 
         // Frota vazia: sem tabela e sem canvas de gráfico.
-        mockMvc.perform(get("/veiculos"))
+        mockMvc.perform(get("/veiculos").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Nenhum veículo encontrado")))
                 .andExpect(content().string(containsString("Não há veículos no escopo exibido.")))
@@ -314,7 +316,7 @@ class VeiculoPaginaTests {
         criarVeiculo("UNICO01", "Disponível", null, null);
 
         // Filtro sem correspondência: mensagem específica, chip do filtro e atalho para limpar.
-        mockMvc.perform(get("/veiculos").param("q", "ZZZZZZ"))
+        mockMvc.perform(get("/veiculos").param("q", "ZZZZZZ").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Nenhum veículo corresponde aos filtros atuais.")))
                 .andExpect(content().string(containsString("Filtros aplicados")))
@@ -350,7 +352,7 @@ class VeiculoPaginaTests {
                 .andExpect(content().string(not(containsString("Sem condutor atribuído"))));
 
         // O mesmo recorte, visto por um perfil administrativo, enxerga a frota inteira.
-        mockMvc.perform(get("/veiculos"))
+        mockMvc.perform(get("/veiculos").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Frota completa")))
                 .andExpect(content().string(containsString("FORA001")));
@@ -369,7 +371,7 @@ class VeiculoPaginaTests {
         Veiculo veiculo = criarVeiculo("CRUD001", "Scania R450", 4200L, "Disponível", null, null);
         Long id = veiculo.getId();
 
-        mockMvc.perform(get("/veiculos/detalhes/" + id))
+        mockMvc.perform(get("/veiculos/detalhes/" + id).sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("veiculo/detalhes"))
                 .andExpect(content().string(containsString("CRUD001")));
@@ -416,8 +418,14 @@ class VeiculoPaginaTests {
     // ------------------------------------------------------------------
 
     private Usuario admin() {
-        return new Usuario(null, "admin.pagina", "Administrador Pagina", "admin.pagina@fleetops.com",
-                "123456", "ADMIN", true);
+        return usuarioService.autenticar("admin", "admin123").orElseThrow();
+    }
+
+    /** Sessão autenticada como ADMIN, para as chamadas de serviço que dependem do escopo. */
+    private MockHttpSession sessaoAdmin() {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("usuarioLogado", admin());
+        return session;
     }
 
     private VeiculoFiltro filtro(String q, String status, String situacao, String revisao, String vinculo) {
@@ -426,7 +434,7 @@ class VeiculoPaginaTests {
 
     /** Placas da primeira página do resultado, na ordem devolvida pelo banco. */
     private List<String> placas(VeiculoFiltro filtro) {
-        return veiculoService.listar(null, filtro, 1).getContent().stream()
+        return veiculoService.listar(sessaoAdmin(), filtro, 1).getContent().stream()
                 .map(Veiculo::getPlaca)
                 .collect(Collectors.toList());
     }

@@ -217,7 +217,8 @@ class MotoristaPaginaTests {
                 .extracting(Veiculo::getPlaca)
                 .containsExactly("CARD001", "CARD002");
 
-        mockMvc.perform(get("/motoristas/detalhes/" + motorista.getMotorista().getId()))
+        mockMvc.perform(get("/motoristas/detalhes/" + motorista.getMotorista().getId())
+                        .sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("motorista/detalhes"))
                 .andExpect(content().string(containsString("CARD001")))
@@ -230,7 +231,7 @@ class MotoristaPaginaTests {
                 .map(Motorista::getId)
                 .findFirst()
                 .orElseThrow();
-        mockMvc.perform(get("/motoristas/detalhes/" + semVeiculoId))
+        mockMvc.perform(get("/motoristas/detalhes/" + semVeiculoId).sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Nenhum veículo atribuído")))
                 .andExpect(content().string(containsString("implicam aptidão operacional")));
@@ -248,7 +249,7 @@ class MotoristaPaginaTests {
                 "10000000001", "B", LocalDate.now().minusDays(5), "Ativo");
         criarVeiculo("REND001", motorista.getMotorista());
 
-        mockMvc.perform(get("/motoristas"))
+        mockMvc.perform(get("/motoristas").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("motorista/list"))
                 // Cards da equipe
@@ -292,7 +293,7 @@ class MotoristaPaginaTests {
         Long validaId = criarMotorista("detalhe.valida", "Bravo Detalhe", "222.222.222-22",
                 "10000000002", "B", hoje.plusDays(60), "Ativo").getMotorista().getId();
 
-        mockMvc.perform(get("/motoristas/detalhes/" + vencidaId))
+        mockMvc.perform(get("/motoristas/detalhes/" + vencidaId).sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("motorista/detalhes"))
                 .andExpect(content().string(containsString("Alfa Detalhe")))
@@ -300,7 +301,7 @@ class MotoristaPaginaTests {
                 .andExpect(content().string(containsString("status-danger")))
                 .andExpect(content().string(containsString(">Vencida<")));
 
-        mockMvc.perform(get("/motoristas/detalhes/" + validaId))
+        mockMvc.perform(get("/motoristas/detalhes/" + validaId).sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("status-success")))
                 .andExpect(content().string(containsString(">Válida<")));
@@ -311,7 +312,7 @@ class MotoristaPaginaTests {
         limpar();
 
         // Equipe vazia: sem tabela, sem canvas e sem itens no painel.
-        mockMvc.perform(get("/motoristas"))
+        mockMvc.perform(get("/motoristas").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Nenhum motorista encontrado")))
                 .andExpect(content().string(containsString("Não há motoristas cadastrados.")))
@@ -323,7 +324,7 @@ class MotoristaPaginaTests {
                 LocalDate.now().plusYears(3), "Ativo");
 
         // Filtro sem correspondência: mensagem específica, chip do filtro e atalho para limpar.
-        mockMvc.perform(get("/motoristas").param("q", "ZZZZZZ"))
+        mockMvc.perform(get("/motoristas").param("q", "ZZZZZZ").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Nenhum motorista corresponde aos filtros atuais.")))
                 .andExpect(content().string(containsString("Filtros aplicados")))
@@ -333,7 +334,7 @@ class MotoristaPaginaTests {
 
     @Test
     void deveRedirecionarComErroQuandoMotoristaInexistente() throws Exception {
-        mockMvc.perform(get("/motoristas/detalhes/99999"))
+        mockMvc.perform(get("/motoristas/detalhes/99999").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/motoristas"))
                 .andExpect(flash().attribute("erro", "Motorista não encontrado."));
@@ -351,7 +352,7 @@ class MotoristaPaginaTests {
         Long id = criarMotorista("crud.admin", "Alfa Crud", "111.111.111-11", "10000000001", "B",
                 LocalDate.now().plusYears(3), "Ativo").getMotorista().getId();
 
-        mockMvc.perform(get("/motoristas/detalhes/" + id))
+        mockMvc.perform(get("/motoristas/detalhes/" + id).sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("motorista/detalhes"))
                 .andExpect(content().string(containsString("Alfa Crud")));
@@ -412,8 +413,7 @@ class MotoristaPaginaTests {
     // ------------------------------------------------------------------
 
     private Usuario admin() {
-        return new Usuario(null, "admin.pagina", "Administrador Pagina", "admin.pagina@fleetops.com",
-                "123456", "ADMIN", true);
+        return usuarioService.autenticar("admin", "admin123").orElseThrow();
     }
 
     private MotoristaFiltro filtro(String q, String status, String categoria, String cnh, String vinculo) {

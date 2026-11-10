@@ -402,7 +402,7 @@ class ManutencaoPaginaTests {
         criarManutencao(prevista, hoje, "Revisão preventiva");
         criarManutencao(prevista, hoje.minusMonths(1).withDayOfMonth(15), "Troca de óleo");
 
-        mockMvc.perform(get("/manutencoes"))
+        mockMvc.perform(get("/manutencoes").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("manutencao/list"))
                 // Cards (histórico x previsão em cartões distintos)
@@ -451,7 +451,7 @@ class ManutencaoPaginaTests {
         assertThat(resumo.manutencoesPorMes()).hasSize(12)
                 .allSatisfy(mes -> assertThat(mes.total()).isZero());
 
-        mockMvc.perform(get("/manutencoes"))
+        mockMvc.perform(get("/manutencoes").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Sem manutenções nos últimos meses")))
                 .andExpect(content().string(containsString("Sem registros para ranquear")))
@@ -461,7 +461,7 @@ class ManutencaoPaginaTests {
                 .andExpect(content().string(not(containsString("id=\"chart-manutencoes-mes\""))));
 
         // Filtro sem correspondência: mensagem específica e chip do filtro aplicado.
-        mockMvc.perform(get("/manutencoes").param("servico", "ZZZZ"))
+        mockMvc.perform(get("/manutencoes").param("servico", "ZZZZ").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(
                         containsString("Nenhum registro corresponde aos filtros atuais.")))
@@ -529,8 +529,7 @@ class ManutencaoPaginaTests {
     // ------------------------------------------------------------------
 
     private Usuario admin() {
-        return new Usuario(null, "admin.pagina", "Administrador Pagina",
-                "admin.pagina@fleetops.com", "123456", "ADMIN", true);
+        return usuarioService.autenticar("admin", "admin123").orElseThrow();
     }
 
     private Usuario operador() {
