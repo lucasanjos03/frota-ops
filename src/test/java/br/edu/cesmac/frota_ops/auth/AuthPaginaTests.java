@@ -16,8 +16,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
+import br.edu.cesmac.frota_ops.usuario.Usuario;
 
 /**
  * Testes das telas de autenticação: mensagens de erro/sucesso padronizadas (sem duplicação),
@@ -83,6 +86,37 @@ class AuthPaginaTests {
                 .andExpect(view().name("auth/cadastro"))
                 .andExpect(content().string(containsString("id=\"senha\"")))
                 .andExpect(content().string(containsString("type=\"password\"")));
+    }
+
+    /**
+     * O Sprint exige logout efetivo: "Sair" envia {@code POST /logout}, que invalida a sessão
+     * no servidor. Antes, o link de navegação apontava para {@code GET /login}, deixando a
+     * sessão autenticada viva no back-end.
+     */
+    @Test
+    void deveEfetivarLogoutInvalidandoASessao() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("usuarioLogado", usuarioLogado());
+
+        mockMvc.perform(post("/logout").session(session))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+
+        assertThat(session.isInvalid()).isTrue();
+    }
+
+    @Test
+    void deveExibirSairComoFormularioPostNaNavegacao() throws Exception {
+        String html = mockMvc.perform(get("/").sessionAttr("usuarioLogado", usuarioLogado()))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        assertThat(html).contains("action=\"/logout\"");
+        assertThat(html).contains("method=\"post\"");
+    }
+
+    private Usuario usuarioLogado() {
+        return new Usuario(1L, "admin", "Administrador", "admin@fleetops.com", "admin123", "ADMIN", true);
     }
 
     private int contarOcorrencias(String texto, String alvo) {

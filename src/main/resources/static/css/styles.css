@@ -293,10 +293,21 @@ h3 {
   background-color: #65b5dc;
 }
 
-.nav-logout {
-  margin-left: var(--space-2);
+.nav-logout-form {
+  display: inline-flex;
+  align-items: stretch;
+  margin: 0 0 0 var(--space-2);
   padding-left: var(--space-5);
   border-left: 1px solid var(--border-onDark);
+}
+
+/* O "Sair" é um POST (invalida a sessão): o botão recebe a mesma aparência do link. */
+button.nav-item {
+  appearance: none;
+  background: none;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
 }
 
 /* Container de página */
