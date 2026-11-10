@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -205,7 +206,7 @@ class ManutencaoPaginaTests {
         criarManutencao(veiculo, hoje.minusDays(5), "Serviço D");
         criarManutencao(veiculo, hoje.minusDays(5), "Serviço E");
 
-        List<Manutencao> historico = manutencaoService.listar(admin(), semFiltro());
+        List<Manutencao> historico = manutencaoService.listar(admin(), semFiltro(), 1).getContent();
 
         assertThat(historico)
                 .extracting(Manutencao::getServicoRealizado)
@@ -214,6 +215,52 @@ class ManutencaoPaginaTests {
                 .extracting(Manutencao::getData)
                 .containsExactly(hoje, hoje.minusDays(5), hoje.minusDays(5), hoje.minusDays(10),
                         hoje.minusDays(30));
+    }
+
+    /**
+     * A tabela de histórico é paginada no servidor, espelhando a listagem de veículos:
+     * 10 registros por página, com o total refletindo o escopo completo.
+     */
+    @Test
+    void devePaginarHistoricoEmDezPorPagina() {
+        limpar();
+
+        LocalDate hoje = LocalDate.now();
+        Veiculo veiculo = criarVeiculo("MNTP001", null, null);
+        for (int i = 0; i < 12; i++) {
+            criarManutencao(veiculo, hoje.minusDays(i), "Serviço " + i);
+        }
+
+        Page<Manutencao> primeira = manutencaoService.listar(admin(), semFiltro(), 1);
+        Page<Manutencao> segunda = manutencaoService.listar(admin(), semFiltro(), 2);
+
+        assertThat(primeira.getContent()).hasSize(10);
+        assertThat(primeira.getTotalElements()).isEqualTo(12);
+        assertThat(primeira.getTotalPages()).isEqualTo(2);
+        assertThat(primeira.getNumber()).isZero();
+
+        assertThat(segunda.getContent()).hasSize(2);
+        assertThat(segunda.isLast()).isTrue();
+    }
+
+    @Test
+    void deveRenderizarPaginacaoDoHistoricoPreservandoFiltros() throws Exception {
+        limpar();
+
+        LocalDate hoje = LocalDate.now();
+        Veiculo veiculo = criarVeiculo("MNTP002", null, null);
+        for (int i = 0; i < 12; i++) {
+            criarManutencao(veiculo, hoje.minusDays(i), "Serviço página " + i);
+        }
+
+        mockMvc.perform(get("/manutencoes")
+                        .param("veiculoId", veiculo.getId().toString())
+                        .sessionAttr("usuarioLogado", admin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString("aria-label=\"Paginação do histórico de manutenções\"")))
+                .andExpect(content().string(containsString("pagina=2")))
+                .andExpect(content().string(containsString("veiculoId=" + veiculo.getId())));
     }
 
     @Test
@@ -372,7 +419,7 @@ class ManutencaoPaginaTests {
         assertThat(manutencaoService.montarResumo(operador(), hoje).escopoRestrito()).isFalse();
         assertThat(servicos(operador(), semFiltro()))
                 .containsExactlyInAnyOrder("Serviço meu", "Serviço meu antigo", "Serviço alheio");
-        assertThat(manutencaoService.listar(admin(), semFiltro())).hasSize(3);
+        assertThat(manutencaoService.listar(admin(), semFiltro(), 1).getContent()).hasSize(3);
 
         // MOTORISTA sem cadastro de motorista vinculado não possui histórico visível.
         Usuario semCadastro = new Usuario(null, "sem.cadastro", "Sem Cadastro",
@@ -382,7 +429,7 @@ class ManutencaoPaginaTests {
         assertThat(vazio.indicadores().totalRegistros()).isZero();
         assertThat(vazio.rankingVeiculos()).isEmpty();
         assertThat(vazio.manutencoesPorMes()).hasSize(12);
-        assertThat(manutencaoService.listar(semCadastro, semFiltro())).isEmpty();
+        assertThat(manutencaoService.listar(semCadastro, semFiltro(), 1).getContent()).isEmpty();
     }
 
     // ------------------------------------------------------------------
@@ -553,7 +600,7 @@ class ManutencaoPaginaTests {
 
     /** Serviços devolvidos pelo filtro (na ordem do histórico: mais recente primeiro). */
     private List<String> servicos(Usuario logado, ManutencaoFiltro filtro) {
-        return manutencaoService.listar(logado, filtro).stream()
+        return manutencaoService.listar(logado, filtro, 1).getContent().stream()
                 .map(Manutencao::getServicoRealizado)
                 .collect(Collectors.toList());
     }

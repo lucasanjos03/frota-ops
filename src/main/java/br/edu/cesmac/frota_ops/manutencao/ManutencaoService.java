@@ -10,7 +10,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import br.edu.cesmac.frota_ops.home.dashboard.RevisaoVeiculoDTO;
@@ -50,6 +53,9 @@ public class ManutencaoService {
 
     /** Quantidade de veículos exibidos no ranking de registros de manutenção. */
     public static final int LIMITE_RANKING = 5;
+
+    /** Registros de manutenção por página na tabela de histórico. */
+    public static final int TAMANHO_PAGINA = 10;
 
     private static final String[] MESES_ABREVIADOS = {
             "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"};
@@ -97,26 +103,33 @@ public class ManutencaoService {
     // Histórico filtrado
     // ------------------------------------------------------------------
 
-    /** Histórico no escopo do perfil, já recortado pelos filtros da tabela. */
-    public List<Manutencao> listar(HttpSession session, ManutencaoFiltro filtro) {
-        return listar(usuarioService.obterUsuarioLogado(session), filtro);
+    /** Histórico no escopo do perfil, já recortado pelos filtros e paginado. */
+    public Page<Manutencao> listar(HttpSession session, ManutencaoFiltro filtro, int pagina) {
+        return listar(usuarioService.obterUsuarioLogado(session), filtro, pagina);
     }
 
-    /** Sobrecarga usada nos testes e por quem já tem o usuário resolvido. */
-    public List<Manutencao> listar(Usuario logado, ManutencaoFiltro filtro) {
+    /**
+     * Sobrecarga usada pelos testes e por quem já tem o usuário resolvido. A ordenação é
+     * cronológica decrescente (a mais recente primeiro), com o {@code id} como desempate.
+     */
+    public Page<Manutencao> listar(Usuario logado, ManutencaoFiltro filtro, int pagina) {
         Long motoristaId = escopoMotoristaId(logado);
 
         // MOTORISTA sem cadastro de motorista vinculado não possui histórico visível.
         if (ehMotorista(logado) && motoristaId == null) {
-            return List.of();
+            return Page.empty();
         }
+
+        Pageable pageable = PageRequest.of(Math.max(pagina - 1, 0), TAMANHO_PAGINA,
+                Sort.by(Sort.Direction.DESC, "data").and(Sort.by(Sort.Direction.DESC, "id")));
 
         return manutencaoRepository.buscarComFiltros(
                 motoristaId,
                 filtro.veiculoId(),
                 buscaNormalizada(filtro.servico()),
                 filtro.de(),
-                filtro.ate());
+                filtro.ate(),
+                pageable);
     }
 
     public List<Manutencao> buscarPorVeiculo(Long veiculoId) {
