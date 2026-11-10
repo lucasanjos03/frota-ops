@@ -130,7 +130,7 @@ class FrotaOpsApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(view().name("usuario/novo"));
 
-        mockMvc.perform(get("/cadastro"))
+        mockMvc.perform(get("/cadastro").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/cadastro"));
     }

@@ -5,8 +5,11 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Registra o {@link AuthInterceptor} em todas as rotas, exceto as públicas: as telas de
- * login e cadastro, os recursos estáticos e a página de erro do contêiner.
+ * Registra o {@link AuthInterceptor} em todas as rotas, exceto as públicas: a tela de login,
+ * os recursos estáticos e a página de erro do contêiner.
+ *
+ * <p>{@code /cadastro} não é público: o autocadastro foi desativado e a criação de usuários
+ * passa a exigir perfil ADMIN (ver {@link AuthController}).</p>
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -23,7 +26,6 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/**")
                 .excludePathPatterns(
                         "/login",
-                        "/cadastro",
                         "/css/**",
                         "/js/**",
                         "/favicon.ico",

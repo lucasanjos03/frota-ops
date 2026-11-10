@@ -55,20 +55,41 @@ class AuthPaginaTests {
     }
 
     @Test
-    void deveExibirMensagemDeSucessoAposCadastro() throws Exception {
-        mockMvc.perform(post("/cadastro")
+    void deveExibirMensagemDeSucessoAposCadastroComoAdmin() throws Exception {
+        mockMvc.perform(post("/cadastro").sessionAttr("usuarioLogado", usuarioLogado())
                         .param("nome", "Novo Usuario")
                         .param("username", "novo.cadastro")
                         .param("email", "novo.cadastro@fleetops.com")
                         .param("senha", "123456"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"))
-                .andExpect(flash().attribute("sucesso", "Conta criada com sucesso! Faça login para continuar."));
+                .andExpect(redirectedUrl("/usuarios"))
+                .andExpect(flash().attribute("sucesso", "Usuário cadastrado com sucesso!"));
+    }
+
+    /**
+     * O autocadastro foi desativado (R4): {@code /cadastro} exige perfil ADMIN. Um usuário
+     * autenticado sem esse perfil é redirecionado, sem criar conta.
+     */
+    @Test
+    void deveBloquearCadastroParaUsuarioNaoAdmin() throws Exception {
+        mockMvc.perform(get("/cadastro").sessionAttr("usuarioLogado", operador()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/usuarios"))
+                .andExpect(flash().attribute("erro",
+                        "Acesso negado: apenas administradores podem cadastrar novos usuários."));
+
+        mockMvc.perform(post("/cadastro").sessionAttr("usuarioLogado", operador())
+                        .param("nome", "Invasor")
+                        .param("username", "invasor.teste")
+                        .param("email", "invasor.teste@fleetops.com")
+                        .param("senha", "123456"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/usuarios"));
     }
 
     @Test
     void deveExibirValidacaoVisualNoCadastroInvalido() throws Exception {
-        mockMvc.perform(post("/cadastro")
+        mockMvc.perform(post("/cadastro").sessionAttr("usuarioLogado", usuarioLogado())
                         .param("nome", "")
                         .param("username", "")
                         .param("email", "invalido")
@@ -81,7 +102,7 @@ class AuthPaginaTests {
 
     @Test
     void deveMascararOCampoDeSenhaNoCadastro() throws Exception {
-        mockMvc.perform(get("/cadastro"))
+        mockMvc.perform(get("/cadastro").sessionAttr("usuarioLogado", usuarioLogado()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/cadastro"))
                 .andExpect(content().string(containsString("id=\"senha\"")))
@@ -117,6 +138,11 @@ class AuthPaginaTests {
 
     private Usuario usuarioLogado() {
         return new Usuario(1L, "admin", "Administrador", "admin@fleetops.com", "admin123", "ADMIN", true);
+    }
+
+    /** Usuário autenticado sem perfil ADMIN (base de seed: id 6 = operador). */
+    private Usuario operador() {
+        return new Usuario(6L, "operador", "Marcos Oliveira", "operador@fleetops.com", "123456", "OPERADOR", true);
     }
 
     private int contarOcorrencias(String texto, String alvo) {
