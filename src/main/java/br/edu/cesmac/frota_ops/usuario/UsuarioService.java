@@ -4,7 +4,6 @@ import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -61,10 +60,7 @@ public class UsuarioService {
     }
 
     public List<Usuario> listarDisponiveisParaMotorista(Long usuarioIdAtual) {
-        return usuarioRepository.findAllByAtivoTrue().stream()
-                .filter(u -> u.getMotorista() == null
-                        || (usuarioIdAtual != null && u.getId().equals(usuarioIdAtual)))
-                .collect(Collectors.toList());
+        return usuarioRepository.listarDisponiveisParaMotorista(usuarioIdAtual);
     }
 
     public Optional<Usuario> buscarPorId(Long id) {
