@@ -46,8 +46,20 @@ public class AuthController {
         return "redirect:/";
     }
 
+    /**
+     * Formulário de criação de usuário. Deixou de ser público: o autocadastro foi
+     * desativado e a rota passa a exigir perfil ADMIN (a criação de usuários também está
+     * disponível em {@code /usuarios/novo}).
+     */
     @GetMapping("/cadastro")
-    public String formularioCadastro(Model model) {
+    public String formularioCadastro(HttpSession session,
+                                     Model model,
+                                     RedirectAttributes redirectAttributes) {
+        if (!ehAdmin(session)) {
+            redirectAttributes.addFlashAttribute("erro",
+                    "Acesso negado: apenas administradores podem cadastrar novos usuários.");
+            return "redirect:/usuarios";
+        }
         model.addAttribute("usuario", new Usuario());
         return "auth/cadastro";
     }
@@ -55,19 +67,31 @@ public class AuthController {
     @PostMapping("/cadastro")
     public String cadastrar(@Valid @ModelAttribute("usuario") Usuario usuario,
                             BindingResult result,
+                            HttpSession session,
                             RedirectAttributes redirectAttributes) {
+        if (!ehAdmin(session)) {
+            redirectAttributes.addFlashAttribute("erro",
+                    "Acesso negado: apenas administradores podem cadastrar novos usuários.");
+            return "redirect:/usuarios";
+        }
+
         if (result.hasErrors()) {
             return "auth/cadastro";
         }
 
         usuarioService.salvar(usuario);
-        redirectAttributes.addFlashAttribute("sucesso", "Conta criada com sucesso! Faça login para continuar.");
-        return "redirect:/login";
+        redirectAttributes.addFlashAttribute("sucesso", "Usuário cadastrado com sucesso!");
+        return "redirect:/usuarios";
     }
 
     @PostMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
         return "redirect:/login";
+    }
+
+    private boolean ehAdmin(HttpSession session) {
+        Usuario logado = usuarioService.obterUsuarioLogado(session);
+        return logado != null && logado.isAdmin();
     }
 }

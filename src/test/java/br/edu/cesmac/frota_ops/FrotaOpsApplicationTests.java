@@ -63,74 +63,74 @@ class FrotaOpsApplicationTests {
 
     @Test
     void deveRenderizarTodasAsTelasThymeleafComSucesso() throws Exception {
-        mockMvc.perform(get("/"))
+        mockMvc.perform(get("/").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("home/index"))
                 .andExpect(content().string(containsString("Visão Geral da Frota")));
 
-        mockMvc.perform(get("/veiculos"))
+        mockMvc.perform(get("/veiculos").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("veiculo/list"))
                 .andExpect(content().string(containsString("ABC1D23")))
                 .andExpect(content().string(containsString("Carlos Eduardo Silva")))
                 .andExpect(content().string(containsString("Rastreado GPS")));
 
-        mockMvc.perform(get("/veiculos/novo"))
+        mockMvc.perform(get("/veiculos/novo").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("veiculo/novo"))
                 .andExpect(content().string(containsString("Motorista responsável")))
                 .andExpect(content().string(containsString("Tags operacionais")));
 
-        mockMvc.perform(get("/veiculos/detalhes/1"))
+        mockMvc.perform(get("/veiculos/detalhes/1").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("veiculo/detalhes"))
                 .andExpect(content().string(containsString("Ford Transit 350")))
                 .andExpect(content().string(containsString("Carlos Eduardo Silva")))
                 .andExpect(content().string(containsString("Revisão preventiva")));
 
-        mockMvc.perform(get("/veiculos/editar/1"))
+        mockMvc.perform(get("/veiculos/editar/1").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("veiculo/editar"))
                 .andExpect(content().string(containsString("ABC1D23")));
 
-        mockMvc.perform(get("/motoristas"))
+        mockMvc.perform(get("/motoristas").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("motorista/list"))
                 .andExpect(content().string(containsString("Carlos Eduardo Silva")));
 
-        mockMvc.perform(get("/motoristas/novo"))
+        mockMvc.perform(get("/motoristas/novo").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("motorista/novo"));
 
-        mockMvc.perform(get("/manutencoes"))
+        mockMvc.perform(get("/manutencoes").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("manutencao/list"))
                 .andExpect(content().string(containsString("Revisão preventiva")));
 
-        mockMvc.perform(get("/manutencoes/novo"))
+        mockMvc.perform(get("/manutencoes/novo").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("manutencao/novo"));
 
-        mockMvc.perform(get("/tags"))
+        mockMvc.perform(get("/tags").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("tag/list"))
                 .andExpect(content().string(containsString("Rastreado GPS")));
 
-        mockMvc.perform(get("/tags/novo"))
+        mockMvc.perform(get("/tags/novo").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("tag/novo"));
 
-        mockMvc.perform(get("/usuarios"))
+        mockMvc.perform(get("/usuarios").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("usuario/list"))
                 .andExpect(content().string(containsString("carlos.silva")))
                 .andExpect(content().string(containsString("admin")));
 
-        mockMvc.perform(get("/usuarios/novo"))
+        mockMvc.perform(get("/usuarios/novo").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("usuario/novo"));
 
-        mockMvc.perform(get("/cadastro"))
+        mockMvc.perform(get("/cadastro").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/cadastro"));
     }
@@ -153,7 +153,7 @@ class FrotaOpsApplicationTests {
 
     @Test
     void deveRetornarFormularioComErrosQuandoDadosInvalidosNoCadastro() throws Exception {
-        mockMvc.perform(post("/veiculos/novo")
+        mockMvc.perform(post("/veiculos/novo").sessionAttr("usuarioLogado", admin())
                 .param("placa", "")
                 .param("modelo", "A")
                 .param("ano", "1800")
@@ -168,12 +168,12 @@ class FrotaOpsApplicationTests {
 
     @Test
     void deveRedirecionarComMensagemFlashDeErroQuandoIdInexistente() throws Exception {
-        mockMvc.perform(get("/veiculos/detalhes/99999"))
+        mockMvc.perform(get("/veiculos/detalhes/99999").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/veiculos"))
                 .andExpect(flash().attribute("erro", "Veículo não encontrado."));
 
-        mockMvc.perform(get("/veiculos/editar/99999"))
+        mockMvc.perform(get("/veiculos/editar/99999").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/veiculos"))
                 .andExpect(flash().attribute("erro", "Veículo não encontrado."));
@@ -181,7 +181,7 @@ class FrotaOpsApplicationTests {
 
     @Test
     void deveCadastrarEditarEExcluirVeiculoComRelacionamentosEFeedback() throws Exception {
-        mockMvc.perform(post("/veiculos/novo")
+        mockMvc.perform(post("/veiculos/novo").sessionAttr("usuarioLogado", admin())
                 .param("placa", "XYZ9K88")
                 .param("modelo", "Volvo FH 540")
                 .param("ano", "2025")
@@ -254,7 +254,7 @@ class FrotaOpsApplicationTests {
         usuarioService.salvar(temp);
         Long tempId = temp.getId();
 
-        mockMvc.perform(post("/usuarios/excluir/" + tempId))
+        mockMvc.perform(post("/usuarios/excluir/" + tempId).sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/usuarios"))
                 .andExpect(flash().attribute("sucesso", "Usuário excluído com sucesso!"));
@@ -266,11 +266,15 @@ class FrotaOpsApplicationTests {
 
         // Não é mais visível na listagem nem em buscarPorId
         assertThat(usuarioService.buscarPorId(tempId)).isEmpty();
-        mockMvc.perform(get("/usuarios"))
+        mockMvc.perform(get("/usuarios").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(not(containsString("soft.delete@fleetops.com"))));
 
         // Não consegue mais fazer login
         assertThat(usuarioService.autenticar("soft.delete", "123456")).isEmpty();
+    }
+
+    private Usuario admin() {
+        return usuarioService.autenticar("admin", "admin123").orElseThrow();
     }
 }

@@ -1,39 +1,41 @@
 <!doctype html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Tags | FleetOps</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css" />
+    <th:block th:replace="~{fragments/layout :: head('Tags | FleetOps')}"></th:block>
   </head>
   <body>
     <div class="fleet-app">
-      <header class="app-header">
-        <div class="header-inner">
-          <a class="brand" th:href="@{/}" href="index.html">
-            <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span><strong>Fleet</strong><b>Ops</b></span>
-          </a>
-          <div class="system-label">Gestão de Frota <span>/</span> Operações</div>
-          <nav class="nav-menu" aria-label="Navegação principal">
-            <a class="nav-item" th:href="@{/}">Dashboard</a>
-            <a class="nav-item" th:href="@{/veiculos}">Veículos</a>
-            <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
-            <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
-            <a class="nav-item active" th:href="@{/tags}">Tags</a>
-            <a class="nav-item" th:href="@{/usuarios}">Usuários</a>
-            <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
-          </nav>
-        </div>
-      </header>
-      <main class="page-container">
+      <header th:replace="~{fragments/layout :: appHeader('tags')}"></header>
+
+      <main id="conteudo" class="page-container">
         <div class="page-header">
           <div>
             <p class="eyebrow">Classificação da frota</p>
             <h1>Tags Operacionais</h1>
             <p class="page-subtitle">
-              <span th:text="${totalTags}">0</span>
+              <span th:text="${resumo.totalTags()}">0</span>
               tags cadastradas para classificação dos veículos.
+            </p>
+            <p class="scope-note">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8h.01M11 12h1v4h1" />
+              </svg>
+              <span th:if="${resumo.escopoRestrito()}">
+                Contagem restrita aos veículos vinculados ao seu cadastro.
+              </span>
+              <span th:unless="${resumo.escopoRestrito()}">
+                Um veículo pode pertencer a várias tags; a soma das contagens pode exceder
+                o total da frota.
+              </span>
             </p>
           </div>
           <a class="button button-primary"
@@ -41,28 +43,55 @@
              th:href="@{/tags/novo}">+ Nova tag</a>
         </div>
 
-        <p class="alert alert-sucesso" th:if="${sucesso}" th:text="${sucesso}"></p>
-        <p class="alert alert-erro" th:if="${erro}" th:text="${erro}"></p>
+        <th:block th:replace="~{fragments/layout :: flash}"></th:block>
 
-        <section class="content-section">
-          <div class="table-wrap">
+        <!-- ========================= INDICADORES DE TAGS ========================= -->
+        <!-- Compactos e no escopo do perfil; sem ruído de dashboard em tela administrativa. -->
+        <div class="kpi-grid kpi-grid--tres">
+          <div class="kpi-card">
+            <span class="kpi-label">Total de tags</span>
+            <span class="kpi-value" th:text="${resumo.totalTags()}">0</span>
+            <span class="kpi-hint">Catálogo cadastrado</span>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">Tags em uso</span>
+            <span class="kpi-value kpi-value--success" th:text="${resumo.tagsEmUso()}">0</span>
+            <span class="kpi-hint">Com ao menos um veículo no escopo</span>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">Tags sem veículos</span>
+            <span class="kpi-value kpi-value--muted" th:text="${resumo.tagsSemVeiculos()}">0</span>
+            <span class="kpi-hint">Sem classificação atribuída</span>
+          </div>
+        </div>
+
+        <section class="content-section" aria-labelledby="titulo-lista-tags">
+          <div class="section-heading">
+            <div>
+              <h2 id="titulo-lista-tags">Tags cadastradas</h2>
+              <p>Classificações operacionais e a quantidade de veículos associados a cada uma.</p>
+            </div>
+          </div>
+
+          <div class="table-wrap" th:if="${!#lists.isEmpty(tags)}">
             <table class="data-table">
+              <caption class="visually-hidden">Lista de tags operacionais</caption>
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Nome da Tag</th>
-                  <th>Ações</th>
+                  <th scope="col">Nome da tag</th>
+                  <th scope="col" class="cell-num">Veículos associados</th>
+                  <th scope="col">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                <tr th:if="${#lists.isEmpty(tags)}">
-                  <td colspan="3" style="text-align: center; padding: 32px; color: #6c7b89">
-                    Nenhuma tag cadastrada.
-                  </td>
-                </tr>
                 <tr th:each="tag : ${tags}">
-                  <td th:text="${tag.id}"></td>
                   <td><span class="tag-badge" th:text="${tag.nome}"></span></td>
+                  <td
+                    class="cell-num"
+                    th:text="${resumo.veiculosPorTag()[tag.nome] != null ? resumo.veiculosPorTag()[tag.nome] : 0}"
+                  ></td>
                   <td class="cell-actions">
                     <div class="table-actions">
                       <a th:if="${usuarioLogado.podeGerenciarTags()}"
@@ -81,11 +110,17 @@
               </tbody>
             </table>
           </div>
+
+          <th:block th:if="${#lists.isEmpty(tags)}">
+            <th:block
+              th:replace="~{fragments/layout :: emptyState('Nenhuma tag cadastrada', 'Cadastre a primeira tag para classificar os veículos da frota.')}"
+            ></th:block>
+          </th:block>
         </section>
       </main>
-      <footer class="app-footer">FleetOps · Gestão de Frota e Manutenção · © 2026</footer>
+
+      <footer th:replace="~{fragments/layout :: appFooter}"></footer>
     </div>
-    <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
+    <script th:src="@{/js/script.js}" defer></script>
   </body>
 </html>
-

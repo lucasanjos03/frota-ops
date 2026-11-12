@@ -1,42 +1,34 @@
 <!doctype html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Usuários | FleetOps</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}" href="css/styles.css" />
+    <th:block th:replace="~{fragments/layout :: head('Usuários | FleetOps')}"></th:block>
   </head>
   <body>
     <div class="fleet-app">
-      <header class="app-header">
-        <div class="header-inner">
-          <a class="brand" th:href="@{/}" href="index.html">
-            <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span><strong>Fleet</strong><b>Ops</b></span>
-          </a>
-          <div class="system-label">
-            Gestão de Frota <span>/</span>
-            <span th:text="${usuarioLogado != null ? usuarioLogado.username + ' (' + usuarioLogado.perfil + ')' : 'Operações'}">Operações</span>
-          </div>
-          <nav class="nav-menu" aria-label="Navegação principal">
-            <a class="nav-item" th:href="@{/}">Dashboard</a>
-            <a class="nav-item" th:href="@{/veiculos}">Veículos</a>
-            <a class="nav-item" th:href="@{/motoristas}">Motoristas</a>
-            <a class="nav-item" th:href="@{/manutencoes}">Manutenções</a>
-            <a class="nav-item" th:href="@{/tags}">Tags</a>
-            <a class="nav-item active" th:href="@{/usuarios}">Usuários</a>
-            <a class="nav-item nav-logout" th:href="@{/login}">Sair</a>
-          </nav>
-        </div>
-      </header>
-      <main class="page-container">
+      <header th:replace="~{fragments/layout :: appHeader('usuarios')}"></header>
+
+      <main id="conteudo" class="page-container">
         <div class="page-header">
           <div>
             <p class="eyebrow">Controle de acesso</p>
             <h1 th:text="${usuarioLogado.admin ? 'Usuários do Sistema' : 'Meu Perfil de Usuário'}">Usuários do Sistema</h1>
             <p class="page-subtitle">
               <span th:text="${totalUsuarios}">0</span>
-              usuário(s) ativo(s) disponível(is) para o seu nível de permissão (<strong th:text="${usuarioLogado.perfil}"></strong>).
+              usuário(s) ativo(s) visível(is) para o seu nível de permissão (<strong th:text="${usuarioLogado.perfil}"></strong>).
+            </p>
+            <p class="scope-note" th:if="${!usuarioLogado.admin}">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z" />
+              </svg>
+              Você visualiza apenas a sua própria conta. Senhas nunca são exibidas.
             </p>
           </div>
           <a class="button button-primary"
@@ -44,29 +36,59 @@
              th:href="@{/usuarios/novo}">+ Novo usuário</a>
         </div>
 
-        <p class="alert alert-sucesso" th:if="${sucesso}" th:text="${sucesso}"></p>
-        <p class="alert alert-erro" th:if="${erro}" th:text="${erro}"></p>
+        <th:block th:replace="~{fragments/layout :: flash}"></th:block>
 
-        <section class="content-section">
-          <div class="table-wrap">
-            <table class="data-table">
+        <!-- ====================== INDICADORES POR PERFIL (ADMIN) ====================== -->
+        <!-- "Se permitido": apenas o ADMIN enxerga a base inteira de contas. -->
+        <div class="kpi-grid" th:if="${resumo != null}">
+          <div class="kpi-card">
+            <span class="kpi-label">Usuários ativos</span>
+            <span class="kpi-value" th:text="${resumo.total()}">0</span>
+            <span class="kpi-hint">Contas habilitadas no sistema</span>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">Administradores</span>
+            <span class="kpi-value kpi-value--danger" th:text="${resumo.administradores()}">0</span>
+            <span class="kpi-hint">Acesso total, inclusive exclusões</span>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">Operadores</span>
+            <span class="kpi-value kpi-value--warning" th:text="${resumo.operadores()}">0</span>
+            <span class="kpi-hint">Perfil de visualização</span>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">Motoristas</span>
+            <span class="kpi-value kpi-value--success" th:text="${resumo.motoristas()}">0</span>
+            <span class="kpi-hint">Editam os próprios dados</span>
+          </div>
+        </div>
+
+        <section class="content-section" aria-labelledby="titulo-lista-usuarios">
+          <div class="section-heading">
+            <div>
+              <h2 id="titulo-lista-usuarios">Contas de acesso</h2>
+              <p>Perfil de permissão e vínculo com o cadastro de motorista de cada usuário.</p>
+            </div>
+          </div>
+
+          <div class="table-wrap" th:if="${!#lists.isEmpty(usuarios)}">
+            <table class="data-table data-table--usuarios">
+              <caption class="visually-hidden">Lista de usuários ativos</caption>
               <thead>
                 <tr>
-                  <th>Username</th>
-                  <th>Nome</th>
-                  <th>E-mail</th>
-                  <th>Perfil</th>
-                  <th>Vínculo Motorista</th>
-                  <th>Última Modificação</th>
-                  <th>Ações</th>
+                  <th scope="col">Username</th>
+                  <th scope="col">Nome</th>
+                  <th scope="col">E-mail</th>
+                  <th scope="col">Perfil</th>
+                  <th scope="col">Vínculo motorista</th>
+                  <th scope="col">Última modificação</th>
+                  <th scope="col">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                <tr th:if="${#lists.isEmpty(usuarios)}">
-                  <td colspan="7" style="text-align: center; padding: 32px; color: #6c7b89">
-                    Nenhum usuário ativo encontrado.
-                  </td>
-                </tr>
                 <tr th:each="u : ${usuarios}">
                   <td><strong th:text="${u.username}"></strong></td>
                   <td th:text="${u.nome}"></td>
@@ -102,10 +124,17 @@
               </tbody>
             </table>
           </div>
+
+          <th:block th:if="${#lists.isEmpty(usuarios)}">
+            <th:block
+              th:replace="~{fragments/layout :: emptyState('Nenhum usuário ativo encontrado', 'Não há contas ativas visíveis para o seu nível de permissão.')}"
+            ></th:block>
+          </th:block>
         </section>
       </main>
-      <footer class="app-footer">FleetOps · Gestão de Frota e Manutenção · © 2026</footer>
+
+      <footer th:replace="~{fragments/layout :: appFooter}"></footer>
     </div>
-    <script th:src="@{/js/script.js}" src="js/script.js" defer></script>
+    <script th:src="@{/js/script.js}" defer></script>
   </body>
 </html>

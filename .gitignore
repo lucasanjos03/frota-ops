@@ -60,3 +60,6 @@ postgres-data/
 # ============== Spec Kit ===========
 .agents/
 .specify/
+
+# ============== Relatórios de auditoria (não versionados) ===========
+RELATORIO-AUDITORIA-QA.md

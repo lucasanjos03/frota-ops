@@ -5,9 +5,15 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
+
+    /** Contagem de usuários ativos agrupada por perfil (ADMIN, OPERADOR, MOTORISTA). */
+    interface ContagemPorPerfil {
+        String getPerfil();
+
+        long getTotal();
+    }
 
     List<Usuario> findAllByAtivoTrue();
 
@@ -33,5 +39,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> autenticarUsuarioAtivo(
             @Param("login") String login,
             @Param("senha") String senha);
+
+    @Query("select u.perfil as perfil, count(u) as total from Usuario u "
+            + "where u.ativo = true group by u.perfil")
+    List<ContagemPorPerfil> contarAtivosPorPerfil();
 
 }

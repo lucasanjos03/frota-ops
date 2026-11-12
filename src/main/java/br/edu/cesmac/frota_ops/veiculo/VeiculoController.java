@@ -1,7 +1,9 @@
 package br.edu.cesmac.frota_ops.veiculo;
 
+import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -29,13 +31,21 @@ public class VeiculoController {
     @GetMapping
     public String listar(@RequestParam(required = false) String q,
                          @RequestParam(required = false) String status,
+                         @RequestParam(required = false) String situacao,
+                         @RequestParam(required = false) String revisao,
+                         @RequestParam(required = false) String vinculo,
+                         @RequestParam(required = false, defaultValue = "1") int pagina,
+                         HttpSession session,
                          Model model) {
-        List<Veiculo> filtrados = veiculoService.filtrar(q, status);
+        VeiculoFiltro filtro = new VeiculoFiltro(q, status, situacao, revisao, vinculo);
+        Page<Veiculo> resultado = veiculoService.listar(session, filtro, pagina);
 
-        model.addAttribute("veiculos", filtrados);
-        model.addAttribute("totalVeiculos", veiculoService.contarTotal());
-        model.addAttribute("filtroQ", q);
-        model.addAttribute("filtroStatus", status);
+        model.addAttribute("veiculos", resultado.getContent());
+        model.addAttribute("paginacao", resultado);
+        model.addAttribute("paginaAtual", resultado.getNumber() + 1);
+        model.addAttribute("resumo", veiculoService.montarResumo(session));
+        model.addAttribute("hoje", LocalDate.now());
+        model.addAttribute("filtro", filtro);
         return "veiculo/list";
     }
 

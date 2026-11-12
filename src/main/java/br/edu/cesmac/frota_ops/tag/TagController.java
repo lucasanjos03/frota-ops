@@ -24,9 +24,9 @@ public class TagController {
     }
 
     @GetMapping
-    public String listar(Model model) {
+    public String listar(HttpSession session, Model model) {
         model.addAttribute("tags", tagService.listarTodas());
-        model.addAttribute("totalTags", tagService.contarTotal());
+        model.addAttribute("resumo", tagService.montarResumo(session));
         return "tag/list";
     }
 
