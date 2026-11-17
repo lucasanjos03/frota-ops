@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -63,7 +64,7 @@ public class VeiculoService {
             return veiculoRepository.findAll();
         }
         if (logado.isMotorista() && logado.getMotorista() != null && logado.getMotorista().getId() != null) {
-            return veiculoRepository.findByMotoristaId(logado.getMotorista().getId());
+            return veiculoRepository.findByMotoristaIdOrderByPlacaAsc(logado.getMotorista().getId());
         }
         return Collections.emptyList();
     }
