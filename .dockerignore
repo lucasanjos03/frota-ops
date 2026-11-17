@@ -1,0 +1,22 @@
+# Artefatos de build
+target/
+build/
+
+# Controle de versão
+.git/
+.gitignore
+
+# IDE / editores
+.idea/
+*.iml
+.vscode/
+
+# Documentação auxiliar
+*.md
+
+# Maven wrapper (o build usa a imagem oficial do Maven)
+.mvn/
+
+# Arquivos de ambiente (credenciais nunca vão para a imagem)
+.env
+.env.*
