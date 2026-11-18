@@ -33,8 +33,7 @@ import br.edu.cesmac.frota_ops.veiculo.VeiculoRepository;
  * do perfil e renderização dos componentes do design system.
  *
  * <p>A contagem respeita o recorte de visibilidade: ADMIN/OPERADOR enxergam a frota
- * completa; MOTORISTA enxerga apenas os veículos vinculados ao próprio cadastro. Como um
- * veículo pode pertencer a várias tags, a soma das contagens pode exceder o total da frota.</p>
+ * completa; MOTORISTA enxerga apenas os veículos vinculados ao próprio cadastro.</p>
  */
 @SpringBootTest
 @AutoConfigureMockMvc
