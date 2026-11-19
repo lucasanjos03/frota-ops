@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <th:block th:replace="~{fragments/layout :: head('Erro | FleetOps')}"></th:block>
+  </head>
+  <body>
+    <main class="login-page">
+      <section class="login-card">
+        <div class="login-brand">
+          <a class="brand" th:href="@{/}">
+            <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span><strong>Fleet</strong><b>Ops</b></span>
+          </a>
+          <h1>Ops! Algo deu errado</h1>
+          <p class="page-subtitle" th:text="${message != null and !#strings.isEmpty(message) ? message : 'A página solicitada não foi encontrada ou ocorreu uma indisponibilidade temporária.'}">
+            A página solicitada não foi encontrada ou ocorreu uma indisponibilidade temporária.
+          </p>
+        </div>
+
+        <div style="margin-top: 1.5rem; text-align: center;">
+          <a class="button button-primary" th:href="@{/}">Voltar ao Dashboard</a>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
