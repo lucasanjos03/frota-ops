@@ -78,7 +78,7 @@ public class UsuarioController {
                                    Model model,
                                    RedirectAttributes redirectAttributes) {
         Usuario logado = usuarioService.obterUsuarioLogado(session);
-        if (!logado.podeEditarUsuario(id)) {
+        if (logado == null || !logado.podeEditarUsuario(id)) {
             redirectAttributes.addFlashAttribute("erro", "Acesso negado: você não tem permissão para editar este usuário.");
             return "redirect:/usuarios";
         }
@@ -100,12 +100,16 @@ public class UsuarioController {
                             HttpSession session,
                             RedirectAttributes redirectAttributes) {
         Usuario logado = usuarioService.obterUsuarioLogado(session);
-        if (!logado.podeEditarUsuario(id)) {
+        if (logado == null || !logado.podeEditarUsuario(id)) {
             redirectAttributes.addFlashAttribute("erro", "Acesso negado: você não tem permissão para editar este usuário.");
             return "redirect:/usuarios";
         }
 
-        if (result.hasErrors()) {
+        // Na edição a senha é opcional: se deixada em branco, mantém a senha atual
+        boolean apenasErrosDeSenhaVazia = (usuario.getSenha() == null || usuario.getSenha().isBlank())
+                && result.getFieldErrors().stream().allMatch(fe -> "senha".equals(fe.getField()));
+
+        if (result.hasErrors() && !apenasErrosDeSenhaVazia) {
             usuario.setId(id);
             return "usuario/editar";
         }
