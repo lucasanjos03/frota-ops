@@ -39,28 +39,6 @@
 
         <th:block th:replace="~{fragments/layout :: flash}"></th:block>
 
-        <!-- ========================= INDICADORES DE TAGS ========================= -->
-        <!-- Compactos e no escopo do perfil; sem ruído de dashboard em tela administrativa. -->
-        <div class="kpi-grid kpi-grid--tres">
-          <div class="kpi-card">
-            <span class="kpi-label">Total de tags</span>
-            <span class="kpi-value" th:text="${resumo.totalTags()}">0</span>
-            <span class="kpi-hint">Catálogo cadastrado</span>
-          </div>
-
-          <div class="kpi-card">
-            <span class="kpi-label">Tags em uso</span>
-            <span class="kpi-value kpi-value--success" th:text="${resumo.tagsEmUso()}">0</span>
-            <span class="kpi-hint">Com ao menos um veículo no escopo</span>
-          </div>
-
-          <div class="kpi-card">
-            <span class="kpi-label">Tags sem veículos</span>
-            <span class="kpi-value kpi-value--muted" th:text="${resumo.tagsSemVeiculos()}">0</span>
-            <span class="kpi-hint">Sem classificação atribuída</span>
-          </div>
-        </div>
-
         <section class="content-section" aria-labelledby="titulo-lista-tags">
           <div class="section-heading">
             <div>
