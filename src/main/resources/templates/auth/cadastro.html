@@ -20,22 +20,22 @@
         <form method="post" th:action="@{/cadastro}" th:object="${usuario}" novalidate>
           <div class="form-group">
             <label for="nome">Nome completo <span class="required-mark">*</span></label>
-            <input id="nome" type="text" placeholder="Ex.: João da Silva" th:field="*{nome}" th:errorclass="campo-erro">
+            <input id="nome" type="text" maxlength="150" autocomplete="name" placeholder="Ex.: João da Silva" th:field="*{nome}" th:errorclass="campo-erro">
             <p class="mensagem-erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
           </div>
           <div class="form-group">
             <label for="username">Nome de usuário (login) <span class="required-mark">*</span></label>
-            <input id="username" type="text" placeholder="Ex.: joao.silva" th:field="*{username}" th:errorclass="campo-erro">
+            <input id="username" type="text" maxlength="100" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Ex.: joao.silva" th:field="*{username}" th:errorclass="campo-erro">
             <p class="mensagem-erro" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></p>
           </div>
           <div class="form-group">
             <label for="email">E-mail <span class="required-mark">*</span></label>
-            <input id="email" type="email" placeholder="Ex.: joao.silva@fleetops.com" th:field="*{email}" th:errorclass="campo-erro">
+            <input id="email" type="email" maxlength="150" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="Ex.: joao.silva@fleetops.com" th:field="*{email}" th:errorclass="campo-erro">
             <p class="mensagem-erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
           </div>
           <div class="form-group">
             <label for="senha">Senha <span class="required-mark">*</span></label>
-            <input id="senha" type="password" placeholder="Mínimo de 4 caracteres" th:field="*{senha}" th:errorclass="campo-erro">
+            <input id="senha" type="password" maxlength="100" autocomplete="new-password" placeholder="Mínimo de 4 caracteres" th:field="*{senha}" th:errorclass="campo-erro">
             <p class="mensagem-erro" th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}"></p>
           </div>
           <button class="button button-primary" type="submit">Criar Usuário</button>
