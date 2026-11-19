@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -59,6 +60,7 @@ public class Motorista {
     @Column(length = 20)
     private String telefone;
 
+    @Email(message = "Informe um e-mail válido.")
     @Size(max = 150, message = "O e-mail deve ter no máximo 150 caracteres.")
     @Column(length = 150)
     private String email;
