@@ -12,10 +12,6 @@
           <div>
             <p class="eyebrow">Controle de acesso</p>
             <h1 th:text="${usuarioLogado.admin ? 'Usuários do Sistema' : 'Meu Perfil de Usuário'}">Usuários do Sistema</h1>
-            <p class="page-subtitle">
-              <span th:text="${totalUsuarios}">0</span>
-              usuário(s) ativo(s) visível(is) para o seu nível de permissão (<strong th:text="${usuarioLogado.perfil}"></strong>).
-            </p>
             <p class="scope-note" th:if="${!usuarioLogado.admin}">
               <svg
                 viewBox="0 0 24 24"
