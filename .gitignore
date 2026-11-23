@@ -61,5 +61,8 @@ postgres-data/
 .agents/
 .specify/
 
-# ============== Relatórios de auditoria (não versionados) ===========
+# ============== Relatórios de auditoria (não versionados) ==============
 RELATORIO-AUDITORIA-QA.md
+
+# ============== Documentação auxiliar (não versionada) ==============
+VISAO-GERAL-PROJETO.md

@@ -33,22 +33,22 @@
             <div class="form-grid">
               <div class="form-group col-span-4">
                 <label for="plate">Placa <span class="required-mark">*</span></label>
-                <input id="plate" type="text" placeholder="Ex.: ABC1D23" th:field="*{placa}" th:errorclass="campo-erro">
+                <input id="plate" type="text" maxlength="7" pattern="[A-Za-z0-9]{7}" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Ex.: ABC1D23" th:field="*{placa}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('placa')}" th:errors="*{placa}"></p>
               </div>
               <div class="form-group col-span-8">
                 <label for="model">Modelo <span class="required-mark">*</span></label>
-                <input id="model" type="text" placeholder="Ex.: Ford Transit 350" th:field="*{modelo}" th:errorclass="campo-erro">
+                <input id="model" type="text" maxlength="100" placeholder="Ex.: Ford Transit 350" th:field="*{modelo}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('modelo')}" th:errors="*{modelo}"></p>
               </div>
               <div class="form-group col-span-4">
                 <label for="year">Ano <span class="required-mark">*</span></label>
-                <input id="year" type="number" placeholder="Ex.: 2023" th:field="*{ano}" th:errorclass="campo-erro">
+                <input id="year" type="number" min="1900" max="2099" maxlength="4" inputmode="numeric" placeholder="Ex.: 2023" th:field="*{ano}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('ano')}" th:errors="*{ano}"></p>
               </div>
               <div class="form-group col-span-4">
                 <label for="mileage">Quilometragem (km) <span class="required-mark">*</span></label>
-                <input id="mileage" type="number" min="0" placeholder="Ex.: 42000" th:field="*{quilometragem}" th:errorclass="campo-erro">
+                <input id="mileage" type="number" min="0" max="9999999" maxlength="7" inputmode="numeric" placeholder="Ex.: 42000" th:field="*{quilometragem}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('quilometragem')}" th:errors="*{quilometragem}"></p>
               </div>
               <div class="form-group col-span-4">
@@ -82,7 +82,7 @@
                   </option>
                 </select>
               </div>
-              <input type="hidden" th:if="${!usuarioLogado.admin}" th:field="*{motorista}">
+              <input type="hidden" th:if="${!usuarioLogado.admin}" name="motorista" th:value="${veiculo.motorista != null ? veiculo.motorista.id : ''}">
               <div class="form-group col-span-12">
                 <label>Tags operacionais</label>
                 <div class="tags-checkbox-grid">
@@ -112,7 +112,7 @@
               </div>
               <div class="form-group col-span-12">
                 <label for="notes">Observações operacionais</label>
-                <textarea id="notes" rows="4" placeholder="Adicione notas sobre o uso, rotas ou pendências do veículo..." th:field="*{observacoes}" th:errorclass="campo-erro"></textarea>
+                <textarea id="notes" rows="4" maxlength="500" placeholder="Adicione notas sobre o uso, rotas ou pendências do veículo..." th:field="*{observacoes}" th:errorclass="campo-erro"></textarea>
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('observacoes')}" th:errors="*{observacoes}"></p>
               </div>
             </div>

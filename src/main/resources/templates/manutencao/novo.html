@@ -43,22 +43,22 @@
               </div>
               <div class="form-group col-span-3">
                 <label for="quilometragem">Quilometragem (km) <span class="required-mark">*</span></label>
-                <input id="quilometragem" type="number" min="0" th:field="*{quilometragem}" th:errorclass="campo-erro">
+                <input id="quilometragem" type="number" min="0" max="9999999" maxlength="7" inputmode="numeric" placeholder="Ex.: 0" th:field="*{quilometragem}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('quilometragem')}" th:errors="*{quilometragem}"></p>
               </div>
               <div class="form-group col-span-6">
                 <label for="servicoRealizado">Serviço realizado <span class="required-mark">*</span></label>
-                <input id="servicoRealizado" type="text" placeholder="Ex.: Revisão preventiva de freios" th:field="*{servicoRealizado}" th:errorclass="campo-erro">
+                <input id="servicoRealizado" type="text" maxlength="255" placeholder="Ex.: Revisão preventiva de freios" th:field="*{servicoRealizado}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('servicoRealizado')}" th:errors="*{servicoRealizado}"></p>
               </div>
               <div class="form-group col-span-6">
                 <label for="responsavel">Responsável / Oficina <span class="required-mark">*</span></label>
-                <input id="responsavel" type="text" placeholder="Ex.: Oficina Central" th:field="*{responsavel}" th:errorclass="campo-erro">
+                <input id="responsavel" type="text" maxlength="150" placeholder="Ex.: Oficina Central" th:field="*{responsavel}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('responsavel')}" th:errors="*{responsavel}"></p>
               </div>
               <div class="form-group col-span-12">
                 <label for="observacao">Observação</label>
-                <textarea id="observacao" rows="3" placeholder="Ex.: Troca de óleo, filtros e pastilhas dianteiras..." th:field="*{observacao}" th:errorclass="campo-erro"></textarea>
+                <textarea id="observacao" rows="3" maxlength="500" placeholder="Ex.: Troca de óleo, filtros e pastilhas dianteiras..." th:field="*{observacao}" th:errorclass="campo-erro"></textarea>
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('observacao')}" th:errors="*{observacao}"></p>
               </div>
             </div>

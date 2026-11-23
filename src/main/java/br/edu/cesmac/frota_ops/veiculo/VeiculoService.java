@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -46,24 +47,32 @@ public class VeiculoService {
     }
 
     public boolean podeCriarOuExcluir(HttpSession session) {
-        return usuarioService.obterUsuarioLogado(session).isAdmin();
+        Usuario logado = usuarioService.obterUsuarioLogado(session);
+        return logado != null && logado.isAdmin();
     }
 
     public boolean podeEditar(HttpSession session, Veiculo veiculo) {
         if (veiculo == null) {
             return false;
         }
+        Usuario logado = usuarioService.obterUsuarioLogado(session);
+        if (logado == null) {
+            return false;
+        }
         Long motoristaId = veiculo.getMotorista() != null ? veiculo.getMotorista().getId() : null;
-        return usuarioService.obterUsuarioLogado(session).podeEditarVeiculo(motoristaId);
+        return logado.podeEditarVeiculo(motoristaId);
     }
 
     public List<Veiculo> listarVeiculosGerenciaveis(HttpSession session) {
         Usuario logado = usuarioService.obterUsuarioLogado(session);
+        if (logado == null) {
+            return Collections.emptyList();
+        }
         if (logado.isAdmin()) {
             return veiculoRepository.findAll();
         }
         if (logado.isMotorista() && logado.getMotorista() != null && logado.getMotorista().getId() != null) {
-            return veiculoRepository.findByMotoristaId(logado.getMotorista().getId());
+            return veiculoRepository.findByMotoristaIdOrderByPlacaAsc(logado.getMotorista().getId());
         }
         return Collections.emptyList();
     }
@@ -197,7 +206,7 @@ public class VeiculoService {
 
     public void salvar(Veiculo veiculo) {
         if (veiculo.getPlaca() != null) {
-            veiculo.setPlaca(veiculo.getPlaca().trim().toUpperCase());
+            veiculo.setPlaca(veiculo.getPlaca().replaceAll("[^A-Za-z0-9]", "").toUpperCase());
         }
         if (veiculo.getStatus() == null || veiculo.getStatus().isBlank()) {
             veiculo.setStatus("Disponível");
@@ -219,7 +228,7 @@ public class VeiculoService {
         Usuario logado = usuarioService.obterUsuarioLogado(session);
 
         if (dadosAtualizados.getPlaca() != null) {
-            veiculo.setPlaca(dadosAtualizados.getPlaca().trim().toUpperCase());
+            veiculo.setPlaca(dadosAtualizados.getPlaca().replaceAll("[^A-Za-z0-9]", "").toUpperCase());
         }
         veiculo.setModelo(dadosAtualizados.getModelo());
         veiculo.setAno(dadosAtualizados.getAno());
@@ -228,7 +237,7 @@ public class VeiculoService {
         veiculo.setUltimaRevisao(dadosAtualizados.getUltimaRevisao());
         veiculo.setProximaRevisao(dadosAtualizados.getProximaRevisao());
         veiculo.setObservacoes(dadosAtualizados.getObservacoes());
-        if (logado.isAdmin()) {
+        if (logado != null && logado.isAdmin()) {
             veiculo.setMotorista(dadosAtualizados.getMotorista());
         }
         veiculo.setTags(dadosAtualizados.getTags());

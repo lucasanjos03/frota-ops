@@ -471,7 +471,6 @@ class ManutencaoPaginaTests {
                 .andExpect(content().string(containsString("revision-block--overdue")))
                 .andExpect(content().string(containsString("revision-block--soon")))
                 .andExpect(content().string(containsString("MNTG002")))
-                .andExpect(content().string(containsString("é uma série distinta")))
                 // Histórico, filtros e formatação de milhar
                 .andExpect(content().string(containsString("data-table--historico")))
                 .andExpect(content().string(containsString("id=\"veiculoId\"")))

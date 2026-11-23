@@ -49,17 +49,17 @@
             <div class="form-grid">
               <div class="form-group col-span-8">
                 <label for="nome">Nome completo <span class="required-mark">*</span></label>
-                <input id="nome" type="text" placeholder="Ex.: Carlos Eduardo Silva" th:field="*{nome}" th:errorclass="campo-erro">
+                <input id="nome" type="text" maxlength="150" autocomplete="name" placeholder="Ex.: Carlos Eduardo Silva" th:field="*{nome}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
               </div>
               <div class="form-group col-span-4">
                 <label for="cpf">CPF <span class="required-mark">*</span></label>
-                <input id="cpf" type="text" placeholder="Ex.: 123.456.789-01" th:field="*{cpf}" th:errorclass="campo-erro">
+                <input id="cpf" type="text" maxlength="14" inputmode="numeric" autocomplete="off" placeholder="Ex.: 123.456.789-01" th:field="*{cpf}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('cpf')}" th:errors="*{cpf}"></p>
               </div>
               <div class="form-group col-span-4">
                 <label for="numeroCnh">Número da CNH <span class="required-mark">*</span></label>
-                <input id="numeroCnh" type="text" placeholder="Ex.: 04589213477" th:field="*{numeroCnh}" th:errorclass="campo-erro">
+                <input id="numeroCnh" type="text" maxlength="11" inputmode="numeric" pattern="\d{11}" autocomplete="off" placeholder="Ex.: 04589213477" th:field="*{numeroCnh}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('numeroCnh')}" th:errors="*{numeroCnh}"></p>
               </div>
               <div class="form-group col-span-4">
@@ -82,12 +82,12 @@
               </div>
               <div class="form-group col-span-4">
                 <label for="telefone">Telefone</label>
-                <input id="telefone" type="text" placeholder="Ex.: (82) 99911-2233" th:field="*{telefone}" th:errorclass="campo-erro">
+                <input id="telefone" type="tel" maxlength="15" inputmode="numeric" autocomplete="tel" placeholder="Ex.: (82) 99911-2233" th:field="*{telefone}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}"></p>
               </div>
               <div class="form-group col-span-4">
                 <label for="email">E-mail</label>
-                <input id="email" type="email" placeholder="Ex.: motorista@frotaops.com" th:field="*{email}" th:errorclass="campo-erro">
+                <input id="email" type="email" maxlength="150" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="Ex.: motorista@frotaops.com" th:field="*{email}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
               </div>
               <div class="form-group col-span-4">
