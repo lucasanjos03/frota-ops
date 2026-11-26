@@ -10,15 +10,19 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.PageRequest;
 
 import br.edu.cesmac.frota_ops.manutencao.ManutencaoRepository;
+import br.edu.cesmac.frota_ops.manutencao.ManutencaoRankingVeiculoDTO;
 import br.edu.cesmac.frota_ops.motorista.Motorista;
+import br.edu.cesmac.frota_ops.motorista.MotoristaCategoriaDTO;
 import br.edu.cesmac.frota_ops.motorista.MotoristaRepository;
 import br.edu.cesmac.frota_ops.tag.TagRepository;
 import br.edu.cesmac.frota_ops.usuario.Usuario;
 import br.edu.cesmac.frota_ops.usuario.UsuarioService;
 import br.edu.cesmac.frota_ops.veiculo.Veiculo;
 import br.edu.cesmac.frota_ops.veiculo.VeiculoRepository;
+import br.edu.cesmac.frota_ops.veiculo.VeiculoQuilometragemDTO;
 import jakarta.servlet.http.HttpSession;
 
 /**
@@ -158,7 +162,10 @@ public class DashboardService {
                 tags.stream().filter(t -> t.total() > 0).count() >= 2,
                 alertas,
                 proximasRevisoes,
-                cnhsAlerta);
+                cnhsAlerta,
+                montarQuilometragens(motoristaId),
+                montarCategorias(logado, restrito),
+                montarRankingManutencoes(motoristaId));
     }
 
     private DashboardDTO escopoVazio(LocalDate hoje) {
@@ -180,7 +187,38 @@ public class DashboardService {
                 false,
                 List.of(),
                 List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
                 List.of());
+    }
+
+    private List<VeiculoQuilometragemDTO> montarQuilometragens(Long motoristaId) {
+        List<Veiculo> veiculos = motoristaId == null
+                ? veiculoRepository.findTop5ByOrderByQuilometragemDesc()
+                : veiculoRepository.findTop5ByMotoristaIdOrderByQuilometragemDesc(motoristaId);
+        return veiculos.stream()
+                .map(v -> new VeiculoQuilometragemDTO(v.getId(), v.getPlaca(), v.getModelo(),
+                        v.getMotorista() != null ? v.getMotorista().getNome() : null,
+                        v.getQuilometragem() != null ? v.getQuilometragem() : 0L))
+                .toList();
+    }
+
+    private List<MotoristaCategoriaDTO> montarCategorias(Usuario logado, boolean restrito) {
+        if (restrito) {
+            String categoria = logado.getMotorista().getCategoriaCnh();
+            return categoria == null ? List.of() : List.of(new MotoristaCategoriaDTO(categoria, 1));
+        }
+        return motoristaRepository.contarAgrupadoPorCategoria().stream()
+                .map(c -> new MotoristaCategoriaDTO(c.getCategoria(), c.getTotal()))
+                .toList();
+    }
+
+    private List<ManutencaoRankingVeiculoDTO> montarRankingManutencoes(Long motoristaId) {
+        return manutencaoRepository.contarAgrupadoPorVeiculo(motoristaId, PageRequest.of(0, 5)).stream()
+                .map(c -> new ManutencaoRankingVeiculoDTO(c.getVeiculoId(), c.getPlaca(),
+                        c.getModelo(), c.getMotorista(), c.getTotal()))
+                .toList();
     }
 
     // ------------------------------------------------------------------

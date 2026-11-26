@@ -1181,6 +1181,12 @@ td.table-actions > * + * { margin-left: var(--space-3); }
   font-size: var(--text-sm);
 }
 
+.chart-legend li a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .chart-legend .dot {
   flex: none;
   width: 10px;

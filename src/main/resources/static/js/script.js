@@ -188,8 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
    Gráficos (Chart.js).
 
    A fonte de dados é exclusivamente um objeto global preparado pelo servidor
-   (`window.FLEET_DASHBOARD`, `window.FLEET_VEICULOS`, `window.FLEET_MOTORISTAS`
-   ou `window.FLEET_MANUTENCOES`) com DTOs agregados já calculados. Nenhuma
+   (`window.FLEET_DASHBOARD`) com DTOs agregados já calculados. Nenhuma
    entidade JPA trafega para o navegador e nenhum dado é recalculado aqui: o
    JavaScript apenas desenha.
 
@@ -280,7 +279,10 @@ const DashboardCharts = {
       return;
     }
 
-    if (ChartKit.bibliotecaAusente(['chart-distribuicao', 'chart-manutencoes', 'chart-tags'])) {
+    if (ChartKit.bibliotecaAusente([
+      'chart-distribuicao', 'chart-manutencoes', 'chart-tags',
+      'chart-quilometragem', 'chart-categoria', 'chart-ranking-manutencoes'
+    ])) {
       return;
     }
 
@@ -378,28 +380,14 @@ const DashboardCharts = {
         }
       }
     });
-  }
-};
+    this.quilometragem(dados, t);
+    this.categorias(dados, t);
+    this.ranking(dados, t);
+  },
 
-/* Gráfico da página de veículos: ranking de quilometragem atual (hodômetro).
-   Não representa consumo, desgaste ou falha mecânica — apenas o valor do
-   cadastro de cada veículo. */
-const VeiculoCharts = {
-  iniciar() {
-    const dados = window.FLEET_VEICULOS;
-    if (!dados) {
-      return;
-    }
-
-    const graficoId = 'chart-quilometragem';
-    if (ChartKit.bibliotecaAusente([graficoId])) {
-      return;
-    }
-
+  quilometragem(dados, t) {
     const veiculos = dados.maioresQuilometragens || [];
-    const t = ChartKit.tokens();
-
-    ChartKit.desenhar(graficoId, veiculos.length > 0, {
+    ChartKit.desenhar('chart-quilometragem', veiculos.length > 0, {
       type: 'bar',
       data: {
         labels: veiculos.map((item) => item.placa),
@@ -441,29 +429,12 @@ const VeiculoCharts = {
         }
       }
     });
-  }
-};
+  },
 
-/* Gráfico da página de motoristas: distribuição da equipe pelas categorias de CNH
-   cadastradas. Não existe tabela de referência de categorias — o gráfico mostra
-   exatamente o que está no cadastro. */
-const MotoristaCharts = {
-  iniciar() {
-    const dados = window.FLEET_MOTORISTAS;
-    if (!dados) {
-      return;
-    }
-
-    const graficoId = 'chart-categoria';
-    if (ChartKit.bibliotecaAusente([graficoId])) {
-      return;
-    }
-
-    const categorias = dados.porCategoria || [];
+  categorias(dados, t) {
+    const categorias = dados.motoristasPorCategoria || [];
     const total = categorias.reduce((soma, item) => soma + Number(item.total || 0), 0);
-    const t = ChartKit.tokens();
-
-    ChartKit.desenhar(graficoId, total > 0, {
+    ChartKit.desenhar('chart-categoria', total > 0, {
       type: 'bar',
       data: {
         labels: categorias.map((item) => `Categoria ${item.categoria}`),
@@ -497,60 +468,46 @@ const MotoristaCharts = {
         }
       }
     });
-  }
-};
+  },
 
-/* Gráfico da página de manutenções: quantidade de manutenções REALIZADAS em cada
-   um dos últimos doze meses, pela data do serviço. Meses sem registro aparecem
-   com zero — o eixo temporal é contínuo. A série é de histórico: as revisões
-   previstas do cadastro não entram neste gráfico. */
-const ManutencaoCharts = {
-  iniciar() {
-    const dados = window.FLEET_MANUTENCOES;
-    if (!dados) {
-      return;
-    }
-
-    const graficoId = 'chart-manutencoes-mes';
-    if (ChartKit.bibliotecaAusente([graficoId])) {
-      return;
-    }
-
-    const meses = dados.manutencoesPorMes || [];
-    const total = meses.reduce((soma, item) => soma + Number(item.total || 0), 0);
-    const t = ChartKit.tokens();
-
-    ChartKit.desenhar(graficoId, total > 0, {
+  ranking(dados, t) {
+    const veiculos = dados.rankingManutencoes || [];
+    ChartKit.desenhar('chart-ranking-manutencoes', veiculos.length > 0, {
       type: 'bar',
       data: {
-        labels: meses.map((item) => item.rotulo),
+        labels: veiculos.map((item) => item.placa),
         datasets: [
           {
-            label: 'Manutenções realizadas',
-            data: meses.map((item) => Number(item.total || 0)),
+            label: 'Registros de manutenção',
+            data: veiculos.map((item) => Number(item.total || 0)),
             backgroundColor: t.azul,
             borderRadius: 4,
-            maxBarThickness: 40
+            maxBarThickness: 26
           }
         ]
       },
       options: {
         ...ChartKit.base(),
+        indexAxis: 'y',
         plugins: {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (ctx) => ` ${ctx.parsed.y} registro(s)`
+              title: (itens) => {
+                const item = veiculos[itens[0].dataIndex];
+                return item ? `${item.placa} · ${item.modelo}` : '';
+              },
+              label: (ctx) => ` ${ctx.parsed.x} registro(s)`
             }
           }
         },
         scales: {
-          x: { grid: { display: false }, ticks: { color: t.rotulo } },
-          y: {
+          x: {
             beginAtZero: true,
             ticks: { precision: 0, color: t.rotulo },
             grid: { color: t.grade }
-          }
+          },
+          y: { grid: { display: false }, ticks: { color: t.rotulo } }
         }
       }
     });
@@ -559,7 +516,4 @@ const ManutencaoCharts = {
 
 document.addEventListener('DOMContentLoaded', () => {
   DashboardCharts.iniciar();
-  VeiculoCharts.iniciar();
-  MotoristaCharts.iniciar();
-  ManutencaoCharts.iniciar();
 });

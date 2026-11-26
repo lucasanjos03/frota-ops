@@ -29,7 +29,7 @@ import br.edu.cesmac.frota_ops.veiculo.Veiculo;
 import br.edu.cesmac.frota_ops.veiculo.VeiculoRepository;
 
 /**
- * Testes da página de tags: indicadores compactos, contagem de veículos por tag no escopo
+ * Testes da página de tags: contagem de veículos por tag no escopo
  * do perfil e renderização dos componentes do design system.
  *
  * <p>A contagem respeita o recorte de visibilidade: ADMIN/OPERADOR enxergam a frota
@@ -120,7 +120,7 @@ class TagPaginaTests {
     // ------------------------------------------------------------------
 
     @Test
-    void deveRenderizarIndicadoresTabelaEContagemDeTags() throws Exception {
+    void deveRenderizarTabelaEContagemDeTagsSemCards() throws Exception {
         limparDados();
 
         Tag urgente = criarTag("Urgente");
@@ -129,11 +129,7 @@ class TagPaginaTests {
         mockMvc.perform(get("/tags").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("tag/list"))
-                // Indicadores compactos (três cartões, sem coluna vazia)
-                .andExpect(content().string(containsString("Total de tags")))
-                .andExpect(content().string(containsString("Tags em uso")))
-                .andExpect(content().string(containsString("Tags sem veículos")))
-                .andExpect(content().string(containsString("kpi-grid--tres")))
+                .andExpect(content().string(not(containsString("kpi-card"))))
                 // Tabela padronizada com a coluna de contagem
                 .andExpect(content().string(containsString("Lista de tags operacionais")))
                 .andExpect(content().string(containsString("Veículos associados")))

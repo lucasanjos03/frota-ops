@@ -247,7 +247,7 @@ class MotoristaPaginaTests {
     // ------------------------------------------------------------------
 
     @Test
-    void deveRenderizarIndicadoresGraficoPainelEFiltrosPreservandoATabela() throws Exception {
+    void deveRenderizarIndicadoresEFiltrosComTabelaSemGraficos() throws Exception {
         limpar();
 
         Usuario motorista = criarMotorista("carlos.teste", "Carlos Teste", "111.444.777-35",
@@ -264,15 +264,9 @@ class MotoristaPaginaTests {
                 .andExpect(content().string(containsString("CNHs vencidas")))
                 .andExpect(content().string(containsString("CNHs a vencer")))
                 .andExpect(content().string(containsString("Sem veículo atribuído")))
-                // Gráfico por categoria com a lista acessível
-                .andExpect(content().string(containsString("Motoristas por categoria de CNH")))
-                .andExpect(content().string(containsString("chart-categoria")))
-                .andExpect(content().string(containsString("window.FLEET_MOTORISTAS")))
-                .andExpect(content().string(containsString("Categoria B")))
-                // Painel de documentos que exigem atenção
-                .andExpect(content().string(containsString("Documentos que exigem atenção")))
-                .andExpect(content().string(containsString("vencida há 5 dia(s)")))
-                .andExpect(content().string(containsString("alert-item--alta")))
+                .andExpect(content().string(not(containsString("<canvas"))))
+                .andExpect(content().string(not(containsString("/js/vendor/chart.umd.min.js"))))
+                .andExpect(content().string(not(containsString("Documentos que exigem atenção"))))
                 // Filtros
                 .andExpect(content().string(containsString("id=\"status\"")))
                 .andExpect(content().string(containsString("id=\"categoria\"")))
@@ -320,8 +314,6 @@ class MotoristaPaginaTests {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Nenhum motorista encontrado")))
                 .andExpect(content().string(containsString("Não há motoristas cadastrados.")))
-                .andExpect(content().string(containsString("Sem categorias registradas")))
-                .andExpect(content().string(containsString("Nenhuma CNH exige atenção")))
                 .andExpect(content().string(not(containsString("id=\"chart-categoria\""))));
 
         criarMotorista("unico", "Alfa Unico", "111.111.111-11", "10000000001", "B",

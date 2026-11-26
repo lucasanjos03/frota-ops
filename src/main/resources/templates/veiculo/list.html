@@ -116,63 +116,13 @@
           </a>
         </div>
 
-        <!-- ===================== MAIORES QUILOMETRAGENS (TOP 5) ===================== -->
-        <section class="content-section chart-card" aria-labelledby="titulo-chart-quilometragem">
-          <div class="section-heading">
-            <div>
-              <h2 id="titulo-chart-quilometragem">Maiores quilometragens</h2>
-              <p>Os cinco veículos com maior hodômetro registrado no cadastro.</p>
-            </div>
-          </div>
-          <div class="chart-card__body">
-            <div
-              class="chart-box chart-box--km"
-              th:if="${!#lists.isEmpty(resumo.maioresQuilometragens())}"
-            >
-              <canvas
-                id="chart-quilometragem"
-                width="300"
-                height="300"
-                role="img"
-                aria-label="Gráfico de barras horizontais com os cinco veículos de maior quilometragem atual"
-              ></canvas>
-              <p class="chart-state">Carregando gráfico…</p>
-            </div>
-
-            <div
-              class="empty-state"
-              th:if="${#lists.isEmpty(resumo.maioresQuilometragens())}"
-            >
-              <strong>Sem dados de quilometragem</strong>
-              Nenhum veículo no escopo atual para montar o ranking de hodômetro.
-            </div>
-
-            <!-- Lista acessível: mantém a informação visível se o gráfico não renderizar. -->
-            <ul
-              class="chart-legend chart-legend--km"
-              th:if="${!#lists.isEmpty(resumo.maioresQuilometragens())}"
-            >
-              <li th:each="km : ${resumo.maioresQuilometragens()}">
-                <span class="dot" aria-hidden="true"></span>
-                <strong th:text="${km.placa()}">PLACA</strong>
-                <span class="text-muted" th:text="${km.modelo()}">Modelo</span>
-                <span
-                  class="qtd"
-                  th:text="${#numbers.formatInteger(km.quilometragem(), 1, 'POINT')} + ' km'"
-                >0 km</span>
-              </li>
-            </ul>
-          </div>
-        </section>
-
         <!-- =========================== LISTA E FILTROS =========================== -->
         <section class="content-section mt-5" aria-labelledby="titulo-lista-veiculos">
           <div class="section-heading">
             <div>
               <h2 id="titulo-lista-veiculos">Lista de veículos</h2>
               <p>
-                Os filtros abaixo afetam apenas a tabela — os indicadores e o gráfico
-                permanecem no escopo do perfil.
+                Consulte a frota e filtre por status, revisão ou vínculo.
               </p>
             </div>
           </div>
@@ -436,12 +386,6 @@
       <footer th:replace="~{fragments/layout :: appFooter}"></footer>
     </div>
 
-    <script th:inline="javascript">
-      window.FLEET_VEICULOS = {
-        maioresQuilometragens: /*[[${resumo.maioresQuilometragens()}]]*/ []
-      };
-    </script>
-    <script th:src="@{/js/vendor/chart.umd.min.js}" defer></script>
     <script th:src="@{/js/script.js}" defer></script>
   </body>
 </html>

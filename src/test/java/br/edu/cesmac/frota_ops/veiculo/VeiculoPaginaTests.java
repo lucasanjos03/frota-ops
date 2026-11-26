@@ -257,10 +257,8 @@ class VeiculoPaginaTests {
                 .andExpect(content().string(containsString("Revisões vencidas")))
                 .andExpect(content().string(containsString("Revisões próximas")))
                 .andExpect(content().string(containsString("Sem condutor atribuído")))
-                // Gráfico horizontal de quilometragem
-                .andExpect(content().string(containsString("Maiores quilometragens")))
-                .andExpect(content().string(containsString("chart-quilometragem")))
-                .andExpect(content().string(containsString("window.FLEET_VEICULOS")))
+                .andExpect(content().string(not(containsString("<canvas"))))
+                .andExpect(content().string(not(containsString("/js/vendor/chart.umd.min.js"))))
                 // Formatação de quilometragem (separador de milhar)
                 .andExpect(content().string(containsString("1.000 km")))
                 // Filtros
@@ -309,7 +307,6 @@ class VeiculoPaginaTests {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Nenhum veículo encontrado")))
                 .andExpect(content().string(containsString("Não há veículos no escopo exibido.")))
-                .andExpect(content().string(containsString("Sem dados de quilometragem")))
                 .andExpect(content().string(not(containsString("id=\"chart-quilometragem\""))));
 
         criarVeiculo("UNICO01", "Disponível", null, null);
