@@ -457,21 +457,11 @@ class ManutencaoPaginaTests {
                 .andExpect(content().string(containsString("Realizadas no mês")))
                 .andExpect(content().string(containsString("Revisões atrasadas")))
                 .andExpect(content().string(containsString("Revisões previstas")))
-                // Gráfico mensal com lista acessível e objeto global
-                .andExpect(content().string(containsString("Manutenções realizadas por mês")))
-                .andExpect(content().string(containsString("id=\"chart-manutencoes-mes\"")))
-                .andExpect(content().string(containsString("chart-legend--meses")))
-                .andExpect(content().string(containsString("window.FLEET_MANUTENCOES")))
-                // Ranking com links para os registros e para o veículo
-                .andExpect(content().string(containsString("Veículos com mais registros de manutenção")))
-                .andExpect(content().string(containsString("data-table--ranking")))
-                .andExpect(content().string(containsString("Ver registros")))
-                // Painel de revisões: duas séries separadas, atrasadas e previstas
-                .andExpect(content().string(containsString("Revisões previstas no cadastro")))
-                .andExpect(content().string(containsString("revision-block--overdue")))
-                .andExpect(content().string(containsString("revision-block--soon")))
+                .andExpect(content().string(not(containsString("<canvas"))))
+                .andExpect(content().string(not(containsString("/js/vendor/chart.umd.min"))))
+                .andExpect(content().string(not(containsString("data-table--ranking"))))
+                .andExpect(content().string(not(containsString("Revisões previstas no cadastro"))))
                 .andExpect(content().string(containsString("MNTG002")))
-                .andExpect(content().string(containsString("é uma série distinta")))
                 // Histórico, filtros e formatação de milhar
                 .andExpect(content().string(containsString("data-table--historico")))
                 .andExpect(content().string(containsString("id=\"veiculoId\"")))
@@ -500,8 +490,6 @@ class ManutencaoPaginaTests {
 
         mockMvc.perform(get("/manutencoes").sessionAttr("usuarioLogado", admin()))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Sem manutenções nos últimos meses")))
-                .andExpect(content().string(containsString("Sem registros para ranquear")))
                 .andExpect(content().string(containsString("Nenhuma manutenção encontrada")))
                 .andExpect(content().string(
                         containsString("Não há manutenções registradas no escopo exibido.")))

@@ -27,7 +27,7 @@
             <div class="form-grid">
               <div class="form-group col-span-12">
                 <label for="nome">Nome da Tag <span class="required-mark">*</span></label>
-                <input id="nome" type="text" placeholder="Ex.: Refrigerado" th:field="*{nome}" th:errorclass="campo-erro">
+                <input id="nome" type="text" maxlength="50" placeholder="Ex.: Refrigerado" th:field="*{nome}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
               </div>
             </div>

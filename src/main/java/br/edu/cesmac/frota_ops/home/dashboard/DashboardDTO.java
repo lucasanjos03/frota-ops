@@ -2,6 +2,10 @@ package br.edu.cesmac.frota_ops.home.dashboard;
 
 import java.util.List;
 
+import br.edu.cesmac.frota_ops.manutencao.ManutencaoRankingVeiculoDTO;
+import br.edu.cesmac.frota_ops.motorista.MotoristaCategoriaDTO;
+import br.edu.cesmac.frota_ops.veiculo.VeiculoQuilometragemDTO;
+
 /**
  * Agregado completo exibido no dashboard operacional. Reúne apenas dados já calculados
  * pelo {@link DashboardService}; nenhuma entidade JPA trafega para a view ou para o JavaScript.
@@ -20,5 +24,8 @@ public record DashboardDTO(
         boolean exibirGraficoTags,
         List<AlertaDTO> alertas,
         List<RevisaoVeiculoDTO> proximasRevisoes,
-        List<CnhAlertaDTO> cnhsEmAlerta) {
+        List<CnhAlertaDTO> cnhsEmAlerta,
+        List<VeiculoQuilometragemDTO> maioresQuilometragens,
+        List<MotoristaCategoriaDTO> motoristasPorCategoria,
+        List<ManutencaoRankingVeiculoDTO> rankingManutencoes) {
 }

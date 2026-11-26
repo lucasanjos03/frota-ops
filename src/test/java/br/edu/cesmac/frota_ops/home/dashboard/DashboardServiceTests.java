@@ -328,8 +328,10 @@ class DashboardServiceTests {
                 "123456", "ADMIN", true);
         usuarioService.salvar(admin);
 
-        // Dados mínimos para que os três gráficos existam no HTML.
-        Veiculo primeiro = criarVeiculo("REND001", "Disponível", LocalDate.now().minusDays(2), null);
+        // Dados mínimos para que os seis gráficos existam no HTML.
+        Usuario motorista = criarMotorista("render.motorista", "Motorista Render", "111.222.333-44",
+                "12345678901", LocalDate.now().plusYears(2));
+        Veiculo primeiro = criarVeiculo("REND001", "Disponível", LocalDate.now().minusDays(2), motorista.getMotorista());
         Veiculo segundo = criarVeiculo("REND002", "Em trânsito", null, null);
         adicionarTag(primeiro, "Rota Urbana");
         adicionarTag(segundo, "Rastreado GPS");
@@ -348,8 +350,13 @@ class DashboardServiceTests {
                 .andExpect(content().string(containsString("chart-distribuicao")))
                 .andExpect(content().string(containsString("chart-manutencoes")))
                 .andExpect(content().string(containsString("chart-tags")))
+                .andExpect(content().string(containsString("id=\"chart-quilometragem\"")))
+                .andExpect(content().string(containsString("id=\"chart-categoria\"")))
+                .andExpect(content().string(containsString("id=\"chart-ranking-manutencoes\"")))
+                .andExpect(content().string(containsString("/manutencoes?veiculoId=" + primeiro.getId())))
+                .andExpect(content().string(containsString("/motoristas?categoria=B")))
                 .andExpect(content().string(containsString("window.FLEET_DASHBOARD")))
-                .andExpect(content().string(containsString("/js/vendor/chart.umd.min.js")));
+                .andExpect(content().string(containsString("/js/vendor/chart.umd.min")));
     }
 
     @Test
@@ -368,7 +375,11 @@ class DashboardServiceTests {
                 // para não colidir com os ids de título (ex.: "titulo-chart-manutencoes").
                 .andExpect(content().string(not(containsString("id=\"chart-distribuicao\""))))
                 .andExpect(content().string(not(containsString("id=\"chart-manutencoes\""))))
-                .andExpect(content().string(not(containsString("id=\"chart-tags\""))));
+                .andExpect(content().string(not(containsString("id=\"chart-tags\""))))
+                .andExpect(content().string(containsString("Sem dados de quilometragem")))
+                .andExpect(content().string(containsString("Sem categorias registradas")))
+                .andExpect(content().string(containsString("Sem registros para ranquear")))
+                .andExpect(content().string(not(containsString("<canvas"))));
     }
 
     @Test
@@ -381,9 +392,24 @@ class DashboardServiceTests {
         Usuario terceiro = criarMotorista("escopo.terceiro", "Escopo Terceiro", "777.777.777-77", "77777777777",
                 LocalDate.now().plusYears(3));
 
-        criarVeiculo("UI00001", "Disponível", LocalDate.now().minusDays(5), logado.getMotorista());
+        Veiculo proprio = criarVeiculo("UI00001", "Disponível", LocalDate.now().minusDays(5), logado.getMotorista());
         criarVeiculo("UI00002", "Disponível", LocalDate.now().minusDays(5), logado.getMotorista());
-        criarVeiculo("FORA001", "Disponível", LocalDate.now().minusDays(5), terceiro.getMotorista());
+        Veiculo outro = criarVeiculo("FORA001", "Disponível", LocalDate.now().minusDays(5), terceiro.getMotorista());
+        terceiro.getMotorista().setCategoriaCnh("D");
+        motoristaRepository.saveAndFlush(terceiro.getMotorista());
+        criarManutencao(proprio, LocalDate.now());
+        criarManutencao(outro, LocalDate.now());
+        criarManutencao(outro, LocalDate.now().minusDays(1));
+
+        DashboardDTO dados = dashboardService.montar(logado);
+        assertThat(dados.maioresQuilometragens()).extracting(item -> item.placa())
+                .containsExactlyInAnyOrder("UI00001", "UI00002");
+        assertThat(dados.motoristasPorCategoria()).hasSize(1);
+        assertThat(dados.motoristasPorCategoria().getFirst().categoria()).isEqualTo("B");
+        assertThat(dados.motoristasPorCategoria().getFirst().total()).isEqualTo(1);
+        assertThat(dados.rankingManutencoes()).hasSize(1);
+        assertThat(dados.rankingManutencoes().getFirst().placa()).isEqualTo("UI00001");
+        assertThat(dados.rankingManutencoes().getFirst().total()).isEqualTo(1);
 
         mockMvc.perform(get("/").sessionAttr("usuarioLogado", logado))
                 .andExpect(status().isOk())
@@ -391,6 +417,7 @@ class DashboardServiceTests {
                 .andExpect(content().string(containsString("UI00001")))
                 .andExpect(content().string(containsString("UI00002")))
                 .andExpect(content().string(not(containsString("FORA001"))))
+                .andExpect(content().string(not(containsString("Categoria D"))))
                 .andExpect(content().string(not(containsString("Frota completa"))));
     }
 
