@@ -257,10 +257,11 @@ class VeiculoPaginaTests {
                 .andExpect(content().string(containsString("Revisões vencidas")))
                 .andExpect(content().string(containsString("Revisões próximas")))
                 .andExpect(content().string(containsString("Sem condutor atribuído")))
-                // Gráfico horizontal de quilometragem
+                // Gráfico horizontal de quilometragem e seu aviso de escopo
                 .andExpect(content().string(containsString("Maiores quilometragens")))
                 .andExpect(content().string(containsString("chart-quilometragem")))
                 .andExpect(content().string(containsString("window.FLEET_VEICULOS")))
+                .andExpect(content().string(containsString("Hodômetro atual do cadastro")))
                 // Formatação de quilometragem (separador de milhar)
                 .andExpect(content().string(containsString("1.000 km")))
                 // Filtros

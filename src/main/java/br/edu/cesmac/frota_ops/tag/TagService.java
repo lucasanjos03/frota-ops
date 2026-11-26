@@ -24,13 +24,11 @@ public class TagService {
     }
 
     public boolean podeGerenciar(HttpSession session) {
-        Usuario logado = usuarioService.obterUsuarioLogado(session);
-        return logado != null && logado.podeGerenciarTags();
+        return usuarioService.obterUsuarioLogado(session).podeGerenciarTags();
     }
 
     public boolean podeExcluir(HttpSession session) {
-        Usuario logado = usuarioService.obterUsuarioLogado(session);
-        return logado != null && logado.isAdmin();
+        return usuarioService.obterUsuarioLogado(session).isAdmin();
     }
 
     public List<Tag> listarTodas() {
