@@ -961,15 +961,6 @@ td.table-actions > * + * { margin-left: var(--space-3); }
   );
 }
 
-.login-page--illustrated {
-  min-height: 100svh;
-  background-color: #a5cce9;
-  background-image: url("../images/login-background.png");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-}
-
 .login-card {
   width: min(440px, 100%);
   padding: var(--space-7);

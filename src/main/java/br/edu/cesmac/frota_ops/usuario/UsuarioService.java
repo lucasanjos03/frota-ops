@@ -152,9 +152,7 @@ public class UsuarioService {
             usuario.setEmail(dadosAtualizados.getEmail().trim().toLowerCase());
         }
         if (dadosAtualizados.getSenha() != null && !dadosAtualizados.getSenha().isBlank()) {
-            if (!ehHashBcrypt(dadosAtualizados.getSenha())) {
-                usuario.setSenha(passwordEncoder.encode(dadosAtualizados.getSenha()));
-            }
+            usuario.setSenha(passwordEncoder.encode(dadosAtualizados.getSenha()));
         }
         if (logado != null && logado.isAdmin()) {
             if (dadosAtualizados.getPerfil() != null && !dadosAtualizados.getPerfil().isBlank()) {

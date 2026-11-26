@@ -35,13 +35,11 @@ public class MotoristaService {
     }
 
     public boolean podeCriarOuExcluir(HttpSession session) {
-        Usuario logado = usuarioService.obterUsuarioLogado(session);
-        return logado != null && logado.isAdmin();
+        return usuarioService.obterUsuarioLogado(session).isAdmin();
     }
 
     public boolean podeEditar(HttpSession session, Long motoristaId) {
-        Usuario logado = usuarioService.obterUsuarioLogado(session);
-        return logado != null && logado.podeEditarMotorista(motoristaId);
+        return usuarioService.obterUsuarioLogado(session).podeEditarMotorista(motoristaId);
     }
 
     public List<Motorista> listarTodos() {
@@ -162,7 +160,6 @@ public class MotoristaService {
         if (motorista.getStatus() == null || motorista.getStatus().isBlank()) {
             motorista.setStatus("Ativo");
         }
-        sanitizarDados(motorista);
         sincronizarDadosComUsuario(motorista);
         motoristaRepository.save(motorista);
         usuarioService.definirPerfilMotorista(motorista.getUsuario());
@@ -173,8 +170,6 @@ public class MotoristaService {
         if (motorista == null) {
             return false;
         }
-
-        sanitizarDados(dadosAtualizados);
 
         motorista.setUsuario(dadosAtualizados.getUsuario());
         motorista.setNome(dadosAtualizados.getNome());
@@ -190,30 +185,6 @@ public class MotoristaService {
         motoristaRepository.save(motorista);
         usuarioService.definirPerfilMotorista(motorista.getUsuario());
         return true;
-    }
-
-    private void sanitizarDados(Motorista motorista) {
-        if (motorista == null) {
-            return;
-        }
-        if (motorista.getNome() != null) {
-            motorista.setNome(motorista.getNome().trim());
-        }
-        if (motorista.getCpf() != null) {
-            motorista.setCpf(motorista.getCpf().trim());
-        }
-        if (motorista.getNumeroCnh() != null) {
-            motorista.setNumeroCnh(motorista.getNumeroCnh().trim());
-        }
-        if (motorista.getCategoriaCnh() != null) {
-            motorista.setCategoriaCnh(motorista.getCategoriaCnh().trim().toUpperCase());
-        }
-        if (motorista.getTelefone() != null) {
-            motorista.setTelefone(motorista.getTelefone().trim());
-        }
-        if (motorista.getEmail() != null) {
-            motorista.setEmail(motorista.getEmail().trim().toLowerCase());
-        }
     }
 
     private void sincronizarDadosComUsuario(Motorista motorista) {

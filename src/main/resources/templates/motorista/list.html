@@ -137,6 +137,23 @@
                 <span class="qtd" th:text="${categoria.total()}">0</span>
               </li>
             </ul>
+
+            <p class="scope-note">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8h.01M11 12h1v4h1" />
+              </svg>
+              Não existe tabela de referência de categorias: o gráfico reflete apenas as
+              categorias presentes no cadastro.
+            </p>
           </div>
         </section>
 
@@ -202,6 +219,25 @@
             Não há CNHs vencidas nem com vencimento nos próximos
             <span th:text="${resumo.janelaCnhDias()}">30</span> dias.
           </div>
+
+          <div class="section-body">
+            <p class="scope-note">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8h.01M11 12h1v4h1" />
+              </svg>
+              Documento dentro da validade não garante aptidão operacional: status do
+              cadastro, vínculo com veículo e demais condições são avaliados em separado.
+            </p>
+          </div>
         </section>
 
         <!-- =========================== LISTA E FILTROS =========================== -->
@@ -222,7 +258,6 @@
               id="motorista-busca"
               name="q"
               type="search"
-              maxlength="100"
               placeholder="Ex.: Carlos ou 12345678901"
               th:value="${filtro.q()}"
             />

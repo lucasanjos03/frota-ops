@@ -28,23 +28,23 @@
             <div class="form-grid">
               <div class="form-group col-span-6">
                 <label for="nome">Nome completo <span class="required-mark">*</span></label>
-                <input id="nome" type="text" maxlength="150" autocomplete="name" th:field="*{nome}" th:errorclass="campo-erro">
+                <input id="nome" type="text" th:field="*{nome}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
               </div>
               <div class="form-group col-span-6">
                 <label for="username">Username (Login) <span class="required-mark">*</span></label>
-                <input id="username" type="text" maxlength="100" autocomplete="username" autocapitalize="none" spellcheck="false" th:field="*{username}" th:errorclass="campo-erro">
+                <input id="username" type="text" th:field="*{username}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></p>
               </div>
               <div class="form-group col-span-5">
                 <label for="email">E-mail <span class="required-mark">*</span></label>
-                <input id="email" type="email" maxlength="150" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" th:field="*{email}" th:errorclass="campo-erro">
+                <input id="email" type="email" th:field="*{email}" th:errorclass="campo-erro">
                 <p class="mensagem-erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
               </div>
               <div class="form-group col-span-3">
-                <label for="senha">Senha</label>
-                <input id="senha" name="senha" type="password" maxlength="100" autocomplete="new-password" value="" placeholder="Deixe em branco para manter a atual" th:classappend="${#fields.hasErrors('senha') and usuario.senha != null and !usuario.senha.isBlank()} ? 'campo-erro' : ''">
-                <p class="mensagem-erro" th:if="${#fields.hasErrors('senha') and usuario.senha != null and !usuario.senha.isBlank()}" th:errors="*{senha}"></p>
+                <label for="senha">Senha <span class="required-mark">*</span></label>
+                <input id="senha" type="password" autocomplete="new-password" th:field="*{senha}" th:errorclass="campo-erro">
+                <p class="mensagem-erro" th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}"></p>
               </div>
               <div class="form-group col-span-4" th:if="${usuarioLogado.admin}">
                 <label for="perfil">Perfil de acesso <span class="required-mark">*</span></label>

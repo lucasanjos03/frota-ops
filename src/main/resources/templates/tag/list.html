@@ -16,7 +16,7 @@
               <span th:text="${resumo.totalTags()}">0</span>
               tags cadastradas para classificação dos veículos.
             </p>
-            <p class="scope-note" th:if="${resumo.escopoRestrito()}">
+            <p class="scope-note">
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -29,7 +29,13 @@
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 8h.01M11 12h1v4h1" />
               </svg>
-              Contagem restrita aos veículos vinculados ao seu cadastro.
+              <span th:if="${resumo.escopoRestrito()}">
+                Contagem restrita aos veículos vinculados ao seu cadastro.
+              </span>
+              <span th:unless="${resumo.escopoRestrito()}">
+                Um veículo pode pertencer a várias tags; a soma das contagens pode exceder
+                o total da frota.
+              </span>
             </p>
           </div>
           <a class="button button-primary"

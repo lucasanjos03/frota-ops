@@ -273,6 +273,7 @@ class MotoristaPaginaTests {
                 .andExpect(content().string(containsString("Documentos que exigem atenção")))
                 .andExpect(content().string(containsString("vencida há 5 dia(s)")))
                 .andExpect(content().string(containsString("alert-item--alta")))
+                .andExpect(content().string(containsString("Documento dentro da validade não garante aptidão operacional")))
                 // Filtros
                 .andExpect(content().string(containsString("id=\"status\"")))
                 .andExpect(content().string(containsString("id=\"categoria\"")))

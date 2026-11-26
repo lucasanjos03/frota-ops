@@ -1,187 +1,25 @@
 const Utils = {
   formatarPlaca(valor) {
     return (valor || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
-  },
-
-  formatarCpf(valor) {
-    const digits = (valor || '').replace(/\D/g, '').slice(0, 11);
-    if (!digits) return '';
-    if (digits.length <= 3) return digits;
-    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
-    if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
-    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
-  },
-
-  formatarCnh(valor) {
-    return (valor || '').replace(/\D/g, '').slice(0, 11);
-  },
-
-  formatarTelefone(valor) {
-    const digits = (valor || '').replace(/\D/g, '').slice(0, 11);
-    if (!digits) return '';
-    if (digits.length <= 2) return `(${digits}`;
-    if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-    if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-  },
-
-  formatarApenasDigitos(valor, maxLen) {
-    const digits = (valor || '').replace(/\D/g, '');
-    return maxLen ? digits.slice(0, maxLen) : digits;
-  },
-
-  formatarUsername(valor) {
-    return (valor || '').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 100);
-  }
-};
-
-const FormMasks = {
-  impedirTeclasNaoDigito(e) {
-    // Permite teclas de navegação, edição e atalhos (Ctrl/Cmd)
-    if (
-      ['Backspace', 'Tab', 'Enter', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key) ||
-      e.ctrlKey || e.metaKey || e.altKey
-    ) {
-      return;
-    }
-    // Bloqueia qualquer caractere que não seja dígito numérico (0-9)
-    if (!/^\d$/.test(e.key)) {
-      e.preventDefault();
-    }
-  },
-
-  impedirTeclasNaoAlfanumericas(e) {
-    if (
-      ['Backspace', 'Tab', 'Enter', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key) ||
-      e.ctrlKey || e.metaKey || e.altKey
-    ) {
-      return;
-    }
-    if (!/^[a-zA-Z0-9]$/.test(e.key)) {
-      e.preventDefault();
-    }
-  },
-
-  iniciar() {
-    // 1. Placa de veículo (#plate ou #placa)
-    const inputsPlaca = document.querySelectorAll('#plate, #placa');
-    inputsPlaca.forEach((input) => {
-      input.setAttribute('maxlength', '7');
-      input.setAttribute('autocapitalize', 'characters');
-      input.setAttribute('spellcheck', 'false');
-      input.addEventListener('keydown', this.impedirTeclasNaoAlfanumericas);
-      input.addEventListener('input', (e) => {
-        e.target.value = Utils.formatarPlaca(e.target.value);
-      });
-      if (input.value) {
-        input.value = Utils.formatarPlaca(input.value);
-      }
-    });
-
-    // 2. Campo de busca geral (#search ou #q)
-    const inputsBusca = document.querySelectorAll('#search, #q');
-    inputsBusca.forEach((input) => {
-      input.setAttribute('maxlength', '100');
-    });
-
-    // 3. CPF do motorista (#cpf)
-    const inputsCpf = document.querySelectorAll('#cpf');
-    inputsCpf.forEach((input) => {
-      input.setAttribute('maxlength', '14');
-      input.setAttribute('inputmode', 'numeric');
-      input.setAttribute('autocomplete', 'off');
-      input.addEventListener('keydown', this.impedirTeclasNaoDigito);
-      input.addEventListener('input', (e) => {
-        e.target.value = Utils.formatarCpf(e.target.value);
-      });
-      if (input.value) {
-        input.value = Utils.formatarCpf(input.value);
-      }
-    });
-
-    // 4. CNH do motorista (#numeroCnh)
-    const inputsCnh = document.querySelectorAll('#numeroCnh');
-    inputsCnh.forEach((input) => {
-      input.setAttribute('maxlength', '11');
-      input.setAttribute('inputmode', 'numeric');
-      input.setAttribute('autocomplete', 'off');
-      input.addEventListener('keydown', this.impedirTeclasNaoDigito);
-      input.addEventListener('input', (e) => {
-        e.target.value = Utils.formatarCnh(e.target.value);
-      });
-      if (input.value) {
-        input.value = Utils.formatarCnh(input.value);
-      }
-    });
-
-    // 5. Telefone do motorista (#telefone)
-    const inputsTelefone = document.querySelectorAll('#telefone');
-    inputsTelefone.forEach((input) => {
-      input.setAttribute('maxlength', '15');
-      input.setAttribute('inputmode', 'numeric');
-      input.setAttribute('autocomplete', 'tel');
-      input.addEventListener('keydown', this.impedirTeclasNaoDigito);
-      input.addEventListener('input', (e) => {
-        e.target.value = Utils.formatarTelefone(e.target.value);
-      });
-      if (input.value) {
-        input.value = Utils.formatarTelefone(input.value);
-      }
-    });
-
-    // 6. Ano de fabricação (#year ou #ano)
-    const inputsAno = document.querySelectorAll('#year, #ano');
-    inputsAno.forEach((input) => {
-      input.setAttribute('maxlength', '4');
-      input.setAttribute('inputmode', 'numeric');
-      input.addEventListener('keydown', this.impedirTeclasNaoDigito);
-      input.addEventListener('input', (e) => {
-        e.target.value = Utils.formatarApenasDigitos(e.target.value, 4);
-      });
-    });
-
-    // 7. Quilometragem (#mileage ou #quilometragem)
-    const inputsKm = document.querySelectorAll('#mileage, #quilometragem');
-    inputsKm.forEach((input) => {
-      input.setAttribute('maxlength', '7');
-      input.setAttribute('inputmode', 'numeric');
-      input.addEventListener('keydown', this.impedirTeclasNaoDigito);
-      input.addEventListener('input', (e) => {
-        e.target.value = Utils.formatarApenasDigitos(e.target.value, 7);
-      });
-    });
-
-    // 8. Username em cadastros (#username fora de form de login)
-    const inputsUsername = document.querySelectorAll('#username');
-    inputsUsername.forEach((input) => {
-      const isLogin = input.closest('form') && input.closest('form').getAttribute('action') && input.closest('form').getAttribute('action').includes('/login');
-      if (!isLogin) {
-        input.setAttribute('maxlength', '100');
-        input.setAttribute('autocorrect', 'off');
-        input.setAttribute('autocapitalize', 'none');
-        input.setAttribute('spellcheck', 'false');
-        input.addEventListener('input', (e) => {
-          e.target.value = Utils.formatarUsername(e.target.value);
-        });
-      }
-    });
-
-    // 9. Bloqueio de submissão dupla em formulários (Double Submit Prevention)
-    document.querySelectorAll('form').forEach((form) => {
-      form.addEventListener('submit', () => {
-        const submitBtn = form.querySelector('button[type="submit"]');
-        if (submitBtn && !submitBtn.disabled) {
-          setTimeout(() => {
-            submitBtn.disabled = true;
-          }, 0);
-        }
-      });
-    });
   }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  FormMasks.iniciar();
+  // Formatação automática do campo de placa (letras maiúsculas e sem caracteres especiais)
+  const inputPlaca = document.getElementById('plate');
+  if (inputPlaca) {
+    inputPlaca.addEventListener('input', (e) => {
+      e.target.value = Utils.formatarPlaca(e.target.value);
+    });
+  }
+
+  // Conversão para maiúsculas na busca por placa
+  const inputBusca = document.getElementById('search');
+  if (inputBusca) {
+    inputBusca.addEventListener('input', () => {
+      inputBusca.value = inputBusca.value.toUpperCase();
+    });
+  }
 });
 
 /* ---------------------------------------------------------------------------
