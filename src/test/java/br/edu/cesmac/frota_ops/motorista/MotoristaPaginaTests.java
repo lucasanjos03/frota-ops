@@ -265,7 +265,7 @@ class MotoristaPaginaTests {
                 .andExpect(content().string(containsString("CNHs a vencer")))
                 .andExpect(content().string(containsString("Sem veículo atribuído")))
                 .andExpect(content().string(not(containsString("<canvas"))))
-                .andExpect(content().string(not(containsString("/js/vendor/chart.umd.min.js"))))
+                .andExpect(content().string(not(containsString("/js/vendor/chart.umd.min"))))
                 .andExpect(content().string(not(containsString("Documentos que exigem atenção"))))
                 // Filtros
                 .andExpect(content().string(containsString("id=\"status\"")))

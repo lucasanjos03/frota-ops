@@ -258,7 +258,7 @@ class VeiculoPaginaTests {
                 .andExpect(content().string(containsString("Revisões próximas")))
                 .andExpect(content().string(containsString("Sem condutor atribuído")))
                 .andExpect(content().string(not(containsString("<canvas"))))
-                .andExpect(content().string(not(containsString("/js/vendor/chart.umd.min.js"))))
+                .andExpect(content().string(not(containsString("/js/vendor/chart.umd.min"))))
                 // Formatação de quilometragem (separador de milhar)
                 .andExpect(content().string(containsString("1.000 km")))
                 // Filtros

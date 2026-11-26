@@ -458,7 +458,7 @@ class ManutencaoPaginaTests {
                 .andExpect(content().string(containsString("Revisões atrasadas")))
                 .andExpect(content().string(containsString("Revisões previstas")))
                 .andExpect(content().string(not(containsString("<canvas"))))
-                .andExpect(content().string(not(containsString("/js/vendor/chart.umd.min.js"))))
+                .andExpect(content().string(not(containsString("/js/vendor/chart.umd.min"))))
                 .andExpect(content().string(not(containsString("data-table--ranking"))))
                 .andExpect(content().string(not(containsString("Revisões previstas no cadastro"))))
                 .andExpect(content().string(containsString("MNTG002")))

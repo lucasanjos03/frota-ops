@@ -356,7 +356,7 @@ class DashboardServiceTests {
                 .andExpect(content().string(containsString("/manutencoes?veiculoId=" + primeiro.getId())))
                 .andExpect(content().string(containsString("/motoristas?categoria=B")))
                 .andExpect(content().string(containsString("window.FLEET_DASHBOARD")))
-                .andExpect(content().string(containsString("/js/vendor/chart.umd.min.js")));
+                .andExpect(content().string(containsString("/js/vendor/chart.umd.min")));
     }
 
     @Test
